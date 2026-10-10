@@ -1,0 +1,119 @@
+.cols {
+  grid-template-columns: minmax(220px, 1.4fr) 100px minmax(180px, 1fr) 80px 130px 80px 100px;
+}
+.who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.4);
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 61;
+  width: min(440px, 100vw);
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  animation: tin 0.2s ease-out;
+}
+.dHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.dBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.dStats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.dStats > div {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--panel2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.dStats span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.dStats strong {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dContacts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dContacts > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.dContacts svg {
+  flex: none;
+  color: var(--muted);
+}
+.dSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dSection h3 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.car {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.order {
+  display: grid;
+  grid-template-columns: 70px 50px minmax(0, 1fr) 100px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--divider);
+  border-radius: var(--r-sm);
+  color: var(--text);
+}
+.order:hover {
+  background: var(--hover2);
+  text-decoration: none;
+}

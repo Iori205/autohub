@@ -1,0 +1,165 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.dialog {
+  width: 100%;
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  animation: tin 0.18s ease-out;
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.headText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.headText h2 {
+  font-size: 16px;
+  font-weight: 600;
+}
+.headText span {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.headActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.foot {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--panel2);
+}
+
+.formGrid {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 520px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.confirm {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: tin 0.18s ease-out;
+}
+.confirmBody {
+  display: flex;
+  gap: 12px;
+}
+.confirmBody h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.confirmBody p {
+  margin: 0;
+  color: var(--muted);
+}
+.confirmIcon {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.confirmIcon[data-danger="true"] {
+  background: color-mix(in oklab, var(--danger) 15%, transparent);
+  color: var(--danger);
+}
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.toasts {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.toast {
+  --c: var(--tone-green);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 9px 8px 9px 14px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--c);
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+  animation: tin 0.2s ease-out;
+}
+.toast[data-kind="err"] {
+  --c: var(--danger);
+}
+.toast[data-kind="info"] {
+  --c: var(--accent);
+}
+.toast > span {
+  flex: 1;
+}
+.toastIcon {
+  flex: none;
+  color: var(--c);
+}
+@media (max-width: 520px) {
+  .toasts {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+  }
+  .toast {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+}

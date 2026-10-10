@@ -1,0 +1,16 @@
+.cols {
+  grid-template-columns: minmax(220px, 2fr) 140px 70px 100px 120px 120px 120px;
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+.prod {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 500;
+}
+.logCols {
+  grid-template-columns: 110px minmax(200px, 1.5fr) 80px minmax(180px, 1.2fr) 140px 80px;
+}

@@ -1,0 +1,51 @@
+.banners {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 14px;
+}
+.banner {
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  background: var(--panel2);
+}
+.bannerImg {
+  position: relative;
+  aspect-ratio: 16 / 6;
+  background: repeating-linear-gradient(135deg, var(--panel2) 0 8px, var(--divider) 8px 16px);
+  display: grid;
+  place-items: center;
+  color: color-mix(in oklab, var(--mut) 40%, transparent);
+}
+.order {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+}
+.bannerBody {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 1px solid var(--divider);
+}
+.cols {
+  grid-template-columns: minmax(180px, 1.3fr) 70px minmax(160px, 1fr) 130px 120px 60px 64px;
+}
