@@ -1,0 +1,72 @@
+/*
+ * AuToHub design tokens — shared across apps (web, dashboard).
+ * Dark is the default theme; light is opt-in via <html data-theme="light">.
+ *
+ * Breakpoints (CSS can't use variables in media queries, keep these in sync):
+ *   mobile  < 820px
+ *   wide   >= 1100px
+ */
+
+:root {
+  /* Brand — orange accent (design option #FF8A00). Text on accent is dark. */
+  --accent: #ff8a00;
+  --accent-hover: #ff9d2b;
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+  --accent-tint: color-mix(in oklab, var(--accent) 8%, transparent);
+  --accent-ring: color-mix(in oklab, var(--accent) 45%, transparent);
+  --on-accent: #0b0b0d;
+
+  /* Surfaces & text — dark (default) */
+  --bg: #050505;
+  --bg2: #0b0b0d;
+  --card: #111114;
+  --card2: #17171b;
+  --line: #222227;
+  --line2: #34343b;
+  --fg: #f3f3f1;
+  --mut: #9c9ca4;
+  --ph1: #121216;
+  --ph2: #16161b;
+  --hdr: rgba(5, 5, 5, 0.86);
+
+  /* Status — red is reserved for errors / "тохирохгүй", never the brand */
+  --ok: oklch(0.74 0.17 150);
+  --warn: oklch(0.78 0.15 70);
+  --danger: oklch(0.68 0.2 28);
+
+  /* Typography — the --font-* vars come from next/font in each app */
+  --font-display: var(--font-fira), "Fira Sans Extra Condensed", sans-serif;
+  --font-body: var(--font-manrope), Manrope, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
+
+  /* Radius */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  --r-2xl: 18px;
+
+  /* Layout */
+  --container: 1320px;
+  --gutter: clamp(14px, 3vw, 28px);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f5f5f3;
+  --bg2: #ffffff;
+  --card: #ffffff;
+  --card2: #efefec;
+  --line: #e2e2dd;
+  --line2: #c9c9c3;
+  --fg: #0d0d10;
+  --mut: #5d5d66;
+  --ph1: #eeeeea;
+  --ph2: #e6e6e1;
+  --hdr: rgba(245, 245, 243, 0.9);
+  --ok: oklch(0.55 0.15 150);
+
+  color-scheme: light;
+}

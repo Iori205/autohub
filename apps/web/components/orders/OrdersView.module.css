@@ -1,0 +1,165 @@
+.title {
+  margin: 10px 0 22px;
+}
+.empty {
+  padding: 60px 20px;
+  text-align: center;
+  border: 1px dashed var(--line2);
+  border-radius: var(--r-xl);
+  color: var(--mut);
+}
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 819px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--r-lg);
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  cursor: pointer;
+}
+.card[data-active="true"] {
+  border-color: var(--accent);
+}
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.no {
+  font-weight: 500;
+  font-size: 15px;
+}
+.cardTotal {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+}
+.cardMeta {
+  font-size: 12px;
+  color: var(--mut);
+  white-space: nowrap;
+}
+.cardBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.smallPay {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--r-sm);
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg2);
+}
+.detailDate {
+  font-size: 12px;
+  color: var(--mut);
+}
+.detailTitle {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(24px, 3vw, 34px);
+  text-transform: uppercase;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.payBanner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  padding: 18px 20px;
+  border-radius: var(--r-lg);
+  border: 1.5px solid var(--accent);
+  background: var(--accent-tint);
+}
+.payLogo {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 15px;
+}
+.payText {
+  font-size: 13px;
+  color: var(--mut);
+  margin-top: 3px;
+}
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sums {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.sumTotal {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.sumTotal span:first-child {
+  font-weight: 800;
+}
+.sumTotal span:last-child {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 26px;
+  color: var(--accent);
+}
+.help {
+  font-size: 13px;
+  color: var(--mut);
+}
+.help b {
+  color: var(--fg);
+}

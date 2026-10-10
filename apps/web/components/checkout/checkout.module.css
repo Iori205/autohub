@@ -1,0 +1,183 @@
+/* Shared layout for cart / checkout / payment / orders. */
+
+.page {
+  padding-top: 36px;
+}
+.h1 {
+  margin-bottom: 22px;
+}
+.h1 small {
+  color: var(--mut);
+  font-weight: 500;
+  font-size: inherit;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 24px;
+  align-items: start;
+}
+.mainCol {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  grid-column: span 2;
+}
+@media (max-width: 819px) {
+  .mainCol {
+    grid-column: span 1;
+  }
+}
+
+.aside {
+  position: sticky;
+  top: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg2);
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+}
+.itemRow > span:first-child {
+  min-width: 0;
+}
+.itemRow > span:last-child {
+  font-weight: 700;
+  white-space: nowrap;
+}
+.x {
+  color: var(--mut);
+}
+
+.totals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 14px;
+}
+.totalsDivided {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.kv {
+  display: flex;
+  justify-content: space-between;
+}
+.kv > span:first-child {
+  color: var(--mut);
+}
+.kv > span:last-child {
+  font-weight: 700;
+}
+.grand {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.grand > span:first-child {
+  font-weight: 800;
+}
+.grandValue {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 30px;
+  color: var(--accent);
+}
+
+.deliveryNote {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--mut);
+  line-height: 1.5;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.deliveryNote svg {
+  color: var(--fg);
+  margin-top: 1px;
+}
+.deliveryNote b {
+  color: var(--fg);
+}
+
+.empty {
+  padding: 72px 20px;
+  text-align: center;
+  border: 1px dashed var(--line2);
+  border-radius: var(--r-xl);
+}
+.emptyTitle {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 14px 0 6px;
+}
+.emptyActions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* status pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 15px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pillDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* key/value list (payment info) */
+.kvCard {
+  padding: 6px 22px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg2);
+}
+.kvRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+}
+.kvRow > span:first-child {
+  color: var(--mut);
+}
+.kvRow > span:last-child {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  text-align: right;
+  word-break: break-all;
+}
+
+.twoCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 18px;
+  align-items: start;
+}

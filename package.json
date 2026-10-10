@@ -2,8 +2,11 @@
   "name": "autohub",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
     "dev": "turbo run dev",
+    "web": "turbo run dev --filter=web",
+    "dash": "turbo run dev --filter=dashboard",
+    "service": "turbo run dev --filter=service",
+    "build": "turbo run build",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types"

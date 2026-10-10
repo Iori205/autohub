@@ -1,0 +1,41 @@
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 150px), 1fr));
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+}
+.tile {
+  height: 84px;
+  display: grid;
+  place-items: center;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  color: var(--mut);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 10px;
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+.tile:hover {
+  color: var(--fg);
+  background: var(--card);
+}
+
+@media (max-width: 819px) {
+  .strip {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+  .tile {
+    flex: 0 0 132px;
+    height: 68px;
+    scroll-snap-align: start;
+  }
+}

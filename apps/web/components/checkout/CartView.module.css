@@ -1,0 +1,140 @@
+.line {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--card);
+}
+.thumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--r-md);
+  overflow: hidden;
+  align-self: start;
+}
+.fill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.lineBody {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  justify-content: space-between;
+}
+.lineInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: min(200px, 100%);
+  flex: 1;
+}
+.meta {
+  font-size: 12px;
+  color: var(--mut);
+  font-weight: 600;
+}
+.name {
+  font-weight: 700;
+}
+.oem {
+  font-size: 12px;
+  color: var(--mut);
+}
+.fits {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ok);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.lineActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.qty {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  border: 1px solid var(--line2);
+  border-radius: 9px;
+}
+.qty button {
+  width: 34px;
+  height: 100%;
+  border: 0;
+  background: none;
+  display: grid;
+  place-items: center;
+}
+.qty span {
+  width: 28px;
+  text-align: center;
+  font-weight: 800;
+}
+.lineTotal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 90px;
+}
+.lineTotal span:first-child {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+}
+.lineTotal span:last-child {
+  font-size: 12px;
+  color: var(--mut);
+}
+.remove {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: none;
+  color: var(--mut);
+  display: grid;
+  place-items: center;
+}
+
+.free {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--mut);
+}
+.freeTrack {
+  height: 5px;
+  border-radius: 3px;
+  background: var(--line);
+  overflow: hidden;
+}
+.freeTrack span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.qpNote {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--mut);
+  line-height: 1.5;
+}
+
+@media (max-width: 819px) {
+  .line {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+}

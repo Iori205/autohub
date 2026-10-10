@@ -1,0 +1,12 @@
+.ph {
+  display: grid;
+  place-items: center;
+}
+.glyph {
+  color: var(--mut);
+  opacity: 0.22;
+}
+.img {
+  display: block;
+  object-fit: cover;
+}

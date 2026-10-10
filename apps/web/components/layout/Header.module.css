@@ -1,0 +1,300 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--hdr);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+
+/* top bar */
+.topbar {
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--mut);
+}
+.topbarInner {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.topbarGroup {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+.topbarLinks {
+  display: flex;
+  gap: 18px;
+}
+.iconText {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* main row */
+.main {
+  height: 76px;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.search {
+  flex: 1 1 200px;
+  min-width: 0;
+  max-width: 640px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding-left: 14px;
+  gap: 10px;
+}
+.search input,
+.mSearch input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: none;
+  border: 0;
+  outline: none;
+  font-size: 14px;
+}
+.search button {
+  height: 36px;
+  margin-right: 5px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+  font-size: 14px;
+}
+.searchIcon {
+  color: var(--mut);
+}
+.actions {
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cartBtn {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px 0 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+.cartBtn:hover,
+.accountBtn:hover {
+  color: inherit;
+  border-color: var(--line2);
+}
+.cartIcon {
+  position: relative;
+  display: grid;
+}
+.cartBadge {
+  position: absolute;
+  top: -9px;
+  right: -10px;
+  min-width: 17px;
+  height: 17px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 10px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  padding: 0 4px;
+}
+.cartText {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.cartText span {
+  font-size: 11px;
+  color: var(--mut);
+}
+.cartText b {
+  font-weight: 800;
+  font-size: 14px;
+}
+.accountBtn {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line2);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* nav row */
+.navRow {
+  border-top: 1px solid var(--line);
+}
+.nav {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.finderLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--accent);
+}
+.saleLink {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.saleTag {
+  font-size: 10px;
+  font-weight: 800;
+  background: var(--accent);
+  color: var(--on-accent);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.quickCats {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+.quickCats a {
+  color: var(--mut);
+  font-weight: 600;
+}
+.quickCats a:hover {
+  color: var(--accent);
+}
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--line2);
+}
+.carPill {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 6px 0 12px;
+  border-radius: 16px;
+  font-size: 13px;
+}
+.carPill button,
+.mCarPill button {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--card2);
+  display: grid;
+  place-items: center;
+}
+.carPillLabel {
+  color: var(--mut);
+  font-weight: 600;
+  flex: none;
+}
+.okIcon {
+  color: var(--ok);
+}
+.ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* mobile */
+.mobile {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mobileTop {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mBtn {
+  margin-left: auto;
+  width: 44px;
+  height: 44px;
+}
+.mBtnPlain {
+  width: 44px;
+  height: 44px;
+}
+.mBadge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 19px;
+  height: 19px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 11px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border: 2px solid var(--bg);
+}
+.mSearch {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 0 12px;
+  gap: 8px;
+}
+.mCarPill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 6px 0 12px;
+  border-radius: 17px;
+  font-size: 13px;
+}
+.mCarPill button {
+  width: 24px;
+  height: 24px;
+}

@@ -1,0 +1,6 @@
+.page {
+  padding-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}

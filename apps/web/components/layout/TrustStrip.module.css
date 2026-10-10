@@ -1,0 +1,38 @@
+.wrap {
+  margin-top: 64px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  background: var(--bg2);
+  overflow: hidden;
+}
+.item {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 22px;
+  border-right: 1px solid var(--line);
+}
+.icon {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+.t {
+  font-weight: 800;
+  font-size: 15px;
+}
+.s {
+  font-size: 13px;
+  color: var(--mut);
+  margin-top: 3px;
+  line-height: 1.4;
+}

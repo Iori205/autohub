@@ -1,0 +1,148 @@
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.created {
+  font-size: 12px;
+  color: var(--ok);
+  letter-spacing: 0.06em;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.created span {
+  white-space: nowrap;
+}
+.title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(40px, 7vw, 64px);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+.lede {
+  color: var(--mut);
+  line-height: 1.55;
+}
+.failed {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line2);
+  background: var(--card);
+  font-size: 14px;
+}
+
+.methods {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.method {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--accent);
+  background: var(--card);
+}
+.radio {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  display: grid;
+  place-items: center;
+}
+.radio span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.methodText {
+  flex: 1;
+  min-width: 0;
+}
+.methodTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 800;
+  font-size: 15px;
+}
+.recommend {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.methodSub {
+  font-size: 13px;
+  color: var(--mut);
+  margin-top: 3px;
+  line-height: 1.45;
+}
+.disabled {
+  border: 1px dashed var(--line2);
+  background: none;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.disabled .radio {
+  border-color: var(--line2);
+}
+.walletIcon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: var(--r-md);
+  background: var(--card2);
+  display: grid;
+  place-items: center;
+}
+.soon {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  border: 1px solid var(--line2);
+  color: var(--mut);
+}
+
+.payBtn {
+  height: 58px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+}
+.payBtn:hover {
+  color: var(--on-accent);
+  background: var(--accent-hover);
+}
+.secure {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--mut);
+  text-align: center;
+}

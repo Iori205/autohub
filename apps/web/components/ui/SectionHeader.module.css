@@ -1,0 +1,21 @@
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.more {
+  color: var(--mut);
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  white-space: nowrap;
+}
+.aside {
+  color: var(--mut);
+  font-size: 13px;
+  text-align: right;
+}

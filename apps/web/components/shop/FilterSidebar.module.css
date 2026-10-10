@@ -1,0 +1,250 @@
+.aside {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--bg2);
+}
+.section {
+  padding: 16px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.car {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: var(--r-md);
+  border-color: color-mix(in oklab, var(--ok) 35%, transparent);
+}
+.car button {
+  border: 0;
+  background: none;
+  color: var(--mut);
+  display: grid;
+}
+.carName {
+  font-weight: 700;
+  font-size: 14px;
+}
+.carEngine {
+  font-size: 12px;
+  color: var(--mut);
+}
+.switchRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  background: none;
+  padding: 0;
+  text-align: left;
+}
+.pickCar {
+  height: 42px;
+  border-radius: var(--r-md);
+  border: 1px dashed var(--line2);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  border: 0;
+  background: none;
+  padding: 0;
+}
+.check:disabled {
+  opacity: 0.38;
+}
+.box {
+  width: 18px;
+  height: 18px;
+  flex: none;
+  border-radius: 5px;
+  border: 1.5px solid var(--line2);
+  display: grid;
+  place-items: center;
+  color: var(--on-accent);
+}
+.box svg {
+  opacity: 0;
+}
+.check[data-on="true"] .box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.check[data-on="true"] .box svg {
+  opacity: 1;
+}
+.cnt {
+  font-size: 12px;
+  color: var(--mut);
+}
+
+.priceInputs {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+}
+.priceInputs input {
+  height: 40px;
+  min-width: 0;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 0 10px;
+  outline: none;
+  font-size: 14px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chips button {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 15px;
+  border: 1px solid var(--line2);
+  background: none;
+  font-size: 12px;
+  font-weight: 600;
+}
+.segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--card);
+  border: 1px solid var(--line);
+}
+.segment button {
+  height: 34px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+}
+.segment button[data-active="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.clearBtn {
+  height: 40px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line2);
+  background: none;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+/* ---------- mobile bottom sheet ---------- */
+@media (max-width: 819px) {
+  .overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 97;
+    background: rgba(0, 0, 0, 0.55);
+    display: none;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .overlay[data-open="true"] {
+    display: flex;
+  }
+  .sheet {
+    max-height: 86%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: 18px 18px 0 0;
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+  }
+  .aside {
+    border: 0;
+  }
+}
+.sheetHead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg2);
+  padding: 8px 16px 12px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.grabber {
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line2);
+}
+.sheetTitleRow {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sheetTitle {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  text-transform: uppercase;
+}
+.sheetClose {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--card2);
+  display: grid;
+  place-items: center;
+}
+.sheetFoot {
+  position: sticky;
+  bottom: 0;
+  padding: 12px 16px 16px;
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+}
+.footClear {
+  height: 50px;
+  padding: 0 16px;
+  border-radius: 11px;
+  border: 1px solid var(--line2);
+  background: none;
+  font-weight: 700;
+}
+.footApply {
+  height: 50px;
+  border-radius: 11px;
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 800;
+  font-size: 15px;
+}

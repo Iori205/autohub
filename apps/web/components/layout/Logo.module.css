@@ -1,0 +1,63 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  min-width: 0;
+}
+.logo:hover {
+  color: inherit;
+}
+
+.mark {
+  flex: none;
+  background: var(--accent);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--on-accent);
+  transform: skewX(-8deg);
+}
+
+.name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lg .mark {
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+}
+.lg .name {
+  font-size: 21px;
+}
+
+.md .mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  font-size: 19px;
+}
+.md .name {
+  font-size: 19px;
+}
+
+.sm {
+  gap: 8px;
+}
+.sm .mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  font-size: 18px;
+}
+.sm .name {
+  font-size: 17px;
+}

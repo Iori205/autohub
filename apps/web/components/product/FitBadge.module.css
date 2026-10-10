@@ -1,0 +1,26 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: var(--r-xs);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.badge[data-status="yes"] {
+  color: var(--ok);
+  background: color-mix(in oklab, var(--ok) 13%, transparent);
+}
+.badge[data-status="no"] {
+  color: var(--danger);
+  background: color-mix(in oklab, var(--danger) 13%, transparent);
+}
+.badge[data-status="unknown"] {
+  color: var(--mut);
+  background: var(--card2);
+}
