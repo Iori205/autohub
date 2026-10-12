@@ -4,6 +4,8 @@ import { PrismaClient } from "./generated/prisma/client";
 /**
  * Prisma client over the pooled connection (Supabase pooler / DATABASE_URL).
  * One instance per process; in dev the global keeps it across hot reloads.
+ * Created on first use, so importing @repo/db (e.g. during `next build`)
+ * doesn't need the database URL.
  */
 function create() {
   const connectionString = process.env.DATABASE_URL;
@@ -13,5 +15,14 @@ function create() {
 
 const g = globalThis as unknown as { __autohubPrisma?: PrismaClient };
 
-export const prisma: PrismaClient = g.__autohubPrisma ?? create();
-if (process.env.NODE_ENV !== "production") g.__autohubPrisma = prisma;
+function instance(): PrismaClient {
+  return (g.__autohubPrisma ??= create());
+}
+
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = instance();
+    const value = Reflect.get(client, prop, client);
+    return typeof value === "function" ? value.bind(client) : value;
+  },
+});
