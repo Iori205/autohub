@@ -10,7 +10,12 @@
     "AUTH_SECRET",
     "CORS_ORIGINS",
     "PUBLIC_API_URL",
-    "COOKIE_DOMAIN"
+    "COOKIE_DOMAIN",
+    "QPAY_BASE_URL",
+    "QPAY_USERNAME",
+    "QPAY_PASSWORD",
+    "QPAY_INVOICE_CODE",
+    "DEMO_MODE"
   ],
   "tasks": {
     "build": {

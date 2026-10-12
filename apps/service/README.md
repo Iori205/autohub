@@ -5,7 +5,8 @@ Next.js route handlers under `/api/v1`, on **http://localhost:4000**. Data comes
 
 ```bash
 npm run dev -w service        # reads the root .env (DATABASE_URL, AUTH_SECRET, …)
-npm run test:api -w service   # end-to-end checks; needs a freshly seeded dev DB
+npm run test:api -w service       # end-to-end checks; needs a freshly seeded dev DB
+npm run test:payments -w service  # QPay flow (MODE=demo|off|sandbox); same DB rule
 ```
 
 ## Conventions
@@ -47,7 +48,27 @@ npm run test:api -w service   # end-to-end checks; needs a freshly seeded dev DB
 
 Checkout creates a `PENDING` order with a 15-minute invoice window; prices and the delivery fee are
 computed on the server (UB courier free from `delivery.freeOver`, pickup free, province fee from the
-zone settings). QPay invoices, callback and polling arrive in Step 3.
+zone settings).
+
+## Payments (QPay v2)
+
+| Method | Path | |
+| --- | --- | --- |
+| POST | `/payments/qpay/invoice` `{ number }` | `{ invoiceId, qrImage (data URL), qrText, shortUrl, urls: [{ name, description, logo, link }], expiresAt, amount, demo }` — reuses a valid invoice, otherwise issues a new 15-minute one (also reopens an expired order) |
+| POST | `/payments/qpay/check` `{ number }` | poll every few seconds → `{ paymentStatus, stage, paidAt, secondsLeft }` |
+| POST | `/payments/qpay/cancel` `{ number }` | "Төлбөрийг цуцлах": invoice cancelled, order kept (EXPIRED) and payable again |
+| GET/POST | `/payments/qpay/callback?order=…&sig=…` | QPay → us. HMAC-signed URL; the payment is confirmed with QPay's `payment/check`, never trusted from the call |
+| POST | `/payments/demo/paid` · `/expired` · `/error` `{ number }` | **DEMO_MODE=true only**, 404 otherwise |
+
+- Env: `QPAY_BASE_URL` (sandbox `https://merchant-sandbox.qpay.mn/v2` by default, production
+  `https://merchant.qpay.mn/v2`), `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE`, `DEMO_MODE`,
+  `PUBLIC_API_URL` (callback base — must be reachable by QPay in production).
+- A payment marks the order `PAID` once QPay's paid amount covers the total, deducts stock (once, even if
+  the callback and polling race) and records the QPay payment id.
+- Expiry: invoices last 15 minutes. A throttled sweep (run on order reads) expires stale `PENDING` orders
+  after a 2-minute grace, checking real invoices with QPay one last time so a late payment isn't lost.
+- `DEMO_MODE=true`: no QPay calls; invoices get a locally drawn QR and the bank deep links, and the demo
+  endpoints simulate the outcome. Without QPay credentials and with demo off, invoice requests answer 503.
 
 ## Dashboard (`/admin`, staff session)
 

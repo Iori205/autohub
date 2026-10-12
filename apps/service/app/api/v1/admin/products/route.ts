@@ -20,11 +20,13 @@ export const GET = route(async (req) => {
 
 export const POST = route(async (req) => {
   const staff = await requireStaff(req);
-  const { fitments, stock, ...p } = await body(req, productInput);
+  const { fitments, stock, sortOrder, ...p } = await body(req, productInput);
   const product = await prisma.$transaction(async (tx) => {
+    const last = await tx.product.aggregate({ _max: { sortOrder: true } });
     const row = await tx.product.create({
       data: {
         ...p,
+        sortOrder: sortOrder ?? (last._max.sortOrder ?? 0) + 1,
         stock: 0,
         oemSearch: p.oemNumbers.map(normalizeOem),
         specs: p.specs as Prisma.InputJsonValue,

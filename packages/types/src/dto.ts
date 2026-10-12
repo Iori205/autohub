@@ -24,6 +24,8 @@ export type ErrorCode =
   | "NOT_FOUND"
   | "CONFLICT"
   | "RATE_LIMITED"
+  | "PAYMENT_PROVIDER"
+  | "UNAVAILABLE"
   | "INTERNAL";
 
 /** Every non-2xx response has this body. `fields` maps "delivery.address" → message. */
@@ -99,6 +101,8 @@ export interface ProductSummaryDto {
   images: string[];
   fitmentUnknown: boolean;
   active: boolean;
+  /** position in "Санал болгох" */
+  sortOrder: number;
   /** distinct model names this part fits ("Prius", "Land Cruiser 200") */
   fitsModels: string[];
 }
@@ -177,6 +181,43 @@ export interface OrderDto {
 export interface AdminOrderDto extends OrderDto {
   customerId: string | null;
   notes: OrderNoteDto[];
+}
+
+/* ---------- payments (QPay) ---------- */
+
+export interface BankLinkDto {
+  name: string;
+  description: string;
+  /** logo image URL from QPay (empty in DEMO_MODE) */
+  logo: string;
+  /** deep link that opens the bank / wallet app with the invoice */
+  link: string;
+}
+
+export interface QPayInvoiceDto {
+  orderNumber: string;
+  invoiceId: string;
+  amount: number;
+  /** data URL — show as <img src> */
+  qrImage: string;
+  qrText: string;
+  shortUrl: string | null;
+  urls: BankLinkDto[];
+  expiresAt: string;
+  /** created by DEMO_MODE, not by QPay */
+  demo: boolean;
+}
+
+/** Result of polling / the callback / demo actions. */
+export interface PaymentStateDto {
+  orderNumber: string;
+  paymentStatus: PaymentStatus;
+  stage: OrderStage;
+  paidAt: string | null;
+  paymentId: string | null;
+  invoiceExpiresAt: string | null;
+  /** seconds until the invoice expires (0 when expired or paid) */
+  secondsLeft: number;
 }
 
 /* ---------- users ---------- */

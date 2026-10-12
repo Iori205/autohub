@@ -76,5 +76,5 @@ export function productOrder(sort: ProductQuery["sort"]): Prisma.ProductOrderByW
   if (sort === "asc") return [{ price: "asc" }, { id: "asc" }];
   if (sort === "desc") return [{ price: "desc" }, { id: "asc" }];
   if (sort === "stock") return [{ stock: "desc" }, { id: "asc" }];
-  return [{ id: "asc" }];
+  return [{ sortOrder: "asc" }, { id: "asc" }];
 }

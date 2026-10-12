@@ -1,3 +1,5 @@
+import "./load-env";
+
 /** Server configuration from the root .env (see .env.example). Read lazily so builds don't need secrets. */
 
 function required(name: string): string {

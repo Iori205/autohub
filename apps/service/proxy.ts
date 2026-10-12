@@ -1,3 +1,4 @@
+import "./lib/load-env";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**

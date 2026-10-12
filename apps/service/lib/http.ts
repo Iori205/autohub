@@ -1,3 +1,4 @@
+import "./load-env";
 import type { ApiErrorBody, ErrorCode } from "@repo/types";
 import { NextResponse, type NextRequest } from "next/server";
 import { ZodError, type z } from "zod";
@@ -10,6 +11,8 @@ const STATUS: Record<ErrorCode, number> = {
   NOT_FOUND: 404,
   CONFLICT: 409,
   RATE_LIMITED: 429,
+  PAYMENT_PROVIDER: 502,
+  UNAVAILABLE: 503,
   INTERNAL: 500,
 };
 

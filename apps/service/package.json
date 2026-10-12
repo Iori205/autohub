@@ -8,14 +8,17 @@
     "start": "next start --port 4000",
     "lint": "eslint --max-warnings 0",
     "check-types": "next typegen && tsc --noEmit",
-    "test:api": "node scripts/api-test.mjs"
+    "test:api": "node scripts/api-test.mjs",
+    "test:payments": "node scripts/payments-test.mjs"
   },
   "dependencies": {
+    "@next/env": "16.4.0",
     "@repo/db": "*",
     "@repo/types": "*",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.12",
     "next": "16.4.0",
+    "qrcode-generator": "^2.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "zod": "^4.6.6"

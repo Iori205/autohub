@@ -3,9 +3,11 @@ import { orderLookupInput, type OrderDto } from "@repo/types";
 import { throttle } from "@/lib/auth";
 import { body, notFound, ok, route } from "@/lib/http";
 import { orderDto, orderInclude } from "@/lib/serialize";
+import { sweepExpired } from "@/lib/payments";
 
 /** Guest lookup: the phone number given at checkout + the order number. */
 export const POST = route(async (req) => {
+  await sweepExpired();
   const { phone, number } = await body(req, orderLookupInput);
   const t = throttle(req, `lookup:${phone}`);
   const o = await prisma.order.findFirst({ where: { number, customerPhone: phone }, include: orderInclude });

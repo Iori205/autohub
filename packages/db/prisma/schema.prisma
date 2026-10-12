@@ -58,6 +58,14 @@ enum DeliveryStatus {
   DELIVERED
 }
 
+enum InvoiceStatus {
+  OPEN
+  PAID
+  /// cancelled by the customer or by staff
+  CANCELLED
+  EXPIRED
+}
+
 enum CampaignTarget {
   ALL
   CATEGORY
@@ -171,6 +179,8 @@ model Product {
   images            String[]
   /// [{ "k": "Байрлал", "v": "Урд тэнхлэг" }, …]
   specs             Json        @default("[]")
+  /// Position in "Санал болгох" (recommended) order; lower first
+  sortOrder         Int         @default(0)
   /// Fitment not verified (storefront shows "тохирох эсэхийг шалгана уу")
   fitmentUnknown    Boolean     @default(false)
   active            Boolean     @default(true)
@@ -187,6 +197,7 @@ model Product {
 
   @@index([categoryId])
   @@index([brandId])
+  @@index([sortOrder])
   @@index([oemSearch], type: Gin)
 }
 
@@ -277,10 +288,11 @@ model Order {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
   items          OrderItem[]
   notes          OrderNote[]
   stockMovements StockMovement[]
+  invoices       PaymentInvoice[]
 
   @@index([customerPhone])
   @@index([userId])
@@ -303,6 +315,32 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+}
+
+/// A QPay invoice issued for an order (a new one replaces an expired/cancelled one).
+/// Keeps the QR and bank app links so the payment screen can be shown again.
+model PaymentInvoice {
+  /// QPay invoice_id (DEMO_MODE: "demo-…")
+  id        String        @id
+  orderId   String
+  amount    Int
+  qrText    String
+  /// data URL (QPay's PNG, or a locally drawn QR in DEMO_MODE)
+  qrImage   String
+  shortUrl  String?
+  /// [{ name, description, logo, link }] bank / wallet deep links
+  urls      Json          @default("[]")
+  demo      Boolean       @default(false)
+  status    InvoiceStatus @default(OPEN)
+  paymentId String?
+  expiresAt DateTime
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([status, expiresAt])
 }
 
 /// Internal staff note on an order

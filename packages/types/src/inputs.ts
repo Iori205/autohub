@@ -112,6 +112,12 @@ export const orderLookupInput = z.object({
   number: z.string().trim().toUpperCase().regex(/^A\d+$/, "Захиалгын дугаар буруу байна"),
 });
 
+/* ---------- payments ---------- */
+
+export const paymentInput = z.object({
+  number: z.string().trim().toUpperCase().regex(/^A\d+$/, "Захиалгын дугаар буруу байна"),
+});
+
 /* ---------- auth ---------- */
 
 export const registerInput = z.object({
@@ -155,6 +161,7 @@ export const productInput = z
     images: z.array(z.string().max(2_000_000)).max(8).default([]),
     specs: z.array(specInput).max(40).default([]),
     fitmentUnknown: z.boolean().default(false),
+    sortOrder: z.number().int().optional(),
     active: z.boolean().default(true),
     fitments: z.array(fitmentInput).max(500).default([]),
   })
@@ -177,6 +184,7 @@ export const productPatch = z
     images: z.array(z.string().max(2_000_000)).max(8),
     specs: z.array(specInput).max(40),
     fitmentUnknown: z.boolean(),
+    sortOrder: z.number().int(),
     active: z.boolean(),
     fitments: z.array(fitmentInput).max(500),
   })

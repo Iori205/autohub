@@ -1,17 +1,19 @@
 import type { QPaySettingsDto } from "@repo/types";
+import { callbackUrl, demoMode } from "./payments";
+import { qpayConfig, qpayConfigured } from "./qpay";
 
 /**
- * QPay status for Тохиргоо. Credentials and DEMO_MODE come from env (Step 3
- * wires the actual QPay client); only the invoice code and environment label
- * are editable in the dashboard.
+ * QPay status for Тохиргоо. Merchant credentials, the invoice code, the
+ * environment (QPAY_BASE_URL) and DEMO_MODE all come from env and are
+ * read-only here; secrets are never returned.
  */
-export function qpayInfo(s: { invoiceCode: string; env: "sandbox" | "production" }): QPaySettingsDto {
-  const api = process.env.PUBLIC_API_URL ?? "http://localhost:4000";
+export function qpayInfo(saved: { invoiceCode: string; env: "sandbox" | "production" }): QPaySettingsDto {
+  const c = qpayConfig();
   return {
-    invoiceCode: s.invoiceCode,
-    env: s.env,
-    demoMode: process.env.DEMO_MODE === "true",
-    callbackUrl: `${api}/api/v1/payments/qpay/callback`,
-    merchantConfigured: !!(process.env.QPAY_USERNAME && process.env.QPAY_PASSWORD),
+    invoiceCode: c.invoiceCode || saved.invoiceCode,
+    env: c.baseUrl.includes("sandbox") ? "sandbox" : "production",
+    demoMode: demoMode(),
+    callbackUrl: callbackUrl("{order}").replace(/&sig=.*$/, "&sig=…"),
+    merchantConfigured: qpayConfigured(),
   };
 }

@@ -4,6 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { ok, query, route } from "@/lib/http";
 import { adminOrderDto, adminOrderInclude } from "@/lib/serialize";
 import { ubEnd, ubStart } from "@/lib/time";
+import { sweepExpired } from "@/lib/payments";
 
 const STAGE: Record<Exclude<OrderStage, never>, Prisma.OrderWhereInput> = {
   pending: { paymentStatus: "PENDING" },
@@ -17,6 +18,7 @@ const STAGE: Record<Exclude<OrderStage, never>, Prisma.OrderWhereInput> = {
 
 /** Захиалгууд list. Also returns per-stage counts for the tabs (ignoring the stage filter). */
 export const GET = route(async (req) => {
+  await sweepExpired();
   await requireStaff(req);
   const q = query(req, adminOrderQuery);
   const base: Prisma.OrderWhereInput[] = [];

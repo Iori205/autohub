@@ -65,6 +65,7 @@ async function main() {
   // ---------- wipe (children first) ----------
   await prisma.$transaction([
     prisma.stockMovement.deleteMany(),
+    prisma.paymentInvoice.deleteMany(),
     prisma.orderNote.deleteMany(),
     prisma.orderItem.deleteMany(),
     prisma.order.deleteMany(),
@@ -121,6 +122,8 @@ async function main() {
   log(`${categories.length} categories, ${brands.length} brands, ${vehicles.length} vehicles`);
 
   const fitUnknown = new Set(PRODUCTS.filter((p) => p.fitUnknown).map((p) => p.id));
+  // "Санал болгох" = the order the storefront lists products in today
+  const position = new Map(PRODUCTS.map((p, i) => [p.id, i + 1]));
   await prisma.product.createMany({
     data: m.products.map((p) => ({
       id: p.id,
@@ -138,6 +141,7 @@ async function main() {
       images: p.images,
       specs: p.specs as unknown as Prisma.InputJsonValue,
       fitmentUnknown: fitUnknown.has(p.id),
+      sortOrder: position.get(p.id) ?? p.id,
       active: p.active,
     })),
   });

@@ -45,6 +45,7 @@ export function productSummary(p: SummaryRow | DetailRow): ProductSummaryDto {
     images: p.images,
     fitmentUnknown: p.fitmentUnknown,
     active: p.active,
+    sortOrder: p.sortOrder,
     fitsModels: models(p.fitments),
   };
 }
