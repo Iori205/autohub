@@ -158,7 +158,7 @@ function Catalog({ db }: { db: Db }) {
           }
         >
           <div className="tbl-scroll">
-            <div style={{ minWidth: 460 }}>
+            <div style={{ minWidth: 420 }}>
               <div className={`tr th ${styles.brandCols}`}>
                 <span />
                 <span>Нэр</span>

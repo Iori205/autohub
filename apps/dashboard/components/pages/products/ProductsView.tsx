@@ -213,7 +213,7 @@ function Products({ db }: { db: Db }) {
           </div>
         )}
         <div className="tbl-scroll">
-          <div style={{ minWidth: 1120 }}>
+          <div className={styles.table}>
             <div className={`tr th ${styles.cols}`}>
               <input
                 type="checkbox"
@@ -223,11 +223,11 @@ function Products({ db }: { db: Db }) {
               />
               <span>Бараа</span>
               <span>Брэнд</span>
-              <span>Ангилал</span>
+              <span className="hide-narrow">Ангилал</span>
               <span>OEM</span>
               <span className="right">Үнэ</span>
               <span className="right">Нөөц</span>
-              <span>Төрөл</span>
+              <span className="hide-narrow">Төрөл</span>
               <span>Идэвхтэй</span>
               <span />
             </div>
@@ -248,7 +248,7 @@ function Products({ db }: { db: Db }) {
                 <div className={styles.prod} style={{ opacity: p.active ? 1 : 0.5 }}>
                   <Thumb product={p} categories={db.categories} />
                   <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                    <span className="ellipsis" style={{ fontWeight: 500 }}>
+                    <span title={p.name} className="ellipsis" style={{ fontWeight: 500 }}>
                       {p.name}
                     </span>
                     <span className="faint" style={{ fontSize: 11.5 }}>
@@ -256,10 +256,10 @@ function Products({ db }: { db: Db }) {
                     </span>
                   </span>
                 </div>
-                <span className="ellipsis">{p.brand}</span>
-                <span className="muted ellipsis">{catName.get(p.category)}</span>
+                <span title={p.brand} className="ellipsis">{p.brand}</span>
+                <span title={catName.get(p.category)} className="muted ellipsis hide-narrow">{catName.get(p.category)}</span>
                 <span className={`mono ${styles.oem}`}>
-                  <span className="ellipsis">{p.oem[0]}</span>
+                  <span title={p.oem.join(", ")} className="ellipsis">{p.oem[0]}</span>
                   {p.oem.length > 1 && <span className={styles.more}>+{p.oem.length - 1}</span>}
                 </span>
                 <span className={styles.price}>
@@ -269,7 +269,7 @@ function Products({ db }: { db: Db }) {
                 <span className="right strong" style={{ color: STOCK_COLOR[stockLevel(p)] }}>
                   {p.stock}
                 </span>
-                <span>
+                <span className="hide-narrow">
                   <Badge spec={typeBadge(p.genuine)} />
                 </span>
                 <span>

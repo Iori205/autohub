@@ -1,7 +1,19 @@
+.table {
+  min-width: 920px;
+}
 .cols {
   grid-template-columns: minmax(220px, 2fr) 140px 70px 100px 120px 120px 120px;
   padding-top: 7px;
   padding-bottom: 7px;
+}
+/* stock value column hidden (.hide-narrow); the total is in the stat tiles */
+@media (max-width: 1279px) {
+  .table {
+    min-width: 780px;
+  }
+  .cols {
+    grid-template-columns: minmax(200px, 2fr) 130px 64px 96px 110px 120px;
+  }
 }
 .prod {
   display: flex;

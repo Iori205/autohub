@@ -415,7 +415,7 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
               </div>
             )}
             <div className="tbl-scroll">
-              <div style={{ minWidth: 520 }}>
+              <div style={{ minWidth: 480 }}>
                 <div className={`tr ${styles.fitCols}`} style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: ".04em", borderBottomColor: "var(--border)" }}>
                   <input
                     type="checkbox"

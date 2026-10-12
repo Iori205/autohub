@@ -1,7 +1,19 @@
+.table {
+  min-width: 1040px;
+}
 .cols {
-  grid-template-columns: 36px minmax(240px, 2fr) 110px 150px 150px 110px 70px 96px 70px 70px;
+  grid-template-columns: 36px minmax(220px, 2fr) 100px 130px 130px 100px 56px 84px 60px 64px;
   padding-top: 7px;
   padding-bottom: 7px;
+}
+/* category + type columns hidden (.hide-narrow) */
+@media (max-width: 1279px) {
+  .table {
+    min-width: 820px;
+  }
+  .cols {
+    grid-template-columns: 36px minmax(200px, 2fr) 100px 130px 100px 56px 60px 64px;
+  }
 }
 .prod {
   display: flex;
@@ -119,7 +131,7 @@
   background: var(--panel2);
 }
 .fitCols {
-  grid-template-columns: 36px 110px minmax(140px, 1fr) 90px minmax(140px, 1fr) 36px;
+  grid-template-columns: 32px 90px minmax(120px, 1fr) 84px minmax(120px, 1fr) 32px;
   padding-top: 7px;
   padding-bottom: 7px;
 }

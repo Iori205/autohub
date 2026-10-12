@@ -2,7 +2,7 @@
   grid-template-columns: 40px minmax(0, 1fr) 100px 60px 64px;
 }
 .brandCols {
-  grid-template-columns: 40px minmax(0, 1fr) 110px 100px 56px 64px;
+  grid-template-columns: 40px minmax(0, 1fr) 96px 100px 56px 64px;
 }
 .brandMark {
   width: 32px;
@@ -18,8 +18,20 @@
   color: var(--muted);
 }
 
+.vehTable {
+  min-width: 920px;
+}
 .vehCols {
   grid-template-columns: 100px minmax(170px, 1.3fr) 110px 110px minmax(170px, 1fr) 96px 70px 64px;
+}
+/* generation column hidden (.hide-narrow) */
+@media (max-width: 1279px) {
+  .vehTable {
+    min-width: 780px;
+  }
+  .vehCols {
+    grid-template-columns: 100px minmax(150px, 1.3fr) 100px minmax(150px, 1fr) 90px 60px 64px;
+  }
 }
 
 .drop {

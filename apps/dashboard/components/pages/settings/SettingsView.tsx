@@ -276,7 +276,7 @@ function QPayTab({
           />
           <span style={{ flex: 1 }} />
           <button
-            className="btn md ghost"
+            className="btn ghost"
             disabled={testing}
             onClick={async () => {
               setTesting(true);
@@ -379,7 +379,7 @@ function AdminsTab({ db }: { db: Db }) {
                         {a.name}
                         {self && <span className="faint"> (та)</span>}
                       </span>
-                      <span className="faint ellipsis" style={{ fontSize: 11.5 }}>
+                      <span title={a.email} className="faint ellipsis" style={{ fontSize: 11.5 }}>
                         {a.email}
                       </span>
                     </span>

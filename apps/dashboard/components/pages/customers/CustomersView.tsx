@@ -66,7 +66,7 @@ function Customers({ db, openId }: { db: Db; openId?: string }) {
           <span className="count">{rows.length} хэрэглэгч</span>
         </div>
         <div className="tbl-scroll">
-          <div style={{ minWidth: 960 }}>
+          <div className={styles.table}>
             <div className={`tr th ${styles.cols}`}>
               <span>Хэрэглэгч</span>
               <span>Утас</span>
@@ -74,17 +74,17 @@ function Customers({ db, openId }: { db: Db; openId?: string }) {
               <span className="right">Захиалга</span>
               <span className="right">Нийт зарцуулалт</span>
               <span>Сүүлд</span>
-              <span>Бүртгүүлсэн</span>
+              <span className="hide-narrow">Бүртгүүлсэн</span>
             </div>
             {rows.map(({ c, s }) => (
               <div key={c.id} className={`tr click ${styles.cols}`} onClick={() => router.push(`/customers?c=${c.id}`, { scroll: false })}>
                 <div className={styles.who}>
                   <span className="avatar">{initials(c.name)}</span>
                   <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                    <span className="ellipsis" style={{ fontWeight: 500 }}>
+                    <span title={c.name} className="ellipsis" style={{ fontWeight: 500 }}>
                       {c.name}
                     </span>
-                    <span className="faint ellipsis" style={{ fontSize: 11.5 }}>
+                    <span title={c.email} className="faint ellipsis" style={{ fontSize: 11.5 }}>
                       {c.email}
                     </span>
                   </span>
@@ -92,7 +92,7 @@ function Customers({ db, openId }: { db: Db; openId?: string }) {
                 <span className="mono" style={{ fontSize: 12 }}>
                   {c.phone}
                 </span>
-                <span className="muted ellipsis">
+                <span title={c.cars.map((x) => `${x.make} ${x.model} ${x.year}`).join(", ") || undefined} className="muted ellipsis">
                   {c.cars.length ? `${c.cars[0]!.make} ${c.cars[0]!.model} ${c.cars[0]!.year}${c.cars.length > 1 ? ` +${c.cars.length - 1}` : ""}` : "—"}
                 </span>
                 <span className="right strong">{s.orders.length}</span>
@@ -100,7 +100,7 @@ function Customers({ db, openId }: { db: Db; openId?: string }) {
                 <span className="muted" style={{ fontSize: 12 }}>
                   {s.last ? shortDate(s.last) : "—"}
                 </span>
-                <span className="muted" style={{ fontSize: 12 }}>
+                <span className="muted hide-narrow" style={{ fontSize: 12 }}>
                   {dotted(c.registeredAt)}
                 </span>
               </div>

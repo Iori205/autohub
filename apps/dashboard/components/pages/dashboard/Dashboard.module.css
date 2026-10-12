@@ -18,8 +18,9 @@
 }
 .kpiFoot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
+  gap: 2px 6px;
   font-size: 12px;
   white-space: nowrap;
   min-width: 0;
@@ -27,8 +28,6 @@
 .kpiSub {
   margin-left: auto;
   color: var(--muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 .delta {
   display: inline-flex;
@@ -237,7 +236,7 @@
 }
 
 .recentCols {
-  grid-template-columns: 80px 90px minmax(140px, 1fr) 110px 130px 150px;
+  grid-template-columns: 76px 84px minmax(110px, 1fr) 100px 120px 156px;
   padding-top: 9px;
   padding-bottom: 9px;
 }

@@ -67,7 +67,7 @@ function Inventory({ db }: { db: Db }) {
         }
       />
       <div className="stack">
-        <div className="kpis sm">
+        <div className="kpis">
           {stats.map((s) => (
             <div key={s.l} className="panel stat">
               <span>{s.l}</span>
@@ -91,14 +91,14 @@ function Inventory({ db }: { db: Db }) {
             />
           </div>
           <div className="tbl-scroll">
-            <div style={{ minWidth: 920 }}>
+            <div className={styles.table}>
               <div className={`tr th ${styles.cols}`}>
                 <span>Бараа</span>
                 <span>OEM</span>
                 <span className="right">Нөөц</span>
                 <span>Доод хязгаар</span>
                 <span>Төлөв</span>
-                <span className="right">Үнийн дүн</span>
+                <span className="right hide-narrow">Үнийн дүн</span>
                 <span />
               </div>
               {list.map((p) => {
@@ -107,9 +107,9 @@ function Inventory({ db }: { db: Db }) {
                   <div key={p.id} className={`tr hover ${styles.cols}`}>
                     <Link href={`/products/${p.id}`} className={styles.prod}>
                       <Thumb product={p} categories={db.categories} size={32} />
-                      <span className="ellipsis">{p.name}</span>
+                      <span title={p.name} className="ellipsis">{p.name}</span>
                     </Link>
-                    <span className="mono muted ellipsis" style={{ fontSize: 12 }}>
+                    <span title={p.oem.join(", ")} className="mono muted ellipsis" style={{ fontSize: 12 }}>
                       {p.oem[0]}
                     </span>
                     <span className="right strong" style={{ fontSize: 14, color: STOCK_COLOR[lv] }}>
@@ -132,7 +132,7 @@ function Inventory({ db }: { db: Db }) {
                     <span>
                       <Badge spec={STOCK_BADGE[lv]} dot />
                     </span>
-                    <span className="right muted">{money(p.stock * p.price)}</span>
+                    <span className="right muted hide-narrow">{money(p.stock * p.price)}</span>
                     <button className="btn sm ghost" style={{ justifySelf: "end", height: 28 }} onClick={() => openAdjustStock(db.products, p)}>
                       <SlidersHorizontal size={14} />
                       Тохируулах
@@ -163,14 +163,14 @@ function Inventory({ db }: { db: Db }) {
                   <span className="mono muted" style={{ fontSize: 12 }}>
                     {shortDateTime(l.at)}
                   </span>
-                  <span className="ellipsis" style={{ fontWeight: 500 }}>
+                  <span title={name.get(l.productId)} className="ellipsis" style={{ fontWeight: 500 }}>
                     {name.get(l.productId) ?? "—"}
                   </span>
                   <span className="right mono strong" style={{ color: l.delta > 0 ? "var(--tone-green)" : "var(--danger)" }}>
                     {l.delta > 0 ? "+" : "−"}
                     {Math.abs(l.delta)}
                   </span>
-                  <span className="muted ellipsis">
+                  <span title={l.reason} className="muted ellipsis">
                     {l.reason.includes("#") ? (
                       <>
                         {l.reason.split("#")[0]}
@@ -180,7 +180,7 @@ function Inventory({ db }: { db: Db }) {
                       l.reason
                     )}
                   </span>
-                  <span className="ellipsis">{l.by}</span>
+                  <span title={l.by} className="ellipsis">{l.by}</span>
                   <span className="right" style={{ fontWeight: 500 }}>
                     {l.after}
                   </span>

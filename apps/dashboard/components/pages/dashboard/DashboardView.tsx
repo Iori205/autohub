@@ -170,7 +170,7 @@ function Dashboard({ db }: { db: Db }) {
           <div className={styles.cats}>
             {cats.map((c) => (
               <div key={c.name} className={styles.catRow}>
-                <span className="muted ellipsis">{c.name}</span>
+                <span title={c.name} className="muted ellipsis">{c.name}</span>
                 <div className={styles.catBar}>
                   <span style={{ width: `${(c.value / cats[0]!.value) * 100}%` }} />
                 </div>
@@ -199,10 +199,10 @@ function Dashboard({ db }: { db: Db }) {
               </span>
               <Thumb product={t.product} categories={db.categories} size={36} />
               <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                <span className="ellipsis" style={{ fontWeight: 500 }}>
+                <span title={t.product.name} className="ellipsis" style={{ fontWeight: 500 }}>
                   {t.product.name}
                 </span>
-                <span className="muted ellipsis" style={{ fontSize: 11.5 }}>
+                <span title={`${t.product.brand} · ${t.product.oem[0]}`} className="muted ellipsis" style={{ fontSize: 11.5 }}>
                   {t.product.brand} · {t.product.oem[0]}
                 </span>
               </span>
@@ -227,7 +227,7 @@ function Dashboard({ db }: { db: Db }) {
           }
         >
           <div className="tbl-scroll">
-            <div style={{ minWidth: 640 }}>
+            <div style={{ minWidth: 600 }}>
               <div className={`tr th ${styles.recentCols}`}>
                 <span>Захиалга</span>
                 <span>Огноо</span>
@@ -244,7 +244,7 @@ function Dashboard({ db }: { db: Db }) {
                   <span className="muted" style={{ fontSize: 12 }}>
                     {shortDate(o.createdAt)} {o.createdAt.slice(11)}
                   </span>
-                  <span className="ellipsis">{cust.get(o.customerId)?.name}</span>
+                  <span title={cust.get(o.customerId)?.name} className="ellipsis">{cust.get(o.customerId)?.name}</span>
                   <span className="right" style={{ fontWeight: 500 }}>
                     {money(o.total)}
                   </span>
@@ -276,7 +276,7 @@ function Dashboard({ db }: { db: Db }) {
               <div key={p.id} className={styles.lowRow}>
                 <div className={styles.lowMain}>
                   <div className={styles.lowTop}>
-                    <span className="ellipsis" style={{ fontWeight: 500 }}>
+                    <span title={p.name} className="ellipsis" style={{ fontWeight: 500 }}>
                       {p.name}
                     </span>
                     <span style={{ fontWeight: 600, color: c, whiteSpace: "nowrap" }}>
@@ -284,7 +284,7 @@ function Dashboard({ db }: { db: Db }) {
                     </span>
                   </div>
                   <div className={styles.lowBottom}>
-                    <span className="mono faint ellipsis">{p.oem[0]}</span>
+                    <span title={p.oem[0]} className="mono faint ellipsis">{p.oem[0]}</span>
                     <div className="bar" style={{ height: 4 }}>
                       <span style={{ width: `${Math.max(3, Math.min(100, (p.stock / Math.max(1, p.threshold * 2)) * 100))}%`, background: c }} />
                     </div>

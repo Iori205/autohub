@@ -106,11 +106,11 @@ function Vehicles({ db }: { db: Db }) {
           <span className="count">{list.length} мөр</span>
         </div>
         <div className="tbl-scroll">
-          <div style={{ minWidth: 920 }}>
+          <div className={styles.vehTable}>
             <div className={`tr th ${styles.vehCols}`}>
               <span>Үйлдвэрлэгч</span>
               <span>Загвар</span>
-              <span>Үе</span>
+              <span className="hide-narrow">Үе</span>
               <span>Он</span>
               <span>Хөдөлгүүр</span>
               <span>Түлш</span>
@@ -123,7 +123,7 @@ function Vehicles({ db }: { db: Db }) {
                 <div key={v.id} className={`tr hover ${styles.vehCols}`}>
                   <span className="strong">{v.make}</span>
                   <span style={{ fontWeight: 500 }}>{v.model}</span>
-                  <span className="mono muted" style={{ fontSize: 12 }}>
+                  <span className="mono muted hide-narrow" style={{ fontSize: 12 }}>
                     {v.gen}
                   </span>
                   <span className="mono" style={{ fontSize: 12 }}>

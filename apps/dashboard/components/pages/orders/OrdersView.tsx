@@ -202,7 +202,7 @@ function Orders({ db }: { db: Db }) {
           </div>
         )}
         <div className="tbl-scroll">
-          <div style={{ minWidth: 1100 }}>
+          <div className={styles.table}>
             <div className={`tr th ${styles.cols}`}>
               <input
                 type="checkbox"
@@ -219,10 +219,10 @@ function Orders({ db }: { db: Db }) {
               <span>Захиалга #</span>
               <span>Огноо</span>
               <span>Харилцагч</span>
-              <span>Утас</span>
+              <span className="hide-narrow">Утас</span>
               <span className="right">Дүн</span>
               <span>Төлбөр</span>
-              <span>Хүргэлт</span>
+              <span className="hide-narrow">Хүргэлт</span>
               <span>Төлөв</span>
             </div>
             {slice.map((o) => {
@@ -248,10 +248,10 @@ function Orders({ db }: { db: Db }) {
                   <span className="muted" style={{ fontSize: 12 }}>
                     {shortDate(o.createdAt)} {o.createdAt.slice(11)}
                   </span>
-                  <span className="ellipsis" style={{ fontWeight: 500 }}>
+                  <span title={c?.name} className="ellipsis" style={{ fontWeight: 500 }}>
                     {c?.name}
                   </span>
-                  <span className="mono muted" style={{ fontSize: 12 }}>
+                  <span className="mono muted hide-narrow" style={{ fontSize: 12 }}>
                     {c?.phone}
                   </span>
                   <span className="right strong">{money(o.total)}</span>
@@ -259,7 +259,7 @@ function Orders({ db }: { db: Db }) {
                     <span className="tag">QPay</span>
                     <Badge spec={payBadge(o)} />
                   </span>
-                  <span className="muted" style={{ fontSize: 12.5 }}>
+                  <span className="muted hide-narrow" style={{ fontSize: 12.5 }}>
                     {DELIVERY[o.delivery]}
                   </span>
                   <select

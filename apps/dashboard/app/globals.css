@@ -29,6 +29,17 @@
   --tone-red: var(--danger);
   --tone-neutral: var(--muted);
 
+  /* Layout spacing — the only place these values are set (same idea as apps/web) */
+  --space-page-x: 24px; /* side padding of the content area */
+  --space-page-top: 18px; /* app header → breadcrumbs */
+  --space-page-bottom: 48px;
+  --space-head: 16px; /* page title block → first card */
+  --space-stack: 14px; /* between cards and card rows */
+  --space-grid: 12px; /* between KPI tiles */
+  --space-card-x: 16px; /* card side padding (header, toolbar, rows, body) */
+  --space-card-y: 12px; /* card header / toolbar vertical padding */
+  --space-card-body: 14px; /* card body vertical padding */
+
   --side-w: 232px;
   --side-w-collapsed: 60px;
   --header-h: 56px;
@@ -157,12 +168,12 @@ textarea:focus-visible {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--space-stack);
 }
 .row-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: var(--space-stack);
   align-items: flex-start;
 }
 
@@ -183,7 +194,7 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 8px 12px;
-  padding: 12px 16px;
+  padding: var(--space-card-y) var(--space-card-x);
   border-bottom: 1px solid var(--border);
 }
 .panel-head h3 {
@@ -201,14 +212,14 @@ textarea:focus-visible {
   color: var(--faint);
 }
 .panel-body {
-  padding: 14px 16px;
+  padding: var(--space-card-body) var(--space-card-x);
 }
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  padding: 12px 16px;
+  padding: var(--space-card-y) var(--space-card-x);
   border-bottom: 1px solid var(--border);
 }
 .toolbar .count {
@@ -221,7 +232,7 @@ textarea:focus-visible {
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 8px var(--space-card-x);
   background: var(--accent-soft);
   border-bottom: 1px solid var(--border);
   font-size: 12.5px;
@@ -464,7 +475,8 @@ textarea:focus-visible {
   background: var(--panel);
 }
 .seg button {
-  height: 26px;
+  /* 24 + 2×3 padding + 2×1 border = 32px, same as .input / .select */
+  height: 24px;
   padding: 0 10px;
   border: none;
   border-radius: 6px;
@@ -475,7 +487,8 @@ textarea:focus-visible {
   font-weight: 500;
 }
 .seg.lg button {
-  height: 28px;
+  /* 34px total, same as .input.lg / .btn */
+  height: 26px;
   padding: 0 12px;
   font-size: 12.5px;
 }
@@ -667,7 +680,7 @@ textarea:focus-visible {
   display: grid;
   gap: 10px;
   align-items: center;
-  padding: 8px 16px;
+  padding: 8px var(--space-card-x);
   border-bottom: 1px solid var(--divider);
 }
 .tr.th {
@@ -697,6 +710,13 @@ button.tr {
   color: var(--text);
   text-align: left;
   font-size: 13px;
+}
+/* Secondary table columns dropped when the content area is narrow
+   (tablet / collapsed sidebar), so tables fit their card without sideways scroll. */
+@media (max-width: 1279px) {
+  .hide-narrow {
+    display: none !important;
+  }
 }
 .cell-actions {
   display: flex;
@@ -734,16 +754,24 @@ button.tr {
 }
 
 /* KPI cards */
+/* Rows of four tiles: 4 → 2×2 → 1, never 3 + an orphan */
 .kpis {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-grid);
 }
-.kpis.sm {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+@media (max-width: 1279px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .kpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .stat {
-  padding: 13px 16px;
+  padding: 13px var(--space-card-x);
   display: flex;
   flex-direction: column;
   gap: 4px;

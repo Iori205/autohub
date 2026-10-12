@@ -72,7 +72,7 @@ function Reports({ db, period, setPeriod }: { db: Db; period: Period; setPeriod:
             {RANGE_TEXT[period]}
           </span>
         </div>
-        <div className="kpis sm">
+        <div className="kpis">
           {[
             ["Нийт орлого", money(total)],
             ["Захиалга", num(orders)],
@@ -81,7 +81,7 @@ function Reports({ db, period, setPeriod }: { db: Db; period: Period; setPeriod:
           ].map(([l, v]) => (
             <div key={l} className="panel stat">
               <span>{l}</span>
-              <strong className="ellipsis">{v}</strong>
+              <strong title={v} className="ellipsis">{v}</strong>
             </div>
           ))}
         </div>
@@ -151,7 +151,7 @@ function Split({ title, rows, file, head }: { title: string; rows: SplitRow[]; f
     >
       {rows.map((r) => (
         <div key={r.name} className={`tr ${styles.splitCols}`}>
-          <span className="ellipsis" style={{ fontWeight: 500, color: r.name === "Хүргэлтийн төлбөр" ? "var(--muted)" : undefined }}>
+          <span title={r.name} className="ellipsis" style={{ fontWeight: 500, color: r.name === "Хүргэлтийн төлбөр" ? "var(--muted)" : undefined }}>
             {r.name}
           </span>
           <div className="bar">

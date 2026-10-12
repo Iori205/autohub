@@ -21,6 +21,17 @@
 .tab:hover {
   color: var(--text);
 }
+/* Not enough room for all eight status tabs: wrap to a second row instead of
+   hiding the last ones behind a sideways scroll. */
+@media (max-width: 1279px) {
+  .tabs {
+    flex-wrap: wrap;
+    overflow-x: visible;
+  }
+  .tab {
+    height: 40px;
+  }
+}
 .tab[aria-selected="true"] {
   color: var(--text);
   border-bottom-color: var(--accent);
@@ -49,8 +60,20 @@
   color-scheme: inherit;
 }
 
+.table {
+  min-width: 1060px;
+}
 .cols {
-  grid-template-columns: 36px 86px 96px minmax(160px, 1.3fr) 96px 112px 200px 120px 180px;
+  grid-template-columns: 36px 78px 90px minmax(150px, 1.3fr) 96px 112px 170px 104px 172px;
+}
+/* phone + delivery hidden (.hide-narrow) */
+@media (max-width: 1279px) {
+  .table {
+    min-width: 840px;
+  }
+  .cols {
+    grid-template-columns: 36px 78px 90px minmax(150px, 1fr) 112px 170px 172px;
+  }
 }
 .idLink {
   color: var(--text);
