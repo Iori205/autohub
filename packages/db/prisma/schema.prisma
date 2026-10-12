@@ -1,0 +1,380 @@
+// AuToHub database. Money is stored as whole tögrög (Int).
+// Connection strings live in the root .env (see .env.example).
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- enums ----------
+
+enum Role {
+  CUSTOMER
+  OPERATOR
+  ADMIN
+}
+
+enum ProductType {
+  ORIGINAL
+  AFTERMARKET
+}
+
+enum Fuel {
+  PETROL
+  DIESEL
+  HYBRID
+  ELECTRIC
+}
+
+enum DeliveryMethod {
+  /// Courier in Ulaanbaatar
+  UB
+  /// Customer collects at the branch
+  PICKUP
+  /// Sent to a province (by bus/cargo)
+  COUNTRY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  /// Cancelled before or after payment; paidAt != null means it was refunded
+  CANCELLED
+  /// QPay invoice expired unpaid (15 min)
+  EXPIRED
+}
+
+enum DeliveryStatus {
+  /// Not started (unpaid, or paid and waiting)
+  NONE
+  PREPARING
+  /// Out for delivery / ready for pickup
+  SHIPPING
+  DELIVERED
+}
+
+enum CampaignTarget {
+  ALL
+  CATEGORY
+  BRAND
+}
+
+// ---------- users ----------
+
+model User {
+  id           String    @id @default(cuid())
+  role         Role      @default(CUSTOMER)
+  /// Anonymous browser session created by the storefront (no credentials yet)
+  isGuest      Boolean   @default(false)
+  name         String?
+  phone        String?   @unique
+  email        String?   @unique
+  passwordHash String?
+  address      String?
+  lastSeenAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  cars           SavedCar[]
+  wishlist       WishlistItem[]
+  cart           Cart?
+  orders         Order[]
+  notes          OrderNote[]
+  stockMovements StockMovement[]
+
+  @@index([role])
+}
+
+/// A customer's car from the vehicle finder ("Миний машин")
+model SavedCar {
+  id        String   @id @default(cuid())
+  userId    String
+  vehicleId String?
+  make      String
+  model     String
+  year      Int
+  engine    String
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+}
+
+// ---------- catalog ----------
+
+/// One row per make + model + engine variant
+model Vehicle {
+  id         String   @id @default(cuid())
+  make       String
+  model      String
+  generation String   @default("")
+  yearFrom   Int
+  yearTo     Int
+  engine     String
+  fuel       Fuel
+  createdAt  DateTime @default(now())
+
+  fitments  ProductFitment[]
+  savedCars SavedCar[]
+
+  @@unique([make, model, engine])
+  @@index([make, model])
+}
+
+model Category {
+  id         String  @id @default(cuid())
+  /// URL slug, e.g. /shop/brake
+  slug       String  @unique
+  name       String  @unique
+  /// Icon key shared by web and dashboard (cog, disc, filter …)
+  icon       String
+  sortOrder  Int     @default(0)
+  /// Marketing label on the storefront home ("1,960 бараа")
+  countLabel String?
+
+  products  Product[]
+  campaigns Campaign[]
+}
+
+model Brand {
+  id      String      @id @default(cuid())
+  name    String      @unique
+  country String      @default("")
+  kind    ProductType @default(AFTERMARKET)
+
+  products  Product[]
+  campaigns Campaign[]
+}
+
+model Product {
+  id                Int         @id @default(autoincrement())
+  name              String
+  description       String      @default("")
+  brandId           String
+  categoryId        String
+  /// First is the primary OEM number, the rest are cross-references
+  oemNumbers        String[]
+  /// oemNumbers uppercased without spaces, dashes or dots — for search
+  oemSearch         String[]
+  price             Int
+  oldPrice          Int?
+  stock             Int         @default(0)
+  lowStockThreshold Int         @default(3)
+  type              ProductType
+  images            String[]
+  /// [{ "k": "Байрлал", "v": "Урд тэнхлэг" }, …]
+  specs             Json        @default("[]")
+  /// Fitment not verified (storefront shows "тохирох эсэхийг шалгана уу")
+  fitmentUnknown    Boolean     @default(false)
+  active            Boolean     @default(true)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  brand          Brand            @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  category       Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  fitments       ProductFitment[]
+  wishlistItems  WishlistItem[]
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  stockMovements StockMovement[]
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([oemSearch], type: Gin)
+}
+
+/// The product fits this vehicle (engine variant). Year columns narrow the
+/// vehicle's own range; null = the whole range.
+model ProductFitment {
+  id        String @id @default(cuid())
+  productId Int
+  vehicleId String
+  yearFrom  Int?
+  yearTo    Int?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, vehicleId])
+  @@index([vehicleId])
+}
+
+// ---------- wishlist & cart ----------
+
+model WishlistItem {
+  userId    String
+  productId Int
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
+  cartId    String
+  productId Int
+  qty       Int
+  addedAt   DateTime @default(now())
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([cartId, productId])
+}
+
+// ---------- orders ----------
+
+model Order {
+  id               String         @id @default(cuid())
+  /// Human number shown everywhere: A1025, A1026 … (sequence order_number_seq)
+  number           String         @unique @default(dbgenerated("('A'::text || nextval('order_number_seq'::regclass))"))
+  userId           String?
+  customerName     String
+  /// Stored on every order so a guest can look up orders by phone later
+  customerPhone    String
+  customerEmail    String?
+  note             String?
+  deliveryMethod   DeliveryMethod
+  /// Full delivery address (or the pickup branch address)
+  address          String
+  district         String?
+  khoroo           String?
+  /// Customer's car at checkout, e.g. "Toyota Land Cruiser 200 2015 · 1VD-FTV …"
+  car              String?
+  subtotal         Int
+  shippingFee      Int
+  total            Int
+  paymentStatus    PaymentStatus  @default(PENDING)
+  deliveryStatus   DeliveryStatus @default(NONE)
+  qpayInvoiceId    String?        @unique
+  qpayPaymentId    String?
+  invoiceExpiresAt DateTime?
+  paidAt           DateTime?
+  preparingAt      DateTime?
+  shippingAt       DateTime?
+  deliveredAt      DateTime?
+  cancelledAt      DateTime?
+  cancelReason     String?
+  expiredAt        DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user           User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
+  notes          OrderNote[]
+  stockMovements StockMovement[]
+
+  @@index([customerPhone])
+  @@index([userId])
+  @@index([paymentStatus])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  productId Int?
+  /// Snapshot at order time
+  name      String
+  oem       String?
+  price     Int
+  qty       Int
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+/// Internal staff note on an order
+model OrderNote {
+  id         String   @id @default(cuid())
+  orderId    String
+  authorId   String?
+  authorName String
+  text       String
+  createdAt  DateTime @default(now())
+
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+}
+
+// ---------- inventory, marketing, settings ----------
+
+model StockMovement {
+  id         String   @id @default(cuid())
+  productId  Int
+  delta      Int
+  reason     String
+  orderId    String?
+  actorId    String?
+  /// "Систем" for automatic moves, otherwise the staff member's name
+  actorName  String
+  stockAfter Int
+  createdAt  DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  order   Order?  @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  actor   User?   @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([productId, createdAt])
+  @@index([createdAt])
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String   @default("")
+  link      String
+  imageUrl  String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Campaign {
+  id         String         @id @default(cuid())
+  name       String
+  percent    Int
+  target     CampaignTarget @default(ALL)
+  categoryId String?
+  brandId    String?
+  startsAt   DateTime       @db.Date
+  endsAt     DateTime       @db.Date
+  active     Boolean        @default(true)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  brand    Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+}
+
+/// Key/value settings edited in the dashboard: "store", "delivery", "qpay"
+/// (QPay secrets stay in env, never here).
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
