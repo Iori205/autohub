@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Car,
   Heart,
@@ -35,6 +35,21 @@ export function Header({ categories }: { categories: Category[] }) {
   const { count, subtotal } = cartTotals(cart);
   const [q, setQ] = useState("");
   const [drawer, setDrawer] = useState(false);
+  const headerRef = useRef<HTMLElement>(null);
+
+  // Keep --header-h equal to the real header height (it grows with the car
+  // chip / wrapping), so sticky elements and scroll targets always clear it.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const root = document.documentElement;
+    const ro = new ResizeObserver(() => root.style.setProperty("--header-h", `${Math.round(el.offsetHeight)}px`));
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      root.style.removeProperty("--header-h");
+    };
+  }, []);
 
   const search = () => router.push(shopHref({ q: q.trim() || undefined }));
   const onKey = (e: React.KeyboardEvent) => {
@@ -44,7 +59,7 @@ export function Header({ categories }: { categories: Category[] }) {
 
   return (
     <>
-      <header className={styles.header}>
+      <header ref={headerRef} className={styles.header}>
         {/* ---------- desktop / tablet ---------- */}
         <div className="not-mobile">
           <div className={styles.topbar}>

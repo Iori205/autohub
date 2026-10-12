@@ -1,5 +1,5 @@
 .footer {
-  margin-top: 56px;
+  margin-top: var(--space-section);
   border-top: 1px solid var(--line);
   background: var(--bg2);
 }
@@ -129,10 +129,10 @@
 
 @media (max-width: 819px) {
   .bottom {
-    padding-bottom: 84px;
+    padding-bottom: calc(18px + var(--fab-clearance));
   }
   /* product page has a fixed add-to-cart bar on mobile */
   :global(body:has([data-detail-bar])) .bottom {
-    padding-bottom: 150px;
+    padding-bottom: calc(84px + var(--fab-clearance));
   }
 }

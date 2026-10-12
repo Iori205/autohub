@@ -160,6 +160,11 @@
   .slider {
     height: 380px;
   }
+  /* bottom-right is where the floating chat button rests on phones */
+  .arrows {
+    top: 18px;
+    bottom: auto;
+  }
   .title {
     font-size: 34px;
   }

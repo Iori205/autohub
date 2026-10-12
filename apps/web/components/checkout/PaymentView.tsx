@@ -16,7 +16,7 @@ import styles from "./PaymentView.module.css";
 
 export function OrderMissing({ step }: { step: 3 | 4 }) {
   return (
-    <main className={`container ${c.page}`}>
+    <main className={`container ${c.page}`} data-checkout-flow>
       <CheckoutSteps step={step} />
       <div className={c.empty}>
         <div className={c.emptyTitle}>Захиалга олдсонгүй</div>
@@ -48,7 +48,7 @@ export function PaymentView({ orderNo }: { orderNo: string }) {
   const v = orderView(order, now);
 
   return (
-    <main className={`container ${c.page}`}>
+    <main className={`container ${c.page}`} data-checkout-flow>
       <CheckoutSteps step={3} />
       <div className={c.layout}>
         <div className={c.mainCol} style={{ gap: 18 }}>

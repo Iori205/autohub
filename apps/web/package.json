@@ -8,7 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings 0",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "screenshots": "PLAYWRIGHT_BROWSERS_PATH=0 node scripts/screenshots.mjs",
+    "screenshots:install": "PLAYWRIGHT_BROWSERS_PATH=0 playwright install --no-shell chromium"
   },
   "dependencies": {
     "@repo/ui": "*",
@@ -25,6 +27,7 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "eslint": "10.9.1",
+    "playwright": "^1.64.0",
     "typescript": "7.0.2"
   }
 }

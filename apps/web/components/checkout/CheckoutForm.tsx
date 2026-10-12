@@ -85,7 +85,7 @@ export function CheckoutForm() {
 
   if (!cart.length && !busy) {
     return (
-      <main className={`container ${c.page}`}>
+      <main className={`container ${c.page}`} data-checkout-flow>
         <CheckoutSteps step={2} />
         <div className={c.empty}>
           <div className={c.emptyTitle}>Таны сагс хоосон байна</div>
@@ -119,14 +119,15 @@ export function CheckoutForm() {
 
   const field = (k: ErrKey, label: React.ReactNode, input: React.ReactNode) => (
     <label className="field">
-      {label}
+      {/* one inline label line, so inputs in the same row line up */}
+      <span className="field-label">{label}</span>
       {input}
       <span className="field-error">{err(k)}</span>
     </label>
   );
 
   return (
-    <main className={`container ${c.page}`}>
+    <main className={`container ${c.page}`} data-checkout-flow>
       <CheckoutSteps step={2} />
       <h1 className={`page-title ${c.h1}`}>Захиалгын мэдээлэл</h1>
       <div className={c.layout}>
@@ -158,7 +159,7 @@ export function CheckoutForm() {
               {field(
                 "email",
                 <>
-                  И-мэйл <span className={styles.optional}>заавал биш</span>
+                  И-мэйл <span className={styles.optional}>(заавал биш)</span>
                 </>,
                 <input
                   {...bind("email")}

@@ -1,5 +1,5 @@
 .wrap {
-  margin-top: 64px;
+  margin-top: var(--space-section);
 }
 .grid {
   display: grid;

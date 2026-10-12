@@ -16,6 +16,11 @@
   :global(body:has([data-detail-bar])) .dock {
     bottom: 84px;
   }
+  /* cart → checkout → payment keep their main button near the bottom of the
+     screen; the chat button would sit on top of it */
+  :global(body:has([data-checkout-flow])) .dock {
+    display: none;
+  }
 }
 :global(body:has([data-qpay-open])) .dock {
   display: none;

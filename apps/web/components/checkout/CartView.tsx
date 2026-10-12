@@ -21,7 +21,7 @@ export function CartView() {
   const hydrated = useHydrated();
 
   return (
-    <main className={`container ${c.page}`}>
+    <main className={`container ${c.page}`} data-checkout-flow>
       <CheckoutSteps step={1} />
       <h1 className={`page-title ${c.h1}`}>
         Миний сагс <small>({count})</small>

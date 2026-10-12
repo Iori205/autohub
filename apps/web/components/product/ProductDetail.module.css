@@ -313,7 +313,7 @@
 
 /* tabs */
 .tabsSection {
-  margin-top: 44px;
+  margin-top: var(--space-section);
 }
 .tabs {
   display: flex;

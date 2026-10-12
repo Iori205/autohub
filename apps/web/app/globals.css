@@ -1,4 +1,35 @@
-/* Tokens live in @repo/ui/theme.css (imported in layout.tsx). */
+/* Brand tokens live in @repo/ui/theme.css (imported in layout.tsx). */
+
+/*
+ * Layout tokens for the storefront — the only place these values are set.
+ * --header-h matches the sticky header (Header.tsx also writes the measured
+ * height at runtime, e.g. when a car chip makes it taller), so anything that
+ * scrolls or sticks below it (anchors, Next.js scroll-to-top, sticky
+ * summaries) clears it.
+ */
+:root {
+  --header-h: 161px;
+  /* below the header → first content on every page */
+  --space-page-top: 32px;
+  /* between major page sections (product tabs, trust strip, footer) */
+  --space-section: 56px;
+  /* gap between cards/columns in a layout grid */
+  --space-gap: 24px;
+  /* gap between stacked cards in one column */
+  --space-stack: 20px;
+  /* inner padding of panels/cards */
+  --space-card: 22px;
+  /* room kept free at the bottom so the floating chat button never covers the last content */
+  --fab-clearance: 0px;
+}
+@media (max-width: 819px) {
+  :root {
+    --header-h: 119px;
+    --space-page-top: 20px;
+    --space-section: 40px;
+    --fab-clearance: 84px;
+  }
+}
 
 *,
 *::before,
@@ -8,7 +39,7 @@
 
 html {
   background: var(--bg);
-  scroll-padding-top: 130px;
+  scroll-padding-top: calc(var(--header-h) + 16px);
 }
 
 body {
@@ -141,7 +172,7 @@ svg.lucide {
 }
 
 .panel {
-  padding: 22px;
+  padding: var(--space-card);
   border: 1px solid var(--line);
   border-radius: var(--r-xl);
   background: var(--bg2);
@@ -260,6 +291,12 @@ textarea.input {
 }
 .input.invalid {
   border-color: var(--danger);
+}
+.field-label {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .field-error {
   font-size: 12px;

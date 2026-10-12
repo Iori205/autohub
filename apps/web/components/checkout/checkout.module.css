@@ -1,7 +1,7 @@
 /* Shared layout for cart / checkout / payment / orders. */
 
 .page {
-  padding-top: 36px;
+  padding-top: var(--space-page-top);
 }
 .h1 {
   margin-bottom: 22px;
@@ -15,13 +15,13 @@
 .layout {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
-  gap: 24px;
+  gap: var(--space-gap);
   align-items: start;
 }
 .mainCol {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-stack);
   grid-column: span 2;
 }
 @media (max-width: 819px) {
@@ -32,7 +32,7 @@
 
 .aside {
   position: sticky;
-  top: 150px;
+  top: calc(var(--header-h) + var(--space-stack));
   display: flex;
   flex-direction: column;
   gap: 14px;

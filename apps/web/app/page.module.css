@@ -1,6 +1,6 @@
 .home {
-  padding-top: 24px;
+  padding-top: var(--space-page-top);
   display: flex;
   flex-direction: column;
-  gap: 56px;
+  gap: var(--space-section);
 }
