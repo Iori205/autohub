@@ -1,12 +1,6 @@
 import type { CategoryKey } from "./types";
 
-export const STORE_NAME = "AuToHub";
-export const STORE_PHONE = "+976 7711-2233";
-export const STORE_PHONE_HREF = "tel:+97677112233";
-export const STORE_EMAIL = "info@selbeg.mn";
-export const STORE_ADDRESS =
-  "Улаанбаатар, Хан-Уул дүүрэг, 15-р хороо, Чингисийн өргөн чөлөө 24";
-export const STORE_HOURS = "Даваа–Бямба 09:00–20:00";
+// Store name, phone, e-mail, address and hours come from the API (/settings) via lib/site-context.
 
 export const THEME_KEY = "autohub:theme";
 

@@ -84,13 +84,17 @@ export const vehicleDto = (v: VehicleDto): VehicleDto => ({
 
 /* ---------- orders ---------- */
 
+const latestInvoice = { orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true } } as const;
+
 export const orderInclude = {
   items: { orderBy: { id: "asc" } },
+  invoices: latestInvoice,
 } satisfies Prisma.OrderInclude;
 
 export const adminOrderInclude = {
   items: { orderBy: { id: "asc" } },
   notes: { orderBy: { createdAt: "asc" } },
+  invoices: latestInvoice,
 } satisfies Prisma.OrderInclude;
 
 type OrderRow = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
@@ -118,6 +122,7 @@ export function orderDto(o: OrderRow): OrderDto {
     total: o.total,
     qpayInvoiceId: o.qpayInvoiceId,
     qpayPaymentId: o.qpayPaymentId,
+    invoiceStatus: o.invoices.find((i) => i.id === o.qpayInvoiceId)?.status ?? null,
     invoiceExpiresAt: iso(o.invoiceExpiresAt),
     createdAt: o.createdAt.toISOString(),
     paidAt: iso(o.paidAt),

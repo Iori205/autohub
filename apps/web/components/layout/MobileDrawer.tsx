@@ -15,9 +15,6 @@ import {
 } from "lucide-react";
 import {
   FINDER_HREF,
-  STORE_HOURS,
-  STORE_PHONE,
-  STORE_PHONE_HREF,
   shopHref,
 } from "../../lib/site";
 import { toggleTheme, useTheme } from "../../lib/store/theme";
@@ -25,6 +22,7 @@ import type { Category } from "../../lib/types";
 import { CATEGORY_ICONS } from "../icons";
 import { Logo } from "./Logo";
 import { Switch } from "../ui/Switch";
+import { useSite } from "../../lib/site-context";
 import styles from "./MobileDrawer.module.css";
 
 export function MobileDrawer({
@@ -37,6 +35,7 @@ export function MobileDrawer({
   categories: Category[];
 }) {
   const theme = useTheme();
+  const site = useSite();
 
   useEffect(() => {
     if (!open) return;
@@ -118,11 +117,11 @@ export function MobileDrawer({
         </div>
 
         <div className={styles.contact}>
-          <a href={STORE_PHONE_HREF} className={styles.phone}>
+          <a href={site.phoneHref} className={styles.phone}>
             <Phone size={17} className={styles.accentIcon} />
-            {STORE_PHONE}
+            {site.phone}
           </a>
-          <span className={styles.hours}>{STORE_HOURS}</span>
+          <span className={styles.hours}>{site.hours}</span>
         </div>
       </aside>
     </div>

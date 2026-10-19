@@ -3,15 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown, Mail, MapPin, Phone, type LucideIcon } from "lucide-react";
-import {
-  FINDER_HREF,
-  STORE_ADDRESS,
-  STORE_EMAIL,
-  STORE_NAME,
-  STORE_PHONE,
-  STORE_PHONE_HREF,
-  shopHref,
-} from "../../lib/site";
+import { FINDER_HREF, shopHref } from "../../lib/site";
+import { useSite, type StoreInfo } from "../../lib/site-context";
 import { FacebookIcon, InstagramIcon, YoutubeIcon } from "../icons";
 import { Logo } from "./Logo";
 import styles from "./Footer.module.css";
@@ -22,7 +15,7 @@ interface FooterLink {
   icon?: LucideIcon;
 }
 
-const SECTIONS: { key: string; title: string; links: FooterLink[] }[] = [
+const sections = (site: StoreInfo): { key: string; title: string; links: FooterLink[] }[] => [
   {
     key: "shop",
     title: "ДЭЛГҮҮР",
@@ -49,9 +42,9 @@ const SECTIONS: { key: string; title: string; links: FooterLink[] }[] = [
     key: "contact",
     title: "ХОЛБОО БАРИХ",
     links: [
-      { label: STORE_PHONE, href: STORE_PHONE_HREF, icon: Phone },
-      { label: STORE_EMAIL, href: `mailto:${STORE_EMAIL}`, icon: Mail },
-      { label: STORE_ADDRESS, href: "#", icon: MapPin },
+      { label: site.phone, href: site.phoneHref, icon: Phone },
+      { label: site.email, href: `mailto:${site.email}`, icon: Mail },
+      { label: site.address, href: "#", icon: MapPin },
     ],
   },
 ];
@@ -75,6 +68,8 @@ function Socials({ size }: { size: "sm" | "lg" }) {
 
 export function Footer() {
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const site = useSite();
+  const SECTIONS = sections(site);
 
   return (
     <footer className={styles.footer}>
@@ -149,7 +144,7 @@ export function Footer() {
       </div>
 
       <div className={`container ${styles.bottom}`}>
-        <span>© 2026 {STORE_NAME}. Бүх эрх хуулиар хамгаалагдсан.</span>
+        <span>© 2026 {site.name}. Бүх эрх хуулиар хамгаалагдсан.</span>
         <span>Төлбөр: QPay — бүх банкны апп</span>
       </div>
     </footer>

@@ -18,7 +18,8 @@ import {
 } from "lucide-react";
 import { carLabel } from "../../lib/catalog";
 import { fmt } from "../../lib/format";
-import { FINDER_HREF, STORE_HOURS, STORE_PHONE, shopHref } from "../../lib/site";
+import { FINDER_HREF, shopHref } from "../../lib/site";
+import { useSite } from "../../lib/site-context";
 import { cartTotals, setCar, useShop } from "../../lib/store/shop";
 import { toggleTheme, useTheme } from "../../lib/store/theme";
 import type { Category, CategoryKey } from "../../lib/types";
@@ -30,6 +31,7 @@ const QUICK_CATS: CategoryKey[] = ["brake", "filter", "oil", "battery"];
 
 export function Header({ categories }: { categories: Category[] }) {
   const router = useRouter();
+  const site = useSite();
   const { cart, wish, car } = useShop();
   const theme = useTheme();
   const { count, subtotal } = cartTotals(cart);
@@ -69,12 +71,12 @@ export function Header({ categories }: { categories: Category[] }) {
                   <MapPin size={13} />
                   Улаанбаатар, Хан-Уул дүүрэг
                 </span>
-                <span className="only-wide">{STORE_HOURS}</span>
+                <span className="only-wide">{site.hours}</span>
               </div>
               <div className={styles.topbarGroup}>
                 <span className={styles.iconText}>
                   <Phone size={13} />
-                  {STORE_PHONE}
+                  {site.phone}
                 </span>
                 <div className={`only-wide ${styles.topbarLinks}`}>
                   <a href="#">Хүргэлт</a>

@@ -1,7 +1,7 @@
 import { prisma, type Order, type Prisma, type User } from "@repo/db";
 import type { CreateOrderInput } from "@repo/types";
 import { ApiError, conflict, notFound } from "./http";
-import { adminOrderInclude } from "./serialize";
+import { adminOrderInclude, orderInclude } from "./serialize";
 import { deliveryFee, getSetting, PICKUP_ADDRESS } from "./settings";
 
 export const INVOICE_TTL_MS = 15 * 60e3;
@@ -49,7 +49,7 @@ export async function createOrder(user: User, input: CreateOrderInput) {
         invoiceExpiresAt: new Date(Date.now() + INVOICE_TTL_MS),
         items: { create: items },
       },
-      include: { items: { orderBy: { id: "asc" } } },
+      include: orderInclude,
     });
     if (cart) await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
     // remember the name for next time (guests have none yet)

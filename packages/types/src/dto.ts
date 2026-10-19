@@ -166,6 +166,8 @@ export interface OrderDto {
   total: number;
   qpayInvoiceId: string | null;
   qpayPaymentId: string | null;
+  /** status of the current QPay invoice — CANCELLED = the customer cancelled the payment */
+  invoiceStatus: "OPEN" | "PAID" | "CANCELLED" | "EXPIRED" | null;
   invoiceExpiresAt: string | null;
   createdAt: string;
   paidAt: string | null;
@@ -276,8 +278,10 @@ export interface StockMovementDto {
 
 export interface BannerDto {
   id: string;
+  eyebrow: string;
   title: string;
   subtitle: string;
+  ctaLabel: string;
   link: string;
   imageUrl: string | null;
   sortOrder: number;

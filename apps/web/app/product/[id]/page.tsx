@@ -12,10 +12,6 @@ import {
 } from "../../../lib/api/catalog";
 import styles from "./page.module.css";
 
-export async function generateStaticParams() {
-  return (await getProducts()).map((p) => ({ id: String(p.id) }));
-}
-
 export async function generateMetadata(props: PageProps<"/product/[id]">): Promise<Metadata> {
   const p = await getProduct(Number((await props.params).id));
   return { title: p?.name ?? "Бараа" };

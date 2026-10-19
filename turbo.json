@@ -15,7 +15,8 @@
     "QPAY_USERNAME",
     "QPAY_PASSWORD",
     "QPAY_INVOICE_CODE",
-    "DEMO_MODE"
+    "DEMO_MODE",
+    "NEXT_PUBLIC_API_URL"
   ],
   "tasks": {
     "build": {

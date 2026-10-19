@@ -382,8 +382,12 @@ model StockMovement {
 
 model Banner {
   id        String   @id @default(cuid())
+  /// small tag above the title ("Prius 30 / 50")
+  eyebrow   String   @default("")
   title     String
   subtitle  String   @default("")
+  /// button text ("Prius сэлбэг үзэх")
+  ctaLabel  String   @default("")
   link      String
   imageUrl  String?
   sortOrder Int      @default(0)

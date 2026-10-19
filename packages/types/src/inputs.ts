@@ -112,6 +112,15 @@ export const orderLookupInput = z.object({
   number: z.string().trim().toUpperCase().regex(/^A\d+$/, "Захиалгын дугаар буруу байна"),
 });
 
+/* ---------- customer car ---------- */
+
+export const savedCarInput = z.object({
+  make: required("Үйлдвэрлэгч сонгоно уу", 60),
+  model: required("Загвар сонгоно уу", 80),
+  year: z.coerce.number().int().min(1950).max(2100),
+  engine: trimmed(80).default(""),
+});
+
 /* ---------- payments ---------- */
 
 export const paymentInput = z.object({
@@ -287,8 +296,10 @@ export const orderNoteInput = z.object({ text: required("Тэмдэглэл хо
 /* ---------- admin: marketing & settings ---------- */
 
 export const bannerInput = z.object({
+  eyebrow: trimmed(60).default(""),
   title: required("Гарчиг оруулна уу", 150),
   subtitle: trimmed(200).default(""),
+  ctaLabel: trimmed(60).default(""),
   link: z
     .string()
     .trim()

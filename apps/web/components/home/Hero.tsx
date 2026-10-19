@@ -3,42 +3,32 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight, BatteryCharging, ChevronLeft, ChevronRight } from "lucide-react";
+import type { BannerDto } from "@repo/types";
 import { shopHref } from "../../lib/site";
 import styles from "./Hero.module.css";
 
-const SLIDES = [
-  {
-    tag: "Prius 30 / 50",
-    t: "Гибрид Prius-ийн бүх сэлбэг нэг дор",
-    s: "Инвертерийн насос, тоормос, шүүлтүүр — оригинал болон баталгаат аналог.",
-    cta: "Prius сэлбэг үзэх",
-    href: shopHref({ q: "Prius" }),
-  },
-  {
-    tag: "Хямдрал −20%",
-    t: "Тоормосны иж бүрдэл хямдарлаа",
-    s: "Brembo, Toyota Genuine дэвсгэр — 10-р сарын 31 хүртэл.",
-    cta: "Хямдрал үзэх",
-    href: shopHref({ sale: true }),
-  },
-  {
-    tag: "Өвлийн бэлтгэл",
-    t: "−40°C-д ч найдвартай асаалт",
-    s: "Bosch аккумулятор, 0W тос, антифриз — Land Cruiser-т бэлэн.",
-    cta: "Батарей үзэх",
-    href: shopHref({ cat: "battery" }),
-  },
-];
 
-export function Hero() {
+interface Slide {
+  tag: string;
+  t: string;
+  s: string;
+  cta: string;
+  href: string;
+}
+
+/** Hero slides = the active home-page banners managed in the dashboard (Баннер & Хямдрал). */
+export function Hero({ banners }: { banners: BannerDto[] }) {
+  const SLIDES: Slide[] = banners.map((b) => ({ tag: b.eyebrow, t: b.title, s: b.subtitle, cta: b.ctaLabel || "Дэлгэрэнгүй", href: b.link }));
   const [i, setI] = useState(0);
+  const n = Math.max(1, SLIDES.length);
 
   useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % SLIDES.length), 6500);
+    const t = setInterval(() => setI((x) => (x + 1) % n), 6500);
     return () => clearInterval(t);
-  }, [i]);
+  }, [i, n]);
 
-  const slide = SLIDES[i]!;
+  // no active banners: an empty slide keeps the layout
+  const slide = SLIDES[i % n] ?? { tag: "", t: "", s: "", cta: "Дэлгүүр үзэх", href: shopHref() };
 
   return (
     <section className={styles.hero}>
@@ -65,12 +55,12 @@ export function Hero() {
         </div>
         <div className={styles.arrows}>
           <button
-            onClick={() => setI((x) => (x + SLIDES.length - 1) % SLIDES.length)}
+            onClick={() => setI((x) => (x + n - 1) % n)}
             aria-label="Өмнөх"
           >
             <ChevronLeft size={18} />
           </button>
-          <button onClick={() => setI((x) => (x + 1) % SLIDES.length)} aria-label="Дараах">
+          <button onClick={() => setI((x) => (x + 1) % n)} aria-label="Дараах">
             <ChevronRight size={18} />
           </button>
         </div>

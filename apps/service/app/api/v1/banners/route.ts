@@ -6,6 +6,16 @@ import { ok, route } from "@/lib/http";
 export const GET = route(async () => {
   const rows = await prisma.banner.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } });
   return ok<BannerDto[]>(
-    rows.map((b) => ({ id: b.id, title: b.title, subtitle: b.subtitle, link: b.link, imageUrl: b.imageUrl, sortOrder: b.sortOrder, active: b.active })),
+    rows.map((b) => ({
+      id: b.id,
+      eyebrow: b.eyebrow,
+      title: b.title,
+      subtitle: b.subtitle,
+      ctaLabel: b.ctaLabel,
+      link: b.link,
+      imageUrl: b.imageUrl,
+      sortOrder: b.sortOrder,
+      active: b.active,
+    })),
   );
 });

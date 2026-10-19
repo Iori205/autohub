@@ -7,8 +7,10 @@ import { Footer } from "../components/layout/Footer";
 import { TrustStrip } from "../components/layout/TrustStrip";
 import { ChatWidget } from "../components/layout/ChatWidget";
 import { Toast } from "../components/layout/Toast";
-import { getCategories } from "../lib/api/catalog";
-import { STORE_NAME, themeInitScript } from "../lib/site";
+import { getCategories, getSiteSettings } from "../lib/api/catalog";
+import { themeInitScript } from "../lib/site";
+import { SiteProvider } from "../lib/site-context";
+import { toStoreInfo } from "../lib/store-info";
 
 const fira = Fira_Sans_Extra_Condensed({
   subsets: ["latin", "cyrillic"],
@@ -17,7 +19,8 @@ const fira = Fira_Sans_Extra_Condensed({
 });
 const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
-  weight: ["400", "500", "600", "700", "800"],
+  // variable font (200–800): one file covers every weight the UI uses
+  // (a fixed 5-weight list trips a Turbopack production-build bug in next/font)
   variable: "--font-manrope",
 });
 const jetbrains = JetBrains_Mono({
@@ -26,18 +29,20 @@ const jetbrains = JetBrains_Mono({
   variable: "--font-jetbrains",
 });
 
-export const metadata: Metadata = {
-  title: { default: `${STORE_NAME} — Авто сэлбэг`, template: `%s · ${STORE_NAME}` },
-  description:
-    "Оригинал болон баталгаат аналог авто сэлбэгийг Улаанбаатарт хүргэнэ.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { store } = await getSiteSettings();
+  return {
+    title: { default: `${store.name} — Авто сэлбэг`, template: `%s · ${store.name}` },
+    description: "Оригинал болон баталгаат аналог авто сэлбэгийг Улаанбаатарт хүргэнэ.",
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#050505",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const categories = await getCategories();
+  const [categories, settings] = await Promise.all([getCategories(), getSiteSettings()]);
   return (
     <html
       lang="mn"
@@ -48,12 +53,14 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>
-        <Header categories={categories} />
-        {children}
-        <TrustStrip />
-        <Footer />
-        <ChatWidget />
-        <Toast />
+        <SiteProvider store={toStoreInfo(settings.store)}>
+          <Header categories={categories} />
+          {children}
+          <TrustStrip />
+          <Footer />
+          <ChatWidget />
+          <Toast />
+        </SiteProvider>
       </body>
     </html>
   );

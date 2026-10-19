@@ -7,7 +7,7 @@ import { useOrders } from "../../lib/api/orders";
 import { fmt, fmtDateTime } from "../../lib/format";
 import { useNow } from "../../lib/hooks";
 import { orderView } from "../../lib/orders";
-import { STORE_EMAIL, STORE_PHONE } from "../../lib/site";
+import { useSite } from "../../lib/site-context";
 import { showToast } from "../../lib/store/shop";
 import { DeliveryNote, ItemRows, KvCard, StatusPill, Timeline, orderItems } from "../checkout/parts";
 import { QPayModal } from "../payment/QPayModal";
@@ -111,6 +111,7 @@ function Detail({
   onPay: () => void;
 }) {
   const v = orderView(order, now);
+  const site = useSite();
   return (
     <div className={styles.detail}>
       <div className={styles.detailHead}>
@@ -159,7 +160,7 @@ function Detail({
       <KvCard title="ТӨЛБӨРИЙН МЭДЭЭЛЭЛ" rows={v.payRows} />
 
       <div className={styles.help}>
-        Асуух зүйл байвал <b>{STORE_PHONE}</b> · {STORE_EMAIL}
+        Асуух зүйл байвал <b>{site.phone}</b> · {site.email}
       </div>
     </div>
   );

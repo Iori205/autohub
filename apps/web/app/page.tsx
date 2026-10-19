@@ -5,6 +5,7 @@ import { VehicleFinder } from "../components/home/VehicleFinder";
 import { ProductGrid } from "../components/product/ProductGrid";
 import { SectionHeader } from "../components/ui/SectionHeader";
 import {
+  getBanners,
   getBrands,
   getCategories,
   getFeaturedProducts,
@@ -15,12 +16,13 @@ import { shopHref } from "../lib/site";
 import styles from "./page.module.css";
 
 export default async function HomePage() {
-  const [vehicles, categories, brands, featured, products] = await Promise.all([
+  const [vehicles, categories, brands, featured, products, banners] = await Promise.all([
     getVehicles(),
     getCategories(),
     getBrands(),
     getFeaturedProducts(),
     getProducts(),
+    getBanners(),
   ]);
 
   const fitCounts = Object.fromEntries(
@@ -30,7 +32,7 @@ export default async function HomePage() {
   return (
     <main className={`container ${styles.home}`}>
       <VehicleFinder vehicles={vehicles} fitCounts={fitCounts} />
-      <Hero />
+      <Hero banners={banners} />
       <section>
         <SectionHeader title="Ангилал" href={shopHref()} />
         <CategoryGrid categories={categories} />

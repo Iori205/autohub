@@ -15,6 +15,8 @@ export function fitStatus(p: Product, car: Car | null): FitStatus | null {
   return "no";
 }
 
+const normOem = (s: string) => s.toLowerCase().replace(/[\s.\-/]/g, "");
+
 export function matchesFilter(
   p: Product,
   f: ProductFilter,
@@ -23,7 +25,10 @@ export function matchesFilter(
   if (f.q) {
     const q = f.q.toLowerCase();
     const hay = [p.name, p.oem, p.brand, ...p.crossRefs, ...p.fits];
-    if (!hay.some((t) => t.toLowerCase().includes(q))) return false;
+    // OEM numbers match with spaces/dashes/dots ignored, like the API's search
+    const oq = normOem(f.q);
+    const oemHit = oq.length >= 3 && [p.oem, ...p.crossRefs].some((o) => normOem(o).includes(oq));
+    if (!oemHit && !hay.some((t) => t.toLowerCase().includes(q))) return false;
   }
   if (skip !== "categories" && f.categories?.length && !f.categories.includes(p.category))
     return false;

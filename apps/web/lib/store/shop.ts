@@ -1,7 +1,17 @@
 "use client";
 
+import type { CartDto, ProductSummaryDto, SavedCarDto } from "@repo/types";
+import { api, ApiError } from "../api/client";
+import { toCartLines } from "../api/map";
 import type { Car, CartLine, DeliveryMethod, Product } from "../types";
 import { createStore } from "./create-store";
+
+/*
+ * Storefront session state. Cart, wishlist and the selected car live in the
+ * database (apps/service, per guest/customer session); updates are applied
+ * optimistically and then replaced by the server's answer. Only the compare
+ * list and the delivery choice are browser preferences.
+ */
 
 interface ShopState {
   cart: CartLine[];
@@ -12,57 +22,138 @@ interface ShopState {
   /** product id that was just added — drives the "Сагсанд нэмэгдлээ" label */
   added: number | null;
   toast: string | null;
+  /** server state has been loaded */
+  synced: boolean;
 }
 
 const store = createStore<ShopState>(
-  { cart: [], wish: [], compare: [], car: null, delivery: "ship", added: null, toast: null },
-  {
-    key: "autohub:shop:v1",
-    persist: ({ cart, wish, compare, car, delivery }) => ({ cart, wish, compare, car, delivery }),
-  },
+  { cart: [], wish: [], compare: [], car: null, delivery: "ship", added: null, toast: null, synced: false },
+  { key: "autohub:prefs:v1", persist: ({ compare, delivery }) => ({ compare, delivery }) },
 );
 
-export const useShop = store.useValue;
+const LEGACY_KEY = "autohub:shop:v1"; // cart/wish/car from before the API
+
+const fromCarDto = (c: SavedCarDto | null): Car | null =>
+  c ? { make: c.make, model: c.model, year: String(c.year), engine: c.engine } : null;
+
+let loading: Promise<void> | null = null;
+
+/** Load cart, wishlist and car from the API (once per page load). */
+export function syncShop(force = false) {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (loading && !force) return loading;
+  loading = (async () => {
+    try {
+      let [cart, wish, car] = await Promise.all([
+        api<CartDto>("/cart"),
+        api<ProductSummaryDto[]>("/wishlist"),
+        api<SavedCarDto | null>("/me/car"),
+      ]);
+      ({ cart, wish, car } = await importLegacy(cart, wish, car));
+      store.set({ cart: toCartLines(cart), wish: wish.map((p) => p.id), car: fromCarDto(car), synced: true });
+    } catch (e) {
+      store.set({ synced: true });
+      if (e instanceof ApiError) showToast(e.message);
+    }
+  })();
+  return loading;
+}
+
+/** One-time move of a cart/wishlist/car kept in this browser before the API existed. */
+async function importLegacy(cart: CartDto, wish: ProductSummaryDto[], car: SavedCarDto | null) {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(LEGACY_KEY);
+  } catch {
+    /* storage blocked */
+  }
+  if (!raw) return { cart, wish, car };
+  try {
+    const old = JSON.parse(raw) as { cart?: CartLine[]; wish?: number[]; car?: Car | null };
+    if (!cart.items.length && old.cart?.length)
+      cart = await api<CartDto>("/cart", { method: "PUT", body: { items: old.cart.map((l) => ({ productId: l.product.id, qty: l.qty })) } });
+    if (!wish.length && old.wish?.length) {
+      await Promise.all(old.wish.map((id) => api(`/wishlist/${id}`, { method: "PUT" }).catch(() => null)));
+      wish = await api<ProductSummaryDto[]>("/wishlist");
+    }
+    if (!car && old.car?.make)
+      car = await api<SavedCarDto>("/me/car", { method: "PUT", body: { ...old.car, year: Number(old.car.year) || 2015 } }).catch(() => null);
+  } finally {
+    localStorage.removeItem(LEGACY_KEY);
+  }
+  return { cart, wish, car };
+}
+
+export function useShop() {
+  const s = store.useValue();
+  if (typeof window !== "undefined" && !loading) void syncShop();
+  return s;
+}
+
+/** Run an API call; on failure show the message and reload the server state. */
+async function mutate(run: () => Promise<void>) {
+  try {
+    await run();
+  } catch (e) {
+    showToast(e instanceof ApiError ? e.message : "Алдаа гарлаа. Дахин оролдоно уу");
+    await syncShop(true);
+  }
+}
+
+const putQty = (id: number, qty: number) =>
+  mutate(async () => {
+    const cart = await api<CartDto>(`/cart/items/${id}`, { method: "PUT", body: { qty } });
+    store.set({ cart: toCartLines(cart) });
+  });
 
 let addedTimer: ReturnType<typeof setTimeout> | undefined;
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
 export function addToCart(product: Product, qty = 1) {
-  store.set((s) => {
-    const ex = s.cart.find((l) => l.product.id === product.id);
-    const cart = ex
-      ? s.cart.map((l) =>
-          l.product.id === product.id ? { ...l, qty: l.qty + qty } : l,
-        )
-      : [...s.cart, { product, qty }];
-    return { cart, added: product.id };
-  });
+  const ex = store.get().cart.find((l) => l.product.id === product.id);
+  const next = (ex?.qty ?? 0) + qty;
+  store.set((s) => ({
+    cart: ex ? s.cart.map((l) => (l.product.id === product.id ? { ...l, qty: next } : l)) : [...s.cart, { product, qty }],
+    added: product.id,
+  }));
   clearTimeout(addedTimer);
   addedTimer = setTimeout(() => store.set({ added: null }), 1600);
+  void putQty(product.id, next);
 }
 
-export const setLineQty = (id: number, qty: number) =>
-  store.set((s) => ({
-    cart: s.cart.map((l) =>
-      l.product.id === id ? { ...l, qty: Math.max(1, qty) } : l,
-    ),
-  }));
+export function setLineQty(id: number, qty: number) {
+  const q = Math.max(1, qty);
+  store.set((s) => ({ cart: s.cart.map((l) => (l.product.id === id ? { ...l, qty: q } : l)) }));
+  void putQty(id, q);
+}
 
-export const removeLine = (id: number) =>
+export function removeLine(id: number) {
   store.set((s) => ({ cart: s.cart.filter((l) => l.product.id !== id) }));
+  void mutate(async () => {
+    const cart = await api<CartDto>(`/cart/items/${id}`, { method: "DELETE" });
+    store.set({ cart: toCartLines(cart) });
+  });
+}
 
+/** After checkout the server has already emptied the cart; this updates the view. */
 export const clearCart = () => store.set({ cart: [] });
 
-const toggleIn = (arr: number[], id: number) =>
-  arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
-
-export const toggleWish = (id: number) =>
-  store.set((s) => ({ wish: toggleIn(s.wish, id) }));
+export function toggleWish(id: number) {
+  const on = store.get().wish.includes(id);
+  store.set((s) => ({ wish: on ? s.wish.filter((x) => x !== id) : [...s.wish, id] }));
+  void mutate(() => api(`/wishlist/${id}`, { method: on ? "DELETE" : "PUT" }));
+}
 
 export const toggleCompare = (id: number) =>
-  store.set((s) => ({ compare: toggleIn(s.compare, id) }));
+  store.set((s) => ({ compare: s.compare.includes(id) ? s.compare.filter((x) => x !== id) : [...s.compare, id] }));
 
-export const setCar = (car: Car | null) => store.set({ car });
+export function setCar(car: Car | null) {
+  store.set({ car });
+  void mutate(async () => {
+    if (!car) await api("/me/car", { method: "DELETE" });
+    else await api("/me/car", { method: "PUT", body: { make: car.make, model: car.model, year: Number(car.year) || 0, engine: car.engine } });
+  });
+}
 
 export const setDelivery = (delivery: DeliveryMethod) => store.set({ delivery });
 

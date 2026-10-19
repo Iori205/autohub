@@ -97,7 +97,7 @@ check("health", (await anon("GET", "/health")).status === 200);
   const years = await anon("GET", "/vehicles/options?make=Toyota&model=Prius");
   const engines = await anon("GET", "/vehicles/options?make=Toyota&model=Prius&year=2014");
   check("vehicle finder cascade", makes.json?.makes?.includes("Toyota") && models.json?.models?.includes("Prius") && years.json?.years?.[0] === 2022 && engines.json?.engines?.length === 1);
-  check("banners (active only)", (await anon("GET", "/banners")).json?.length === 2);
+  check("banners (active only, = hero slides)", (await anon("GET", "/banners")).json?.length === 3);
   const settings = await anon("GET", "/settings");
   check("public settings", settings.json?.store?.name === "AuToHub" && settings.json?.fees?.UB === 5000 && settings.json?.delivery?.freeOver === 200000);
 }
@@ -254,7 +254,7 @@ const operator = client("http://localhost:3001");
 
   // marketing
   const banner = await admin("POST", "/admin/banners", { title: "Тест баннер", link: "/shop" });
-  check("create banner", banner.status === 201 && banner.json?.sortOrder === 4);
+  check("create banner", banner.status === 201 && banner.json?.sortOrder === 5);
   check("banner link validation", (await admin("POST", "/admin/banners", { title: "x", link: "shop" })).status === 422);
   const camp = await admin("POST", "/admin/campaigns", { name: "Тест", percent: 10, target: "BRAND", brandId: brands[0].id, startsAt: "2026-10-01", endsAt: "2026-10-31" });
   check("create campaign", camp.status === 201 && camp.json?.targetLabel?.startsWith("Брэнд:"));

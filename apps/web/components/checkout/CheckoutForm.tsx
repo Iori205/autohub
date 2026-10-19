@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, ChevronDown, Clock, Store, Truck } from "lucide-react";
 import { FREE_SHIPPING_FROM, shippingFor } from "../../lib/catalog";
+import { ApiError } from "../../lib/api/client";
 import { createOrder } from "../../lib/api/orders";
 import { fmt } from "../../lib/format";
 import { useHydrated } from "../../lib/hooks";
-import { cartTotals, clearCart, setDelivery, useShop } from "../../lib/store/shop";
+import { cartTotals, clearCart, setDelivery, useShop, showToast } from "../../lib/store/shop";
 import type { CheckoutForm as Form, DeliveryMethod } from "../../lib/types";
 import { CheckoutSteps } from "./CheckoutSteps";
 import { ItemRows, QPayBadge } from "./parts";
@@ -47,7 +48,7 @@ function validate(f: Form, delivery: DeliveryMethod) {
 export function CheckoutForm() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { cart, delivery } = useShop();
+  const { cart, delivery, car } = useShop();
   const { subtotal } = cartTotals(cart);
   const ship = shippingFor(subtotal, delivery);
   const [form, setForm] = useState<Form>({
@@ -76,9 +77,15 @@ export function CheckoutForm() {
       return;
     }
     setBusy(true);
-    const order = await createOrder({ lines: cart, form, delivery });
-    clearCart();
-    router.push(`/checkout/payment?order=${order.no}`);
+    try {
+      const order = await createOrder({ form, delivery, car });
+      clearCart();
+      router.push(`/checkout/payment?order=${order.no}`);
+    } catch (e) {
+      // the server re-validates (and re-prices); show its Mongolian message
+      showToast(e instanceof ApiError ? Object.values(e.fields ?? {})[0] ?? e.message : "Алдаа гарлаа. Дахин оролдоно уу");
+      setBusy(false);
+    }
   };
 
   if (!hydrated) return <main className={`container ${c.page}`} />;

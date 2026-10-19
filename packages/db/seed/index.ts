@@ -295,8 +295,15 @@ async function main() {
   log(`${m.stockLog.length} stock movements`);
 
   // ---------- marketing ----------
+  // The storefront hero slides (apps/web Hero) are the active banners, in order.
+  const lc200 = m.banners.find((b) => b.title.startsWith("Land Cruiser 200"));
   await prisma.banner.createMany({
-    data: m.banners.map((b) => ({ title: b.title, subtitle: b.sub, link: b.link, sortOrder: b.order, active: b.active })),
+    data: [
+      { eyebrow: "Prius 30 / 50", title: "Гибрид Prius-ийн бүх сэлбэг нэг дор", subtitle: "Инвертерийн насос, тоормос, шүүлтүүр — оригинал болон баталгаат аналог.", ctaLabel: "Prius сэлбэг үзэх", link: "/shop?q=Prius", sortOrder: 1, active: true },
+      { eyebrow: "Хямдрал −20%", title: "Тоормосны иж бүрдэл хямдарлаа", subtitle: "Brembo, Toyota Genuine дэвсгэр — 10-р сарын 31 хүртэл.", ctaLabel: "Хямдрал үзэх", link: "/sale", sortOrder: 2, active: true },
+      { eyebrow: "Өвлийн бэлтгэл", title: "−40°C-д ч найдвартай асаалт", subtitle: "Bosch аккумулятор, 0W тос, антифриз — Land Cruiser-т бэлэн.", ctaLabel: "Батарей үзэх", link: "/shop/battery", sortOrder: 3, active: true },
+      { eyebrow: "Land Cruiser 200", title: lc200?.title ?? "Land Cruiser 200 сэлбэг бүгд нэг дор", subtitle: lc200?.sub ?? "", ctaLabel: "Сэлбэг үзэх", link: "/shop?q=Land+Cruiser+200", sortOrder: 4, active: false },
+    ],
   });
   await prisma.campaign.createMany({
     data: m.campaigns.map((c) => {
@@ -323,7 +330,7 @@ async function main() {
       { key: "qpay", value: { invoiceCode: s.qpay.invoiceCode, env: s.qpay.env } },
     ] as { key: string; value: Prisma.InputJsonValue }[],
   });
-  log(`${m.banners.length} banners, ${m.campaigns.length} campaigns, settings`);
+  log(`4 banners, ${m.campaigns.length} campaigns, settings`);
 
   // ---------- sequences ----------
   await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"Product"', 'id'), (SELECT MAX(id) FROM "Product"))`);

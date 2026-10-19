@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import qrcode from "qrcode-generator";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { QPayInvoiceDto } from "@repo/types";
 import {
   CircleAlert,
   CircleX,
@@ -13,16 +13,9 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
+import { ApiError } from "../../lib/api/client";
 import { useOrder } from "../../lib/api/orders";
-import {
-  BANKS,
-  cancelPayment,
-  checkPayment,
-  demoMarkPaid,
-  expireInvoice,
-  openInvoice,
-  qpayPayload,
-} from "../../lib/api/payments";
+import { bankAbbr, cancelPayment, checkPayment, demoAction, openInvoice } from "../../lib/api/payments";
 import { fmt, fmtMmSs, fmtTime } from "../../lib/format";
 import { useNow } from "../../lib/hooks";
 import { showToast } from "../../lib/store/shop";
@@ -51,14 +44,26 @@ export function QPayModal({
   const now = useNow(1000);
   const [phase, setPhase] = useState<Phase>("waiting");
   const [lastPoll, setLastPoll] = useState<number | null>(null);
+  const [invoice, setInvoice] = useState<QPayInvoiceDto | null>(null);
   const opened = useRef(false);
+
+  /** A failed QPay/network call shows the "Сүлжээний алдаа" screen. */
+  const failed = useCallback((e: unknown) => {
+    if (e instanceof ApiError && e.status >= 400 && e.status < 500 && e.code !== "NOT_FOUND") showToast(e.message);
+    else setPhase("neterr");
+  }, []);
 
   // Issue / reuse the invoice once on open.
   useEffect(() => {
     if (opened.current) return;
     opened.current = true;
-    void openInvoice(orderNo).then(() => setLastPoll(Date.now()));
-  }, [orderNo]);
+    openInvoice(orderNo)
+      .then((inv) => {
+        setInvoice(inv);
+        setLastPoll(Date.now());
+      })
+      .catch(failed);
+  }, [orderNo, failed]);
 
   // Paid (by poll, manual check or demo) → hand over to the success screen.
   useEffect(() => {
@@ -71,18 +76,26 @@ export function QPayModal({
   useEffect(() => {
     if (!waiting || !order) return;
     const t = setInterval(() => {
-      void checkPayment(orderNo).then(() => setLastPoll(Date.now()));
+      checkPayment(orderNo)
+        .then(() => setLastPoll(Date.now()))
+        .catch(failed);
     }, POLL_MS);
     return () => clearInterval(t);
-  }, [waiting, orderNo, order]);
+  }, [waiting, orderNo, order, failed]);
 
-  // Invoice countdown ran out.
+  // The server expires the invoice after 15 minutes; show it as soon as it does.
   useEffect(() => {
-    if (!waiting || !order) return;
-    if (order.payStatus === "pending" && now > order.invoice.expires) {
-      void expireInvoice(order.no).then(() => setPhase("expired"));
-    }
-  }, [now, waiting, order]);
+    if (waiting && order?.payStatus === "expired") setPhase("expired");
+  }, [waiting, order?.payStatus]);
+
+  // Countdown reached zero: ask the server (it confirms a last-second payment or expires the invoice).
+  const expiryChecked = useRef<string | null>(null);
+  useEffect(() => {
+    if (!waiting || !order || order.payStatus !== "pending" || now <= order.invoice.expires) return;
+    if (expiryChecked.current === order.invoice.id) return;
+    expiryChecked.current = order.invoice.id;
+    void checkPayment(order.no).catch(failed);
+  }, [now, waiting, order, failed]);
 
   // Esc closes; lock page scroll.
   useEffect(() => {
@@ -98,33 +111,29 @@ export function QPayModal({
 
   const manualCheck = useCallback(async () => {
     setPhase("checking");
-    const st = await checkPayment(orderNo);
-    setLastPoll(Date.now());
-    if (st !== "paid") {
-      setPhase("waiting");
-      showToast("Төлбөр хараахан ороогүй байна");
+    try {
+      const st = await checkPayment(orderNo);
+      setLastPoll(Date.now());
+      if (st.paymentStatus !== "PAID") {
+        setPhase(st.paymentStatus === "EXPIRED" ? "expired" : "waiting");
+        if (st.paymentStatus === "PENDING") showToast("Төлбөр хараахан ороогүй байна");
+      }
+    } catch (e) {
+      failed(e);
     }
-  }, [orderNo]);
+  }, [orderNo, failed]);
 
   const regenerate = async () => {
-    await openInvoice(orderNo);
-    setLastPoll(Date.now());
-    setPhase("waiting");
+    try {
+      setInvoice(await openInvoice(orderNo));
+      setLastPoll(Date.now());
+      setPhase("waiting");
+    } catch (e) {
+      failed(e);
+    }
   };
 
-  const qrSrc = useMemo(() => {
-    if (!order) return "";
-    try {
-      const qr = qrcode(0, "M");
-      qr.addData(qpayPayload(order));
-      qr.make();
-      return qr.createDataURL(8, 0);
-    } catch {
-      return "";
-    }
-    // the QR only changes when a new invoice is issued
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [order?.invoice.id]);
+  const qrSrc = invoice?.qrImage ?? "";
 
   if (!order) return null;
 
@@ -135,6 +144,8 @@ export function QPayModal({
   const props: WaitProps = {
     order,
     qrSrc,
+    banks: invoice?.urls ?? [],
+    demo: invoice?.demo ?? false,
     checking: phase === "checking",
     remaining,
     low,
@@ -142,12 +153,18 @@ export function QPayModal({
     lastPoll,
     onCheck: manualCheck,
     onCancel: () => setPhase("confirmCancel"),
-    onDemoPaid: () => void demoMarkPaid(order.no),
+    onDemoPaid: () => void demoAction(order.no, "paid").catch(failed),
     onDemoExpire: () => {
-      void expireInvoice(order.no);
-      setPhase("expired");
+      demoAction(order.no, "expired")
+        .then(() => setPhase("expired"))
+        .catch(failed);
     },
-    onDemoNet: () => setPhase("neterr"),
+    // the next server check fails like a QPay outage
+    onDemoNet: () => {
+      demoAction(order.no, "error")
+        .then(() => checkPayment(order.no))
+        .catch(failed);
+    },
   };
 
   return (
@@ -185,8 +202,9 @@ export function QPayModal({
                 <button
                   className={`btn ${styles.dangerBtn}`}
                   onClick={() => {
-                    void cancelPayment(order.no);
-                    setPhase("cancelled");
+                    cancelPayment(order.no)
+                      .then((st) => setPhase(st.paymentStatus === "PAID" ? "waiting" : "cancelled"))
+                      .catch(failed);
                   }}
                 >
                   Тийм, цуцлах
@@ -255,6 +273,10 @@ export function QPayModal({
 interface WaitProps {
   order: Order;
   qrSrc: string;
+  /** bank / wallet deep links from the QPay invoice */
+  banks: QPayInvoiceDto["urls"];
+  /** DEMO_MODE invoice → show the test buttons */
+  demo: boolean;
   checking: boolean;
   remaining: number;
   low: boolean;
@@ -413,7 +435,7 @@ function WideWait(p: WaitProps) {
             </div>
           ))}
         </div>
-        <DemoBox {...p} />
+        {p.demo && <DemoBox {...p} />}
       </div>
     </div>
   );
@@ -425,14 +447,14 @@ function NarrowWait(p: WaitProps) {
       <div className={`only-mobile ${styles.banks}`}>
         <div className={styles.banksTitle}>Банкны аппаа сонгоно уу</div>
         <div className={styles.bankGrid}>
-          {BANKS.map((b) => (
+          {p.banks.map((b) => (
             <a
-              key={b.scheme}
-              href={`${b.scheme}://q?qPay_QRcode=${encodeURIComponent(p.order.invoice.id)}`}
+              key={b.name + b.link}
+              href={b.link}
               className={styles.bank}
               onClick={() => showToast(`${b.name} апп нээгдэж байна…`)}
             >
-              <span className={styles.bankIcon}>{b.abbr}</span>
+              <span className={styles.bankIcon}>{bankAbbr(b.name)}</span>
               <span className={styles.bankName}>{b.name}</span>
             </a>
           ))}
@@ -455,7 +477,7 @@ function NarrowWait(p: WaitProps) {
       <Countdown remaining={p.remaining} low={p.low} pct={p.pct} />
       <PollStatus checking={p.checking} lastPoll={p.lastPoll} />
       <Actions onCheck={p.onCheck} onCancel={p.onCancel} />
-      <DemoBox {...p} />
+      {p.demo && <DemoBox {...p} />}
     </>
   );
 }
