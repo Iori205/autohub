@@ -6,6 +6,7 @@ import {
   closeConfirm,
   closeForm,
   dismissToast,
+  toast,
   useUi,
   type ConfirmConfig,
   type FormConfig,
@@ -61,6 +62,12 @@ function FormModal({ cfg }: { cfg: FormConfig }) {
     try {
       await cfg.onSubmit(values);
       closeForm();
+    } catch (x) {
+      // API errors: field messages next to matching inputs, the rest as a toast
+      const fields = (x as { fields?: Record<string, string> }).fields ?? {};
+      const mine = Object.fromEntries(Object.entries(fields).filter(([k]) => cfg.fields.some((f) => f.key === k)));
+      setErrors(mine);
+      toast((x as Error).message || "Алдаа гарлаа", "err");
     } finally {
       setBusy(false);
     }
@@ -86,7 +93,7 @@ function FormModal({ cfg }: { cfg: FormConfig }) {
                 style={{ gridColumn: f.full || t === "textarea" ? "1 / -1" : "auto" }}
               >
                 <span>
-                  {f.label}
+                  <span>{f.label}</span>
                   {f.required && <span className="req"> *</span>}
                 </span>
                 {t === "select" ? (
@@ -116,7 +123,7 @@ function FormModal({ cfg }: { cfg: FormConfig }) {
           </button>
           <button type="submit" className={`btn ${cfg.danger ? "danger" : "primary"}`} disabled={busy}>
             {busy && <span className="spinner" />}
-            {cfg.submit ?? "Хадгалах"}
+            <span>{cfg.submit ?? "Хадгалах"}</span>
           </button>
         </div>
       </form>
@@ -147,7 +154,7 @@ function ConfirmDialog({ cfg }: { cfg: ConfirmConfig }) {
             autoFocus
             onClick={() => {
               closeConfirm();
-              void cfg.onOk();
+              void Promise.resolve(cfg.onOk()).catch((x: Error) => toast(x.message || "Алдаа гарлаа", "err"));
             }}
           >
             {cfg.ok ?? "Тийм"}

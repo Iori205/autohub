@@ -102,7 +102,7 @@ export function Footer() {
                   {s.links.map((l) => (
                     <Link key={l.label} href={l.href} className={styles.accLink}>
                       {l.icon && <l.icon size={15} className={styles.accentIcon} />}
-                      {l.label}
+                      <span>{l.label}</span>
                     </Link>
                   ))}
                 </div>
@@ -137,7 +137,7 @@ export function Footer() {
           {SECTIONS[2]!.links.map((l) => (
             <span key={l.label} className={styles.contactRow}>
               {l.icon && <l.icon size={15} className={styles.accentIcon} />}
-              {l.label}
+              <span>{l.label}</span>
             </span>
           ))}
         </div>

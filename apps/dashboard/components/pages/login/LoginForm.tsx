@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { AuthError, login } from "../../../lib/api/auth";
+import { login } from "../../../lib/api/auth";
+import { ApiError } from "../../../lib/api/client";
 import { shortName } from "../../../lib/format";
 import { toast } from "../../../lib/ui";
 import { Logo } from "../../shell/Logo";
@@ -11,7 +12,7 @@ import styles from "./Login.module.css";
 
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
-  const [email, setEmail] = useState("admin@autohub.mn");
+  const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [show, setShow] = useState(false);
   const [remember, setRemember] = useState(true);
@@ -22,7 +23,7 @@ export function LoginForm({ next }: { next: string }) {
     e.preventDefault();
     const er: typeof err = {};
     if (!/^\S+@\S+\.\S+$/.test(email)) er.email = "Зөв и-мэйл хаяг оруулна уу";
-    if (pass.length < 6) er.pass = pass ? "Нууц үг хамгийн багадаа 6 тэмдэгт" : "Нууц үгээ оруулна уу";
+    if (!pass) er.pass = "Нууц үгээ оруулна уу";
     if (Object.keys(er).length) return setErr(er);
     setBusy(true);
     try {
@@ -30,7 +31,7 @@ export function LoginForm({ next }: { next: string }) {
       toast(`Тавтай морил, ${shortName(s.name).split(" ")[0]}!`, "ok");
       router.replace(next);
     } catch (x) {
-      setErr({ form: x instanceof AuthError ? x.message : "Нэвтрэх үед алдаа гарлаа" });
+      setErr({ form: x instanceof ApiError ? x.message : "Нэвтрэх үед алдаа гарлаа" });
       setBusy(false);
     }
   };
@@ -108,7 +109,7 @@ export function LoginForm({ next }: { next: string }) {
           </div>
           <button type="submit" className={`btn primary ${styles.submit}`} disabled={busy}>
             {busy && <span className="spinner" />}
-            Нэвтрэх
+            <span>Нэвтрэх</span>
           </button>
         </form>
         <div className={styles.foot}>© 2026 AuToHub · Зөвхөн ажилтнуудад зориулав</div>

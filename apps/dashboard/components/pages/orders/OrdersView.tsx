@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Calendar, ChevronLeft, ChevronRight, Download, Printer, ReceiptText, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { setOrderStatus } from "../../../lib/api/orders";
 import { useDb } from "../../../lib/db";
 import { digits, money, shortDate } from "../../../lib/format";
-import { customerById, toProcess } from "../../../lib/metrics";
+import { toProcess } from "../../../lib/metrics";
 import { DELIVERY, PAY_LABELS, STATUS, STATUS_KEYS, payBadge } from "../../../lib/status";
 import type { Db, DeliveryKind, Order, OrderStatus } from "../../../lib/types";
 import { confirmAction, toast } from "../../../lib/ui";
@@ -38,14 +38,13 @@ function Orders({ db }: { db: Db }) {
   const [page, setPage] = useState(1);
   const [printing, setPrinting] = useState<Order[]>([]);
 
-  const cust = useMemo(() => customerById(db.customers), [db.customers]);
   const q = search.trim().toLowerCase();
   const qd = q.replace(/[-\s#]/g, "");
   const filtered = db.orders.filter((o) => {
-    const c = cust.get(o.customerId);
+    const c = o.customer;
     return (
       (tab === "all" || o.status === tab) &&
-      (!q || o.id.toLowerCase().includes(qd) || !!c?.name.toLowerCase().includes(q) || (!!qd && digits(c?.phone ?? "").includes(qd))) &&
+      (!q || o.id.toLowerCase().includes(qd) || c.name.toLowerCase().includes(q) || (!!qd && digits(c.phone).includes(qd))) &&
       (pay === "all" || payBadge(o).label === pay) &&
       (deliv === "all" || o.delivery === deliv) &&
       (!from || o.createdAt.slice(0, 10) >= from) &&
@@ -85,9 +84,11 @@ function Orders({ db }: { db: Db }) {
     const st = v as OrderStatus;
     const ids = [...sel];
     const run = async () => {
-      await setOrderStatus(ids, st);
+      const failed = Object.entries(await setOrderStatus(ids, st));
       setSel(new Set());
-      toast(`${ids.length} захиалга → ${STATUS[st].label}`, "ok");
+      const done = ids.length - failed.length;
+      if (done) toast(`${done} захиалга → ${STATUS[st].label}`, "ok");
+      if (failed.length) toast(`${failed.length} захиалга өөрчлөгдсөнгүй: #${failed[0]![0]} — ${failed[0]![1]}`, "err");
     };
     if (st === "cancelled")
       confirmAction({
@@ -115,7 +116,7 @@ function Orders({ db }: { db: Db }) {
         title="Захиалгууд"
         sub={`Нийт ${db.orders.length} захиалга · ${paidCount} шинэ төлөгдсөн захиалга боловсруулах шаардлагатай`}
         actions={
-          <button className="btn primary" onClick={() => exportOrders(filtered, db.customers)}>
+          <button className="btn primary" onClick={() => exportOrders(filtered)}>
             <Download size={17} />
             CSV экспорт
           </button>
@@ -192,7 +193,7 @@ function Orders({ db }: { db: Db }) {
               <Printer size={15} />
               Баглаа хэвлэх
             </button>
-            <button className="btn sm" onClick={() => exportOrders(selected, db.customers)}>
+            <button className="btn sm" onClick={() => exportOrders(selected)}>
               <Download size={15} />
               CSV
             </button>
@@ -226,7 +227,7 @@ function Orders({ db }: { db: Db }) {
               <span>Төлөв</span>
             </div>
             {slice.map((o) => {
-              const c = cust.get(o.customerId);
+              const c = o.customer;
               const st = STATUS[o.status];
               return (
                 <div
@@ -248,11 +249,11 @@ function Orders({ db }: { db: Db }) {
                   <span className="muted" style={{ fontSize: 12 }}>
                     {shortDate(o.createdAt)} {o.createdAt.slice(11)}
                   </span>
-                  <span title={c?.name} className="ellipsis" style={{ fontWeight: 500 }}>
-                    {c?.name}
+                  <span title={c.name} className="ellipsis" style={{ fontWeight: 500 }}>
+                    {c.name}
                   </span>
                   <span className="mono muted hide-narrow" style={{ fontSize: 12 }}>
-                    {c?.phone}
+                    {c.phone}
                   </span>
                   <span className="right strong">{money(o.total)}</span>
                   <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -301,7 +302,7 @@ function Orders({ db }: { db: Db }) {
       </div>
       <div className="print-area print-only">
         {printing.map((o) => (
-          <Slip key={o.id} order={o} customer={cust.get(o.customerId)} products={db.products} store={db.settings.store} />
+          <Slip key={o.id} order={o} products={db.products} store={db.settings.store} />
         ))}
       </div>
     </>

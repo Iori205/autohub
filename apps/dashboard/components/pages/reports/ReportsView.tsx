@@ -3,10 +3,10 @@
 import { Download } from "lucide-react";
 import { useState } from "react";
 import { downloadCsv } from "../../../lib/csv";
-import { useDb } from "../../../lib/db";
+import type { ReportDto, SplitRowDto as SplitRow } from "@repo/types";
+import { useReport } from "../../../lib/api/stats";
 import { money, num } from "../../../lib/format";
-import { inRange, report, revenueSplit, type Period, type SplitRow } from "../../../lib/metrics";
-import type { Db } from "../../../lib/types";
+import type { Period } from "../../../lib/metrics";
 import { PageHeader } from "../../shell/PageHeader";
 import { PageSkeleton } from "../../shell/PageSkeleton";
 import { Panel, Segmented } from "../../ui/bits";
@@ -19,22 +19,16 @@ const RANGE_TEXT: Record<Period, string> = {
 };
 
 export function ReportsView() {
-  const db = useDb();
   const [period, setPeriod] = useState<Period>("month");
-  if (!db) return <PageSkeleton />;
-  return <Reports db={db} period={period} setPeriod={setPeriod} />;
+  const report = useReport(period);
+  // the previous period's figures stay up until the new ones arrive
+  if (!report) return <PageSkeleton />;
+  return <Reports report={report} period={period} setPeriod={setPeriod} />;
 }
 
-function Reports({ db, period, setPeriod }: { db: Db; period: Period; setPeriod: (p: Period) => void }) {
-  const rows = report(db.orders, period);
-  const from = rows[0]!.from;
-  const to = rows[rows.length - 1]!.to;
-  const inPeriod = db.orders.filter((o) => inRange(o, from, to));
-  const total = rows.reduce((a, r) => a + r.revenue, 0);
-  const orders = rows.reduce((a, r) => a + r.orders, 0);
+function Reports({ report, period, setPeriod }: { report: ReportDto; period: Period; setPeriod: (p: Period) => void }) {
+  const { rows, total, orders, byCategory: byCat, byBrand } = report;
   const max = Math.max(1, ...rows.map((r) => r.revenue));
-  const byCat = revenueSplit(inPeriod, db.products, db.categories, "category");
-  const byBrand = revenueSplit(inPeriod, db.products, db.categories, "brand");
   const topCat = byCat.find((r) => r.name !== "Хүргэлтийн төлбөр");
 
   const exportAll = () =>

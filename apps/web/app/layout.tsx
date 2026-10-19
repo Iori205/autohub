@@ -46,10 +46,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="mn"
+      // Browser translation (Google Translate) rewrites text nodes and breaks React updates
+      translate="no"
       className={`${fira.variable} ${manrope.variable} ${jetbrains.variable}`}
       suppressHydrationWarning
     >
       <head>
+        <meta name="google" content="notranslate" />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body>

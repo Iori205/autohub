@@ -197,7 +197,7 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
         threshold: +d.threshold || 0,
         active: d.active,
         specs: d.specs.filter((s) => s.k.trim()),
-        fits: d.fits.map(({ make, model, years, engine }) => ({ make, model, years, engine })),
+        fits: d.fits.map(({ sel: _sel, ...f }) => f),
         images: d.images,
       },
       product?.id,
@@ -209,7 +209,7 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
   const num = (key: "price" | "oldPrice" | "stock" | "threshold", label: string, unit: string, req?: boolean) => (
     <label className="field" key={key}>
       <span>
-        {label}
+        <span>{label}</span>
         {req && <span className="req"> *</span>}
       </span>
       <div className="with-unit">

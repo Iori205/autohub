@@ -81,3 +81,11 @@ export const pct = (a: number, b: number) => (b ? Math.round(((a - b) / b) * 100
 export const signed = (n: number) => (n > 0 ? "+" : "") + n + "%";
 
 export const digits = (s: string) => s.replace(/\D/g, "");
+
+const UB_OFFSET_MS = 8 * 3600_000;
+
+/** ISO timestamp from the API → Ulaanbaatar local "YYYY-MM-DD HH:mm" (UTC+8, no DST). */
+export const ubTs = (iso: string) => new Date(Date.parse(iso) + UB_OFFSET_MS).toISOString().slice(0, 16).replace("T", " ");
+
+/** Today's date in Ulaanbaatar, "YYYY-MM-DD". */
+export const ubToday = () => new Date(Date.now() + UB_OFFSET_MS).toISOString().slice(0, 10);

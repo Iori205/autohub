@@ -14,21 +14,12 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
+import type { OverviewDto } from "@repo/types";
+import { useOverview } from "../../../lib/api/stats";
 import { useDb } from "../../../lib/db";
-import { addDays, dotted, money, millions, num, pct, shortDate, signed, weekday } from "../../../lib/format";
-import {
-  TODAY,
-  customerById,
-  dailyRevenue,
-  inRange,
-  lastDays,
-  lowStock,
-  productSales,
-  revenue,
-  revenueSplit,
-  statusCounts,
-} from "../../../lib/metrics";
-import { STATUS, STATUS_KEYS, isLive, payBadge, stockLevel } from "../../../lib/status";
+import { dotted, money, millions, num, pct, shortDate, signed, ubToday, weekday } from "../../../lib/format";
+import { lowStock } from "../../../lib/metrics";
+import { STATUS, STATUS_KEYS, payBadge } from "../../../lib/status";
 import type { Db } from "../../../lib/types";
 import { PageHeader } from "../../shell/PageHeader";
 import { PageSkeleton } from "../../shell/PageSkeleton";
@@ -39,13 +30,15 @@ import styles from "./Dashboard.module.css";
 
 export function DashboardView() {
   const db = useDb();
-  const [updated] = useState(() => new Date().toTimeString().slice(0, 5));
-  if (!db) return <PageSkeleton />;
+  const [range, setRange] = useState<7 | 30 | 90>(30);
+  const stats = useOverview(range);
+  if (!db || !stats) return <PageSkeleton />;
+  const today = stats.today || ubToday();
   return (
     <>
       <PageHeader
         title="Хянах самбар"
-        sub={`${dotted(TODAY)}, ${weekday(TODAY)} гараг · Сүүлд шинэчилсэн ${updated}`}
+        sub={`${dotted(today)}, ${weekday(today)} гараг · Сүүлд шинэчилсэн ${new Date().toTimeString().slice(0, 5)}`}
         actions={
           <>
             <Link href="/reports" className="btn">
@@ -59,7 +52,7 @@ export function DashboardView() {
           </>
         }
       />
-      <Dashboard db={db} />
+      <Dashboard db={db} stats={stats} range={range} setRange={setRange} />
     </>
   );
 }
@@ -75,61 +68,60 @@ interface Kpi {
   sub: string;
 }
 
-function Dashboard({ db }: { db: Db }) {
+function Dashboard({
+  db,
+  stats: o,
+  range,
+  setRange,
+}: {
+  db: Db;
+  stats: OverviewDto;
+  range: 7 | 30 | 90;
+  setRange: (r: 7 | 30 | 90) => void;
+}) {
   const router = useRouter();
-  const yesterday = addDays(TODAY, -1);
-  const todays = db.orders.filter((o) => inRange(o, TODAY, TODAY));
-  const yests = db.orders.filter((o) => inRange(o, yesterday, yesterday));
-  const pending = db.orders.filter((o) => o.status === "pending");
   const low = lowStock(db.products);
-  // Low-stock count at the end of yesterday = today's stock with today's moves undone.
-  const level = new Map(db.products.map((p) => [p.id, p.stock]));
-  for (const m of db.stockLog) if (m.at.startsWith(TODAY)) level.set(m.productId, (level.get(m.productId) ?? 0) - m.delta);
-  const lowYesterday = db.products.filter((p) => stockLevel({ ...p, stock: level.get(p.id) ?? p.stock }) !== "ok").length;
 
   const kpis: Kpi[] = [
     {
       label: "Өнөөдрийн борлуулалт",
       icon: Banknote,
-      value: money(revenue(todays)),
-      delta: pct(revenue(todays), revenue(yests)),
+      value: money(o.revenueToday),
+      delta: pct(o.revenueToday, o.revenueYesterday),
       note: "өчигдрөөс",
-      sub: `${todays.filter(isLive).length} төлөгдсөн`,
+      sub: `${o.paidToday} төлөгдсөн`,
     },
     {
       label: "Захиалга",
       icon: ReceiptText,
-      value: num(todays.length),
-      delta: pct(todays.length, yests.length),
+      value: num(o.ordersToday),
+      delta: pct(o.ordersToday, o.ordersYesterday),
       note: "өчигдрөөс",
       sub: "өнөөдөр",
     },
     {
       label: "Төлбөр хүлээгдэж буй",
       icon: Hourglass,
-      value: num(pending.length),
-      note: `${pending.filter((o) => inRange(o, TODAY, TODAY)).length} нь өнөөдөр`,
-      sub: money(pending.reduce((a, o) => a + o.total, 0)),
+      value: num(o.pending.count),
+      note: `${o.pending.today} нь өнөөдөр`,
+      sub: money(o.pending.amount),
     },
     {
       label: "Дуусах дөхсөн бараа",
       icon: PackageX,
-      value: num(low.length),
-      delta: pct(low.length, lowYesterday),
+      value: num(o.lowStock.count),
+      delta: pct(o.lowStock.count, o.lowStock.yesterday),
       bad: true,
       note: "өчигдрөөс",
-      sub: `${low.filter((p) => !p.stock).length} дууссан`,
+      sub: `${o.lowStock.out} дууссан`,
     },
   ];
 
-  const last7 = db.orders.filter((o) => inRange(o, addDays(TODAY, -6), TODAY));
-  const counts = statusCounts(last7);
-  const month = db.orders.filter((o) => inRange(o, addDays(TODAY, -29), TODAY));
-  const cats = revenueSplit(month, db.products, db.categories, "category")
-    .filter((r) => r.name !== "Хүргэлтийн төлбөр")
-    .slice(0, 6);
-  const top = productSales(month, db.products).slice(0, 5);
-  const cust = customerById(db.customers);
+  const counts = o.stageCounts;
+  const last7 = Object.values(counts).reduce((a, b) => a + b, 0);
+  const cats = o.topCategories.map((c) => ({ name: c.name, value: c.revenue }));
+  const byId = new Map(db.products.map((p) => [p.id, p]));
+  const top = o.topProducts;
 
   return (
     <div className="stack">
@@ -148,7 +140,7 @@ function Dashboard({ db }: { db: Db }) {
                   style={{ color: (k.delta >= 0) !== !!k.bad ? "var(--tone-green)" : "var(--danger)" }}
                 >
                   {k.delta >= 0 ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
-                  {signed(k.delta)}
+                  <span>{signed(k.delta)}</span>
                 </span>
               )}
               <span className="faint">{k.note}</span>
@@ -159,9 +151,9 @@ function Dashboard({ db }: { db: Db }) {
       </div>
 
       <div className="row-wrap">
-        <RevenueSection db={db} />
+        <RevenueSection stats={o} range={range} setRange={setRange} />
         <Panel title="Захиалга төлөвөөр" sub="Сүүлийн 7 хоног" style={{ flex: "1 1 300px" }}>
-          <Donut counts={counts} total={last7.length} />
+          <Donut counts={counts} total={last7} />
         </Panel>
       </div>
 
@@ -179,6 +171,7 @@ function Dashboard({ db }: { db: Db }) {
                 </span>
               </div>
             ))}
+            {!cats.length && <div className="empty sm">Сүүлийн 30 өдөрт борлуулалт алга.</div>}
           </div>
         </Panel>
         <Panel
@@ -193,17 +186,17 @@ function Dashboard({ db }: { db: Db }) {
           }
         >
           {top.map((t, i) => (
-            <Link key={t.product.id} href={`/products/${t.product.id}`} className={`tr hover ${styles.topRow}`}>
+            <Link key={t.productId} href={`/products/${t.productId}`} className={`tr hover ${styles.topRow}`}>
               <span className="faint mono" style={{ fontSize: 12 }}>
                 {i + 1}
               </span>
-              <Thumb product={t.product} categories={db.categories} size={36} />
+              <Thumb product={byId.get(t.productId)} categories={db.categories} size={36} />
               <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                <span title={t.product.name} className="ellipsis" style={{ fontWeight: 500 }}>
-                  {t.product.name}
+                <span title={t.name} className="ellipsis" style={{ fontWeight: 500 }}>
+                  {t.name}
                 </span>
-                <span title={`${t.product.brand} · ${t.product.oem[0]}`} className="muted ellipsis" style={{ fontSize: 11.5 }}>
-                  {t.product.brand} · {t.product.oem[0]}
+                <span title={`${t.brand} · ${t.oem ?? ""}`} className="muted ellipsis" style={{ fontSize: 11.5 }}>
+                  {t.brand} · {t.oem}
                 </span>
               </span>
               <span className="right muted">{t.qty} ш</span>
@@ -212,6 +205,7 @@ function Dashboard({ db }: { db: Db }) {
               </span>
             </Link>
           ))}
+          {!top.length && <div className="empty sm">Сүүлийн 30 өдөрт борлуулалт алга.</div>}
         </Panel>
       </div>
 
@@ -244,7 +238,7 @@ function Dashboard({ db }: { db: Db }) {
                   <span className="muted" style={{ fontSize: 12 }}>
                     {shortDate(o.createdAt)} {o.createdAt.slice(11)}
                   </span>
-                  <span title={cust.get(o.customerId)?.name} className="ellipsis">{cust.get(o.customerId)?.name}</span>
+                  <span title={o.customer.name} className="ellipsis">{o.customer.name}</span>
                   <span className="right" style={{ fontWeight: 500 }}>
                     {money(o.total)}
                   </span>
@@ -303,13 +297,11 @@ function Dashboard({ db }: { db: Db }) {
   );
 }
 
-function RevenueSection({ db }: { db: Db }) {
-  const [range, setRange] = useState<7 | 30 | 90>(30);
-  const days = lastDays(range);
-  const data = dailyRevenue(db.orders, days);
-  const prev = dailyRevenue(db.orders, lastDays(range, addDays(TODAY, -range)));
+function RevenueSection({ stats, range, setRange }: { stats: OverviewDto; range: 7 | 30 | 90; setRange: (r: 7 | 30 | 90) => void }) {
+  const days = stats.series.map((x) => x.day);
+  const data = stats.series.map((x) => x.revenue);
   const total = data.reduce((a, b) => a + b, 0);
-  const d = pct(total, prev.reduce((a, b) => a + b, 0));
+  const d = pct(total, stats.previousTotal);
   return (
     <Panel
       style={{ flex: "2 1 560px" }}

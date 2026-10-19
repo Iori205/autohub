@@ -11,6 +11,7 @@
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
     "db:seed": "prisma db seed",
+    "db:demo": "SEED_NOW=1 prisma db seed",
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "check-types": "tsc --noEmit"

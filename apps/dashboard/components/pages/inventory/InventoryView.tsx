@@ -52,7 +52,7 @@ function Inventory({ db }: { db: Db }) {
               onClick={() =>
                 downloadCsv("autohub-stock-log.csv", [
                   ["Огноо", "Бараа", "Өөрчлөлт", "Шалтгаан", "Хэрэглэгч", "Үлдэгдэл"],
-                  ...db.stockLog.map((l) => [l.at, name.get(l.productId), l.delta, l.reason, l.by, l.after]),
+                  ...db.stockLog.map((l) => [l.at, name.get(l.productId) ?? l.productName, l.delta, l.reason, l.by, l.after]),
                 ])
               }
             >
@@ -163,8 +163,8 @@ function Inventory({ db }: { db: Db }) {
                   <span className="mono muted" style={{ fontSize: 12 }}>
                     {shortDateTime(l.at)}
                   </span>
-                  <span title={name.get(l.productId)} className="ellipsis" style={{ fontWeight: 500 }}>
-                    {name.get(l.productId) ?? "—"}
+                  <span title={name.get(l.productId) ?? l.productName} className="ellipsis" style={{ fontWeight: 500 }}>
+                    {name.get(l.productId) ?? l.productName}
                   </span>
                   <span className="right mono strong" style={{ color: l.delta > 0 ? "var(--tone-green)" : "var(--danger)" }}>
                     {l.delta > 0 ? "+" : "−"}

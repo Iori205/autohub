@@ -1,98 +1,102 @@
 "use client";
 
-import { setDb } from "../db";
-import { nowTs } from "../format";
-import { newId } from "../ids";
-import type { Db, Product, StockMove } from "../types";
-import { staffName } from "./staff";
+import type { ProductDetailDto, ProductInput as ProductBody } from "@repo/types";
+import { getDb, reload } from "../db";
+import type { Fitment, Product } from "../types";
+import { api } from "./client";
 
-/*
- * Products & inventory data access — MOCK. Later: POST/PUT/DELETE /products,
- * PATCH /products/bulk, POST /inventory/adjustments (with image upload to storage).
- */
+/* Products & inventory → /admin/products, /admin/products/bulk, /admin/stock/adjust. */
 
 export type ProductInput = Omit<Product, "id">;
 
-export async function saveProduct(input: ProductInput, id?: number): Promise<number> {
-  let savedId = id ?? 0;
-  const at = nowTs();
-  const by = staffName();
-  setDb((db) => {
-    if (id) {
-      const before = db.products.find((p) => p.id === id);
-      const moves: StockMove[] =
-        before && before.stock !== input.stock
-          ? [move(id, input.stock - before.stock, "Барааны карт засвар", by, input.stock, at)]
-          : [];
-      return {
-        products: db.products.map((p) => (p.id === id ? { ...input, id } : p)),
-        stockLog: [...moves, ...db.stockLog],
-      };
+const parseYears = (y: string): [number, number] => {
+  const [a, b] = y.split(/[–-]/).map((s) => Number(s.trim()));
+  return [a!, b || a!];
+};
+
+/** Fitment rows → vehicle ids (picker rows name make/model/year/engine; loaded rows already carry the id). */
+function toFitments(fits: Fitment[]) {
+  const vehicles = getDb()?.vehicles ?? [];
+  const out = new Map<string, { vehicleId: string; yearFrom: number; yearTo: number }>();
+  for (const f of fits) {
+    const [from, to] = f.yearFrom && f.yearTo ? [f.yearFrom, f.yearTo] : parseYears(f.years);
+    const ids = f.vehicleId
+      ? [f.vehicleId]
+      : vehicles
+          .filter((v) => v.make === f.make && v.model === f.model && (!f.engine || v.engine === f.engine) && v.yearFrom <= to && v.yearTo >= from)
+          .map((v) => v.id);
+    for (const vehicleId of ids) {
+      const prev = out.get(vehicleId);
+      out.set(vehicleId, prev ? { vehicleId, yearFrom: Math.min(prev.yearFrom, from), yearTo: Math.max(prev.yearTo, to) } : { vehicleId, yearFrom: from, yearTo: to });
     }
-    savedId = Math.max(0, ...db.products.map((p) => p.id)) + 1;
-    const moves = input.stock ? [move(savedId, input.stock, "Шинэ бараа", by, input.stock, at)] : [];
-    return { products: [{ ...input, id: savedId }, ...db.products], stockLog: [...moves, ...db.stockLog] };
-  });
-  return savedId;
+  }
+  return [...out.values()];
 }
 
+function toBody(p: ProductInput): ProductBody {
+  const db = getDb();
+  const brandId = db?.brands.find((b) => b.name === p.brand)?.id;
+  const categoryId = db?.categories.find((c) => c.key === p.category)?.id;
+  return {
+    name: p.name,
+    description: p.description,
+    brandId: brandId ?? "",
+    categoryId: categoryId ?? "",
+    oemNumbers: p.oem,
+    price: p.price,
+    oldPrice: p.oldPrice,
+    stock: p.stock,
+    lowStockThreshold: p.threshold,
+    type: p.genuine ? "ORIGINAL" : "AFTERMARKET",
+    images: p.images,
+    specs: p.specs,
+    fitmentUnknown: false,
+    active: p.active,
+    fitments: toFitments(p.fits),
+  };
+}
+
+export async function saveProduct(input: ProductInput, id?: number): Promise<number> {
+  const body = toBody(input);
+  const saved = id
+    ? await api<ProductDetailDto>(`/admin/products/${id}`, { method: "PATCH", body })
+    : await api<ProductDetailDto>("/admin/products", { method: "POST", body });
+  await reload("products", "stockLog", "vehicles");
+  return saved.id;
+}
+
+const bulk = (body: object) => api("/admin/products/bulk", { method: "POST", body });
+
 export async function deleteProducts(ids: number[]) {
-  setDb((db) => ({ products: db.products.filter((p) => !ids.includes(p.id)) }));
+  await bulk({ action: "delete", ids });
+  await reload("products", "vehicles");
 }
 
 export async function setProductsActive(ids: number[], active: boolean) {
-  setDb((db) => ({ products: db.products.map((p) => (ids.includes(p.id) ? { ...p, active } : p)) }));
+  await bulk({ action: active ? "activate" : "hide", ids });
+  await reload("products");
 }
 
 export type PriceMode = "up" | "down" | "fixed";
 
 export async function bulkPrice(ids: number[], mode: PriceMode, value: number) {
-  setDb((db) => ({
-    products: db.products.map((p) => {
-      if (!ids.includes(p.id)) return p;
-      const price =
-        mode === "fixed"
-          ? value
-          : Math.round((p.price * (1 + ((mode === "up" ? 1 : -1) * value) / 100)) / 500) * 500;
-      return { ...p, price: Math.max(0, price) };
-    }),
-  }));
+  await bulk({ action: "price", ids, mode, value });
+  await reload("products");
 }
 
 export async function bulkStock(ids: number[], mode: "add" | "set", value: number) {
-  const at = nowTs();
-  const by = staffName();
-  setDb((db) => {
-    const moves: StockMove[] = [];
-    const products = db.products.map((p) => {
-      if (!ids.includes(p.id)) return p;
-      const stock = Math.max(0, mode === "add" ? p.stock + value : value);
-      if (stock !== p.stock) moves.push(move(p.id, stock - p.stock, "Бөөнөөр засварласан", by, stock, at));
-      return { ...p, stock };
-    });
-    return { products, stockLog: [...moves, ...db.stockLog] };
-  });
+  await bulk({ action: "stock", ids, mode, value });
+  await reload("products", "stockLog");
 }
 
 export async function setThreshold(id: number, threshold: number) {
-  setDb((db) => ({ products: db.products.map((p) => (p.id === id ? { ...p, threshold } : p)) }));
+  await api(`/admin/products/${id}`, { method: "PATCH", body: { lowStockThreshold: threshold } });
+  await reload("products");
 }
 
+/** "Нөөц тохируулах" — returns the new stock level. */
 export async function adjustStock(productId: number, delta: number, reason: string) {
-  const at = nowTs();
-  const by = staffName();
-  let after = 0;
-  setDb((db: Db) => {
-    const products = db.products.map((p) => {
-      if (p.id !== productId) return p;
-      after = Math.max(0, p.stock + delta);
-      return { ...p, stock: after };
-    });
-    return { products, stockLog: [move(productId, delta, reason, by, after, at), ...db.stockLog] };
-  });
-  return after;
-}
-
-function move(productId: number, delta: number, reason: string, by: string, after: number, at: string): StockMove {
-  return { id: newId("s"), at, productId, delta, reason, by, after };
+  const r = await api<{ stock: number }>("/admin/stock/adjust", { method: "POST", body: { productId, delta, reason } });
+  await reload("products", "stockLog");
+  return r.stock;
 }

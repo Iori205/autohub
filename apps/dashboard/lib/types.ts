@@ -1,49 +1,3 @@
-/* ---------- Storefront shapes (same as apps/web/lib/types.ts) ---------- */
-
-export type CategoryKey =
-  | "engine"
-  | "brake"
-  | "susp"
-  | "filter"
-  | "oil"
-  | "elec"
-  | "battery"
-  | "wheel"
-  | "body"
-  | "interior"
-  | "acc";
-
-export interface StoreCategory {
-  key: CategoryKey;
-  name: string;
-  countLabel: string;
-}
-
-export interface VehicleModel {
-  make: string;
-  model: string;
-  yearFrom: number;
-  yearTo: number;
-  engines: string[];
-}
-
-export interface StoreProduct {
-  id: number;
-  name: string;
-  brand: string;
-  category: CategoryKey;
-  oem: string;
-  price: number;
-  oldPrice?: number;
-  stock: number;
-  genuine: boolean;
-  fits: string[];
-  fitUnknown?: boolean;
-  specs: [string, string][];
-  crossRefs: string[];
-  images?: string[];
-}
-
 /* ---------- Admin domain ---------- */
 
 export type IconKey =
@@ -63,6 +17,7 @@ export type IconKey =
   | "zap";
 
 export interface Category {
+  id: string;
   /** Also the storefront URL slug: /shop/{key} */
   key: string;
   name: string;
@@ -90,6 +45,10 @@ export interface Fitment {
   years: string;
   /** "" = every engine of that model */
   engine: string;
+  /** set for fitments loaded from the API (picker rows get it on save) */
+  vehicleId?: string;
+  yearFrom?: number;
+  yearTo?: number;
 }
 
 export interface Product {
@@ -123,6 +82,8 @@ export interface Vehicle {
   yearTo: number;
   engine: string;
   fuel: Fuel;
+  /** products that list this vehicle as a fitment */
+  productCount: number;
 }
 
 export interface CustomerCar {
@@ -134,6 +95,8 @@ export interface CustomerCar {
 
 export interface Customer {
   id: string;
+  /** checked out without an account */
+  isGuest: boolean;
   name: string;
   phone: string;
   email: string;
@@ -155,9 +118,11 @@ export type OrderStatus =
 export type DeliveryKind = "ub" | "pickup" | "country";
 
 export interface OrderItem {
+  /** 0 when the product was deleted later */
   productId: number;
   /** Snapshot at order time */
   name: string;
+  oem: string | null;
   price: number;
   qty: number;
 }
@@ -174,6 +139,12 @@ export interface Order {
   /** YYYY-MM-DD HH:mm (Ulaanbaatar local time) */
   createdAt: string;
   customerId: string;
+  /** contact details as entered at checkout */
+  customer: { name: string; phone: string; email: string | null };
+  /** car chosen on the storefront ("Toyota Prius 2014 · 2ZR-FXE") */
+  car: string | null;
+  /** customer's note at checkout */
+  note: string | null;
   items: OrderItem[];
   subtotal: number;
   shipping: number;
@@ -183,8 +154,9 @@ export interface Order {
   status: OrderStatus;
   /** Money was received (stays true after a refund-cancel) */
   paid: boolean;
-  invoiceId: string;
+  invoiceId: string | null;
   paymentId: string | null;
+  cancelReason: string | null;
   /** When each status was reached, YYYY-MM-DD HH:mm */
   times: Partial<Record<OrderStatus, string>>;
   notes: OrderNote[];
@@ -195,6 +167,7 @@ export interface StockMove {
   /** YYYY-MM-DD HH:mm */
   at: string;
   productId: number;
+  productName: string;
   delta: number;
   reason: string;
   by: string;
@@ -203,8 +176,12 @@ export interface StockMove {
 
 export interface Banner {
   id: string;
+  /** small label above the title on the home hero ("Хямдрал −20%") */
+  eyebrow: string;
   title: string;
   sub: string;
+  /** button text on the hero */
+  cta: string;
   link: string;
   order: number;
   active: boolean;
@@ -216,6 +193,8 @@ export interface Campaign {
   pct: number;
   /** "Бүх бараа" | "Ангилал: …" | "Брэнд: …" */
   target: string;
+  categoryId: string | null;
+  brandId: string | null;
   from: string;
   to: string;
   active: boolean;
@@ -237,12 +216,13 @@ export interface StoreSettings {
   hours: string;
 }
 
+/** Read-only: merchant credentials, environment and DEMO_MODE come from the service's .env */
 export interface QPaySettings {
-  username: string;
-  password: string;
   invoiceCode: string;
   env: "sandbox" | "production";
   demo: boolean;
+  callbackUrl: string;
+  merchantConfigured: boolean;
 }
 
 export interface Settings {

@@ -37,7 +37,7 @@ function categoryForm(db: Db, c?: Category) {
           : undefined,
     }),
     onSubmit: async (v) => {
-      await saveCategory({ name: v.name!.trim(), key: v.key!, icon: v.icon as IconKey }, c?.key);
+      await saveCategory({ name: v.name!.trim(), key: v.key!, icon: v.icon as IconKey }, c?.id);
       toast(`“${v.name}” ангилал ${c ? "шинэчлэгдлээ" : "нэмэгдлээ"}`, "ok");
     },
   });
@@ -105,7 +105,7 @@ function Catalog({ db }: { db: Db }) {
                 const n = db.products.filter((p) => p.category === c.key).length;
                 const Icon = CATEGORY_ICONS[c.icon];
                 return (
-                  <div key={c.key} className={`tr hover ${styles.catCols}`}>
+                  <div key={c.id} className={`tr hover ${styles.catCols}`}>
                     <span className="icon-tile">
                       <Icon size={17} />
                     </span>
@@ -130,7 +130,7 @@ function Catalog({ db }: { db: Db }) {
                                 ok: "Устгах",
                                 danger: true,
                                 onOk: async () => {
-                                  await deleteCategory(c.key);
+                                  await deleteCategory(c.id);
                                   toast(`“${c.name}” устгагдлаа`, "ok");
                                 },
                               })
@@ -186,16 +186,18 @@ function Catalog({ db }: { db: Db }) {
                         className="icon-btn danger"
                         aria-label="Устгах"
                         onClick={() =>
-                          confirmAction({
-                            title: `“${b.name}” устгах уу?`,
-                            msg: n ? `${n} бараа энэ брэндтэй холбоотой. Бараанууд брэндгүй үлдэнэ.` : "Энэ үйлдлийг буцаах боломжгүй.",
-                            ok: "Устгах",
-                            danger: true,
-                            onOk: async () => {
-                              await deleteBrand(b.id);
-                              toast(`“${b.name}” устгагдлаа`, "ok");
-                            },
-                          })
+                          n
+                            ? toast(`“${b.name}” брэндтэй ${n} бараа байгаа тул устгах боломжгүй. Эхлээд бараануудын брэндийг солино уу`, "err")
+                            : confirmAction({
+                                title: `“${b.name}” устгах уу?`,
+                                msg: "Энэ үйлдлийг буцаах боломжгүй.",
+                                ok: "Устгах",
+                                danger: true,
+                                onOk: async () => {
+                                  await deleteBrand(b.id);
+                                  toast(`“${b.name}” устгагдлаа`, "ok");
+                                },
+                              })
                         }
                       >
                         <Trash2 size={16} />

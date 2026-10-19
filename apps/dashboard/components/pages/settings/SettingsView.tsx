@@ -21,13 +21,12 @@ import { useSession } from "../../../lib/api/auth";
 import { inviteAdmin, removeAdmin, saveSettings, setAdminRole, testQPay } from "../../../lib/api/settings";
 import { useDb } from "../../../lib/db";
 import { initials } from "../../../lib/format";
-import { newId } from "../../../lib/ids";
 import type { SettingsTab } from "../../../lib/settings-tabs";
 import type { AdminRole, Db, Settings } from "../../../lib/types";
 import { confirmAction, openForm, toast } from "../../../lib/ui";
 import { PageHeader } from "../../shell/PageHeader";
 import { PageSkeleton } from "../../shell/PageSkeleton";
-import { Badge, Panel, Segmented, Switch } from "../../ui/bits";
+import { Badge, Panel, Switch } from "../../ui/bits";
 import styles from "./Settings.module.css";
 
 const TABS: [SettingsTab, string, typeof Store][] = [
@@ -45,10 +44,15 @@ export function SettingsView({ tab }: { tab: SettingsTab }) {
   return <SettingsForm db={db} tab={tab} />;
 }
 
-type Errors = Partial<Record<"name" | "phone" | "username" | "invoiceCode", string>>;
+type Errors = Partial<Record<"name" | "phone" | "email", string>>;
+
+const zoneId = () => `z${Date.now().toString(36)}`;
 
 function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
   const router = useRouter();
+  const session = useSession();
+  // operators can look but not change (the service also refuses with 403)
+  const readOnly = session?.role !== "admin";
   // Edits stay local until "Хадгалах"; admin changes apply immediately.
   const [s, setS] = useState<Settings>(() => structuredClone(db.settings));
   const [err, setErr] = useState<Errors>({});
@@ -58,10 +62,6 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
     setS((x) => ({ ...x, store: { ...x.store, [k]: v } }));
     setErr((e) => ({ ...e, [k]: undefined }));
   };
-  const setQ = <K extends keyof Settings["qpay"]>(k: K, v: Settings["qpay"][K]) => {
-    setS((x) => ({ ...x, qpay: { ...x.qpay, [k]: v } }));
-    setErr((e) => ({ ...e, [k]: undefined }));
-  };
   const setZone = (id: string, patch: Partial<Settings["zones"][number]>) =>
     setS((x) => ({ ...x, zones: x.zones.map((z) => (z.id === id ? { ...z, ...patch } : z)) }));
 
@@ -69,11 +69,17 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
     const e: Errors = {};
     if (!s.store.name.trim()) e.name = "Нэр оруулна уу";
     if (!/^\d{4}-?\d{4}$/.test(s.store.phone.trim())) e.phone = "8 оронтой утасны дугаар (жишээ: 7711-2233)";
-    if (!s.qpay.demo && !s.qpay.username.trim()) e.username = "Merchant username шаардлагатай";
-    if (!s.qpay.demo && !s.qpay.invoiceCode.trim()) e.invoiceCode = "Invoice code шаардлагатай";
+    if (s.store.email.trim() && !/^\S+@\S+\.\S+$/.test(s.store.email.trim())) e.email = "Зөв и-мэйл хаяг оруулна уу";
     setErr(e);
     if (Object.keys(e).length) return toast("Тохиргоонд алдаа байна", "err");
-    await saveSettings({ ...s, freeOver: Number(s.freeOver) || 0, zones: s.zones.map((z) => ({ ...z, fee: Number(z.fee) || 0 })) });
+    try {
+      await saveSettings({ ...s, freeOver: Number(s.freeOver) || 0, zones: s.zones.map((z) => ({ ...z, fee: Number(z.fee) || 0 })) });
+    } catch (x) {
+      // field messages from the server (e.g. "phone") land next to the inputs
+      const fields = (x as { fields?: Record<string, string> }).fields;
+      if (fields) setErr(fields as Errors);
+      throw x;
+    }
     toast("Тохиргоо хадгалагдлаа", "ok");
   };
 
@@ -84,10 +90,13 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
         title="Тохиргоо"
         sub="Дэлгүүр, хүргэлт, төлбөр болон админ хэрэглэгчид"
         actions={
-          <button className="btn primary" onClick={save}>
-            <Check size={17} />
-            Хадгалах{dirty ? " •" : ""}
-          </button>
+          !readOnly &&
+          (tab === "store" || tab === "delivery") && (
+            <button className="btn primary" onClick={save}>
+              <Check size={17} />
+              Хадгалах{dirty ? " •" : ""}
+            </button>
+          )
         }
       />
       <div className="stack">
@@ -106,9 +115,15 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
           ))}
         </div>
 
+        {readOnly && (
+          <div className={styles.warn} style={{ maxWidth: 820 }}>
+            Оператор эрхээр тохиргоог зөвхөн харах боломжтой. Өөрчлөхийн тулд админ эрхтэй хэрэглэгчээр нэвтэрнэ үү.
+          </div>
+        )}
+
         {tab === "store" && (
           <Panel title="Дэлгүүрийн мэдээлэл" style={{ maxWidth: 820 }}>
-            <div className={styles.grid}>
+            <fieldset disabled={readOnly} className={styles.grid} style={{ border: 0, margin: 0, minWidth: 0 }}>
               {(
                 [
                   ["name", "Дэлгүүрийн нэр", true],
@@ -120,7 +135,7 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
               ).map(([k, label, req]) => (
                 <label key={k} className="field" style={{ gridColumn: k === "address" ? "1 / -1" : "auto" }}>
                   <span>
-                    {label}
+                    <span>{label}</span>
                     {req && <span className="req"> *</span>}
                   </span>
                   <input
@@ -132,7 +147,7 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
                   {err[k as keyof Errors] && <span className="field-err">{err[k as keyof Errors]}</span>}
                 </label>
               ))}
-            </div>
+            </fieldset>
           </Panel>
         )}
 
@@ -142,15 +157,18 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
             clip
             style={{ maxWidth: 960 }}
             action={
-              <button
-                className="link-btn"
-                onClick={() => setS((x) => ({ ...x, zones: [...x.zones, { id: newId("z"), name: "Шинэ бүс", fee: 0, eta: "", active: true }] }))}
-              >
-                <Plus size={15} />
-                Бүс нэмэх
-              </button>
+              !readOnly && (
+                <button
+                  className="link-btn"
+                  onClick={() => setS((x) => ({ ...x, zones: [...x.zones, { id: zoneId(), name: "Шинэ бүс", fee: 0, eta: "", active: true }] }))}
+                >
+                  <Plus size={15} />
+                  Бүс нэмэх
+                </button>
+              )
             }
           >
+            <fieldset disabled={readOnly} style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}>
             <div className="tbl-scroll">
               <div style={{ minWidth: 620 }}>
                 <div className={`tr th ${styles.zoneCols}`}>
@@ -205,29 +223,27 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
                 Энэ дүнгээс дээш захиалгад УБ-д хүргэлт үнэгүй
               </span>
             </div>
+            </fieldset>
           </Panel>
         )}
 
-        {tab === "qpay" && <QPayTab s={s} err={err} setQ={setQ} />}
+        {tab === "qpay" && <QPayTab q={db.settings.qpay} readOnly={readOnly} />}
 
-        {tab === "admins" && <AdminsTab db={db} />}
+        {tab === "admins" && <AdminsTab db={db} readOnly={readOnly} />}
       </div>
     </>
   );
 }
 
-function QPayTab({
-  s,
-  err,
-  setQ,
-}: {
-  s: Settings;
-  err: Errors;
-  setQ: <K extends keyof Settings["qpay"]>(k: K, v: Settings["qpay"][K]) => void;
-}) {
-  const q = s.qpay;
+/** Read-only: credentials, environment and DEMO_MODE are set in the service's .env. */
+function QPayTab({ q, readOnly }: { q: Settings["qpay"]; readOnly: boolean }) {
   const prod = q.env === "production";
   const [testing, setTesting] = useState(false);
+  const rows: [string, string][] = [
+    ["Merchant", q.merchantConfigured ? "Тохируулсан (QPAY_USERNAME, QPAY_PASSWORD)" : "Тохируулаагүй"],
+    ["Invoice code", q.invoiceCode || "—"],
+    ["Callback URL", q.callbackUrl],
+  ];
   return (
     <div className="stack" style={{ maxWidth: 820 }}>
       <Panel
@@ -235,64 +251,39 @@ function QPayTab({
         action={<Badge lg dot spec={prod ? { label: "Production", tone: "green" } : { label: "Sandbox", tone: "amber" }} />}
       >
         <div className={styles.grid}>
-          {(
-            [
-              ["username", "Merchant username", "text"],
-              ["password", "Merchant password", "password"],
-              ["invoiceCode", "Invoice code", "text"],
-            ] as const
-          ).map(([k, label, type]) => (
-            <label key={k} className="field">
-              <span>
-                {label}
-                <span className="req"> *</span>
-              </span>
-              <input
-                className="input lg mono"
-                type={type}
-                value={q[k]}
-                aria-invalid={!!err[k as keyof Errors]}
-                onChange={(e) => setQ(k, e.target.value)}
-                autoComplete="off"
-              />
-              {err[k as keyof Errors] && <span className="field-err">{err[k as keyof Errors]}</span>}
+          {rows.map(([label, value]) => (
+            <label key={label} className="field" style={{ gridColumn: label === "Callback URL" ? "1 / -1" : "auto" }}>
+              {label}
+              <input className="input lg mono" readOnly value={value} style={{ background: "var(--panel2)", color: "var(--muted)", fontSize: 12 }} />
             </label>
           ))}
-          <label className="field">
-            Callback URL
-            <input className="input lg mono" readOnly value="https://api.autohub.mn/payments/qpay/callback" style={{ background: "var(--panel2)", color: "var(--muted)", fontSize: 12 }} />
-          </label>
         </div>
         <div className={styles.qRow}>
-          <span style={{ fontWeight: 500 }}>Орчин</span>
-          <Segmented
-            className="lg"
-            options={[
-              ["sandbox", "Sandbox"],
-              ["production", "Production"],
-            ]}
-            value={q.env}
-            onChange={(v) => setQ("env", v)}
-          />
-          <span style={{ flex: 1 }} />
-          <button
-            className="btn ghost"
-            disabled={testing}
-            onClick={async () => {
-              setTesting(true);
-              toast(`QPay ${prod ? "production" : "sandbox"} руу холбогдож байна…`, "info");
-              const r = await testQPay(q);
-              setTesting(false);
-              toast(r.message, r.ok ? "ok" : "err");
-            }}
-          >
-            {testing ? <span className="spinner" /> : <Radio size={16} />}
-            Холболт шалгах
-          </button>
+          <span className="muted" style={{ fontSize: 12.5, flex: 1 }}>
+            Merchant мэдээлэл, орчин (QPAY_BASE_URL) серверийн <span className="mono">.env</span> файлд хадгалагдана — нууц үг энд
+            харагдахгүй.
+          </span>
+          {!readOnly && (
+            <button
+              className="btn ghost"
+              disabled={testing}
+              onClick={async () => {
+                setTesting(true);
+                toast(`QPay ${prod ? "production" : "sandbox"} руу холбогдож байна…`, "info");
+                try {
+                  const r = await testQPay();
+                  toast(r.message, r.ok ? "ok" : "err");
+                } finally {
+                  setTesting(false);
+                }
+              }}
+            >
+              {testing ? <span className="spinner" /> : <Radio size={16} />}
+              <span>Холболт шалгах</span>
+            </button>
+          )}
         </div>
-        {prod && (
-          <div className={styles.warn}>Production горимд бодит төлбөр хийгдэнэ. Merchant мэдээллээ шалгасны дараа хадгална уу.</div>
-        )}
+        {prod && <div className={styles.warn}>Production горимд бодит төлбөр хийгдэнэ.</div>}
       </Panel>
       <div className={`panel ${styles.demo}`}>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 3 }}>
@@ -301,30 +292,24 @@ function QPayTab({
             <Badge spec={q.demo ? { label: "Идэвхтэй", tone: "amber" } : { label: "Унтраасан", tone: "neutral" }} />
           </div>
           <span className="muted">
-            Идэвхтэй үед QPay руу хүсэлт илгээхгүй, нэхэмжлэх бүр 10 секундын дараа автоматаар “Төлөгдсөн” болно. Зөвхөн туршилтад ашиглана.
+            Идэвхтэй үед QPay руу хүсэлт илгээхгүй: нэхэмжлэх, QR код дотооддоо үүснэ. Төлбөрийн цонхон дээрх DEMO товчоор “Төлсөн”,
+            “Хугацаа дууссан”, “Сүлжээний алдаа” төлөвийг туршина. Нэхэмжлэх 15 минутын дараа хүчингүй болно. Серверийн{" "}
+            <span className="mono">.env</span> файлд <span className="mono">DEMO_MODE=true</span> гэж тохируулна — зөвхөн туршилт,
+            танилцуулгад ашиглана.
           </span>
         </div>
-        <Switch
-          lg
-          on={q.demo}
-          label="DEMO_MODE"
-          onChange={() => {
-            setQ("demo", !q.demo);
-            toast(`DEMO_MODE ${q.demo ? "унтарлаа" : "идэвхжлээ"}`, "info");
-          }}
-        />
       </div>
     </div>
   );
 }
 
-function AdminsTab({ db }: { db: Db }) {
+function AdminsTab({ db, readOnly }: { db: Db; readOnly: boolean }) {
   const session = useSession();
   const invite = () =>
     openForm({
       title: "Админ урих",
-      desc: "Урилгын холбоос и-мэйлээр илгээгдэнэ.",
-      submit: "Урилга илгээх",
+      desc: "Түр нууц үг үүснэ — хэрэглэгчид өөрөө дамжуулна уу (и-мэйл илгээх холбогдоогүй).",
+      submit: "Бүртгэх",
       fields: [
         { key: "name", label: "Нэр", required: true },
         { key: "email", label: "И-мэйл", type: "email", required: true },
@@ -338,8 +323,19 @@ function AdminsTab({ db }: { db: Db }) {
             ? { email: "Энэ и-мэйл бүртгэлтэй байна" }
             : {},
       onSubmit: async (v) => {
-        await inviteAdmin(v.name!.trim(), v.email!.trim(), v.role as AdminRole);
-        toast(`${v.email} руу урилга илгээлээ`, "ok");
+        const temp = await inviteAdmin(v.name!.trim(), v.email!.trim(), v.role as AdminRole);
+        toast(`${v.name} бүртгэгдлээ`, "ok");
+        // shown once; the form closes after onSubmit, then this dialog stays up
+        setTimeout(
+          () =>
+            confirmAction({
+              title: "Түр нууц үг",
+              msg: `${v.email!.trim()} · нууц үг: ${temp} — Үүнийг хэрэглэгчид дамжуулна уу. Дахин харагдахгүй.`,
+              ok: "Ойлголоо",
+              onOk: () => undefined,
+            }),
+          0,
+        );
       },
     });
 
@@ -354,10 +350,12 @@ function AdminsTab({ db }: { db: Db }) {
         title="Админ хэрэглэгчид"
         clip
         action={
-          <button className="btn primary sm" onClick={invite}>
-            <UserPlus size={15} />
-            Урих
-          </button>
+          !readOnly && (
+            <button className="btn primary sm" onClick={invite}>
+              <UserPlus size={15} />
+              Урих
+            </button>
+          )
         }
       >
         <div className="tbl-scroll">
@@ -376,7 +374,7 @@ function AdminsTab({ db }: { db: Db }) {
                     <span className="avatar">{initials(a.name)}</span>
                     <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
                       <span style={{ fontWeight: 500 }}>
-                        {a.name}
+                        <span>{a.name}</span>
                         {self && <span className="faint"> (та)</span>}
                       </span>
                       <span title={a.email} className="faint ellipsis" style={{ fontSize: 11.5 }}>
@@ -387,7 +385,7 @@ function AdminsTab({ db }: { db: Db }) {
                   <select
                     className="select"
                     value={a.role}
-                    disabled={self}
+                    disabled={self || readOnly}
                     aria-label="Эрх"
                     onChange={async (e) => {
                       const role = e.target.value as AdminRole;
@@ -401,7 +399,7 @@ function AdminsTab({ db }: { db: Db }) {
                   <span className="muted" style={{ fontSize: 12 }}>
                     {self ? "Одоо идэвхтэй" : a.lastSeen}
                   </span>
-                  {!self ? (
+                  {!self && !readOnly ? (
                     <button
                       className="icon-btn danger"
                       aria-label="Хасах"
@@ -442,7 +440,7 @@ function AdminsTab({ db }: { db: Db }) {
             {r.perms.map(([t, ok]) => (
               <div key={t} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: ok ? "var(--text)" : "var(--faint)" }}>
                 {ok ? <Check size={15} /> : <Ban size={15} />}
-                {t}
+                <span>{t}</span>
               </div>
             ))}
           </div>

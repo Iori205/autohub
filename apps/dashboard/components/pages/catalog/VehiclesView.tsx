@@ -27,9 +27,6 @@ export function VehiclesView() {
   return <Vehicles db={db} />;
 }
 
-/** Products linked to a vehicle row (fitment on that model, any or this engine). */
-export const vehicleProducts = (db: Db, v: Vehicle) =>
-  db.products.filter((p) => p.fits.some((f) => f.make === v.make && f.model === v.model && (!f.engine || f.engine === v.engine))).length;
 
 function vehicleForm(v?: Vehicle) {
   openForm({
@@ -118,7 +115,7 @@ function Vehicles({ db }: { db: Db }) {
               <span />
             </div>
             {list.map((v) => {
-              const n = vehicleProducts(db, v);
+              const n = v.productCount;
               return (
                 <div key={v.id} className={`tr hover ${styles.vehCols}`}>
                   <span className="strong">{v.make}</span>
@@ -188,16 +185,20 @@ function ImportModal({ onClose }: { onClose: () => void }) {
 
   const run = async () => {
     if (!file) return toast("Эхлээд CSV файл сонгоно уу", "err");
-    setPct(0);
+    setPct(30);
     const text = await file.text();
-    // Progress is cosmetic in the mock; the service will stream real progress.
-    for (let p = 20; p <= 100; p += 20) {
-      await new Promise((r) => setTimeout(r, 160));
-      setPct(p);
+    try {
+      const r = await importVehicles(text);
+      setPct(100);
+      onClose();
+      toast(
+        `${r.added} мөр импортлогдлоо${r.skipped ? ` · ${r.skipped} давхардсан` : ""}${r.errors ? ` · ${r.errors} алдаатай мөр` : ""}`,
+        r.errors && !r.added ? "err" : "ok",
+      );
+    } catch (e) {
+      setPct(null);
+      throw e;
     }
-    const r = await importVehicles(text);
-    onClose();
-    toast(`${r.added} мөр импортлогдлоо · ${r.errors} алдаа`, r.errors && !r.added ? "err" : "ok");
   };
 
   return (
@@ -256,7 +257,7 @@ function ImportModal({ onClose }: { onClose: () => void }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <div className="muted" style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
               <span>Импортлож байна…</span>
-              <span>{pct}%</span>
+              <span />
             </div>
             <div className="bar">
               <span style={{ width: `${pct}%`, transition: "width .2s" }} />

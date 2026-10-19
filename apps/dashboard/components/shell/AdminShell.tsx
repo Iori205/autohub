@@ -4,7 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { useSession } from "../../lib/api/auth";
 import { setSidebarCollapsed, useSidebarCollapsed } from "../../lib/prefs";
+import { ApiError } from "../../lib/api/client";
 import { LOGIN_PATH } from "../../lib/session";
+import { toast } from "../../lib/ui";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import styles from "./Shell.module.css";
@@ -24,6 +26,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session === null) router.replace(`${LOGIN_PATH}?next=${encodeURIComponent(pathname)}`);
   }, [session, pathname, router]);
+
+  // Buttons, switches and selects call the API directly; a failed call shows the server's message.
+  useEffect(() => {
+    const onReject = (e: PromiseRejectionEvent) => {
+      if (!(e.reason instanceof ApiError)) return;
+      e.preventDefault();
+      if (e.reason.status !== 401) toast(e.reason.message, "err");
+    };
+    window.addEventListener("unhandledrejection", onReject);
+    return () => window.removeEventListener("unhandledrejection", onReject);
+  }, []);
 
   const toggleSidebar = () => {
     if (window.matchMedia(DESKTOP).matches) setSidebarCollapsed(!collapsed);

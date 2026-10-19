@@ -21,7 +21,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { logout } from "../../lib/api/auth";
 import { useDb } from "../../lib/db";
 import { digits, initials, money, shortName } from "../../lib/format";
-import { customerById, lowStock, toProcess } from "../../lib/metrics";
+import { lowStock, toProcess } from "../../lib/metrics";
 import { toggleTheme, useTheme } from "../../lib/prefs";
 import { toast } from "../../lib/ui";
 import type { Session } from "../../lib/types";
@@ -65,26 +65,19 @@ export function Header({ session, onMenu }: { session: Session; onMenu: () => vo
   const hits = useMemo<Hit[]>(() => {
     if (!db || query.length < 2) return [];
     const qd = query.replace(/[-\s#.]/g, "");
-    const cust = customerById(db.customers);
     const orders = db.orders
       .filter((o) => {
-        const c = cust.get(o.customerId);
-        return (
-          o.id.toLowerCase().includes(qd) ||
-          (!!c && (digits(c.phone).includes(qd) || c.name.toLowerCase().includes(query)))
-        );
+        const c = o.customer;
+        return o.id.toLowerCase().includes(qd) || (!!qd && digits(c.phone).includes(qd)) || c.name.toLowerCase().includes(query);
       })
       .slice(0, 4)
-      .map((o) => {
-        const c = cust.get(o.customerId);
-        return {
-          icon: ReceiptText,
-          kind: "Захиалга",
-          title: `#${o.id} · ${c?.name ?? "—"}`,
-          sub: `${c?.phone ?? ""} · ${money(o.total)}`,
-          href: `/orders/${o.id}`,
-        };
-      });
+      .map((o) => ({
+        icon: ReceiptText,
+        kind: "Захиалга",
+        title: `#${o.id} · ${o.customer.name}`,
+        sub: `${o.customer.phone} · ${money(o.total)}`,
+        href: `/orders/${o.id}`,
+      }));
     const products = db.products
       .filter(
         (p) =>
@@ -111,7 +104,6 @@ export function Header({ session, onMenu }: { session: Session; onMenu: () => vo
 
   const notifs = useMemo(() => {
     if (!db) return [];
-    const cust = customerById(db.customers);
     return [
       ...toProcess(db.orders).map((o) => ({
         key: o.id,
@@ -119,7 +111,7 @@ export function Header({ session, onMenu }: { session: Session; onMenu: () => vo
         tone: "green",
         unread: true,
         title: `Шинэ төлбөр орлоо · #${o.id}`,
-        sub: `${cust.get(o.customerId)?.name ?? ""} · ${money(o.total)} · QPay`,
+        sub: `${o.customer.name} · ${money(o.total)} · QPay`,
         time: o.createdAt.slice(11),
         href: `/orders/${o.id}`,
       })),
@@ -261,7 +253,7 @@ export function Header({ session, onMenu }: { session: Session; onMenu: () => vo
               <strong>{session.name}</strong>
               <span>{session.email}</span>
             </div>
-            <button className={styles.menuItem} onClick={() => setMenu(null)}>
+            <button className={styles.menuItem} onClick={() => go("/settings?tab=admins")}>
               <User size={17} />
               Миний профайл
             </button>

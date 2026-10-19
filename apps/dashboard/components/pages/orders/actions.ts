@@ -4,9 +4,9 @@ import { cancelOrder, checkPayment, setOrderStatus } from "../../../lib/api/orde
 import { downloadCsv } from "../../../lib/csv";
 import { money } from "../../../lib/format";
 import { DELIVERY, STATUS, payBadge } from "../../../lib/status";
-import type { Customer, Order, OrderStatus } from "../../../lib/types";
+import { ubToday } from "../../../lib/format";
+import type { Order, OrderStatus } from "../../../lib/types";
 import { openForm, toast } from "../../../lib/ui";
-import { TODAY } from "../../../lib/metrics";
 
 const CANCEL_REASONS = [
   "",
@@ -41,7 +41,8 @@ export function openCancel(o: Order) {
 export async function changeStatus(o: Order, status: OrderStatus) {
   if (status === o.status) return;
   if (status === "cancelled") return openCancel(o);
-  await setOrderStatus(o.id, status);
+  const failed = await setOrderStatus(o.id, status);
+  if (failed[o.id]) return toast(failed[o.id]!, "err");
   toast(`#${o.id} → ${STATUS[status].label}`, "ok");
 }
 
@@ -52,14 +53,10 @@ export async function runPaymentCheck(o: Order) {
   else toast(`#${o.id}: төлбөр хараахан ороогүй байна`, "err");
 }
 
-export function exportOrders(list: Order[], customers: Customer[]) {
-  const byId = new Map(customers.map((c) => [c.id, c]));
-  downloadCsv(`autohub-orders-${TODAY}.csv`, [
+export function exportOrders(list: Order[]) {
+  downloadCsv(`autohub-orders-${ubToday()}.csv`, [
     ["Захиалга", "Огноо", "Харилцагч", "Утас", "Дүн", "Төлбөр", "Хүргэлт", "Төлөв"],
-    ...list.map((o) => {
-      const c = byId.get(o.customerId);
-      return [o.id, o.createdAt, c?.name, c?.phone, o.total, payBadge(o).label, DELIVERY[o.delivery], STATUS[o.status].label];
-    }),
+    ...list.map((o) => [o.id, o.createdAt, o.customer.name, o.customer.phone, o.total, payBadge(o).label, DELIVERY[o.delivery], STATUS[o.status].label]),
   ]);
 }
 

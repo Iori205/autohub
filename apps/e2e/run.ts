@@ -3,7 +3,7 @@
  *
  *   npm run test:e2e              web + dashboard
  *   npm run test:e2e -- web       storefront only
- *   npm run test:e2e -- dashboard dashboard only
+ *   npm run test:e2e -- dashboard dashboard (+ cross-app checks on the storefront)
  *
  * 1. starts a fresh `prisma dev` Postgres (never Supabase), migrates and seeds it
  * 2. builds and starts apps/service (DEMO_MODE) and the frontends on test ports
@@ -97,8 +97,9 @@ async function main() {
   const DATABASE_URL = startDb();
   const dbEnv = { DATABASE_URL, DIRECT_URL: DATABASE_URL };
   sh("npx", ["prisma", "migrate", "deploy"], path.join(ROOT, "packages/db"), dbEnv);
-  sh("npx", ["prisma", "db", "seed"], path.join(ROOT, "packages/db"), { ...dbEnv, SEED_ADMIN_PASSWORD: "autohub123" });
-  log("database migrated and seeded");
+  // db:demo seed: the mock history moved to the present, so "today" figures are real
+  sh("npx", ["prisma", "db", "seed"], path.join(ROOT, "packages/db"), { ...dbEnv, SEED_ADMIN_PASSWORD: "autohub123", SEED_NOW: "1" });
+  log("database migrated and seeded (db:demo)");
   process.env.DATABASE_URL = DATABASE_URL; // for the DB assertions in the specs
   process.env.DATABASE_POOL_MAX = "1";
 
@@ -120,7 +121,8 @@ async function main() {
     },
     `${API}/api/v1/health`,
   );
-  if (which !== "dashboard") await startApp("web", PORTS.web, common, `http://localhost:${PORTS.web}/`);
+  // the dashboard spec also needs the storefront for its cross-app checks
+  await startApp("web", PORTS.web, common, `http://localhost:${PORTS.web}/`);
   if (which !== "web") await startApp("dashboard", PORTS.dashboard, common, `http://localhost:${PORTS.dashboard}/login`);
 
   const ctx: Ctx = {

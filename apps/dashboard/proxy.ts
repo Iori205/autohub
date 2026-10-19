@@ -4,8 +4,8 @@ import { LOGIN_PATH, SESSION_COOKIE } from "./lib/session";
 /**
  * Auth guard (optimistic check). Every admin route needs the session cookie;
  * without it the request is redirected to /login?next=…. Signed-in users who
- * open /login go to the dashboard. apps/service will own the real session —
- * this check stays the same, only the cookie gets issued by the server.
+ * open /login go to the dashboard. The cookie is issued (httpOnly) by apps/service;
+ * the service verifies it on every API call and the client signs out on a 401.
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;

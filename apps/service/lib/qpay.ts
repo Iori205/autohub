@@ -134,3 +134,9 @@ export async function cancelInvoice(invoiceId: string): Promise<void> {
   const auth = `Bearer ${await accessToken()}`;
   await call(`/invoice/${encodeURIComponent(invoiceId)}`, { method: "DELETE", auth });
 }
+
+/** Тохиргоо → "Холболт шалгах": request a fresh token with the env credentials. */
+export async function testConnection(): Promise<void> {
+  token = null;
+  await accessToken();
+}

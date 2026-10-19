@@ -44,7 +44,7 @@ function Customers({ db, openId }: { db: Db; openId?: string }) {
       <PageHeader
         crumbs={[{ label: "Хэрэглэгчид" }]}
         title="Хэрэглэгчид"
-        sub={`${db.customers.length} бүртгэлтэй хэрэглэгч`}
+        sub={`${db.customers.filter((c) => !c.isGuest).length} бүртгэлтэй хэрэглэгч · ${db.customers.filter((c) => c.isGuest).length} зочин худалдан авагч`}
         actions={
           <button
             className="btn primary"
@@ -101,7 +101,7 @@ function Customers({ db, openId }: { db: Db; openId?: string }) {
                   {s.last ? shortDate(s.last) : "—"}
                 </span>
                 <span className="muted hide-narrow" style={{ fontSize: 12 }}>
-                  {dotted(c.registeredAt)}
+                  {c.isGuest ? "Зочин" : dotted(c.registeredAt)}
                 </span>
               </div>
             ))}
@@ -133,7 +133,7 @@ function CustomerDrawer({ c, s, onClose }: { c: Customer; s: CustomerStats; onCl
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <strong style={{ fontSize: 15 }}>{c.name}</strong>
             <span className="muted" style={{ fontSize: 12 }}>
-              Бүртгүүлсэн {dotted(c.registeredAt)}
+              {c.isGuest ? `Зочноор захиалсан · ${dotted(c.registeredAt)}` : `Бүртгүүлсэн ${dotted(c.registeredAt)}`}
             </span>
           </div>
           <button className="icon-btn" onClick={onClose} aria-label="Хаах">
@@ -160,11 +160,11 @@ function CustomerDrawer({ c, s, onClose }: { c: Customer; s: CustomerStats; onCl
             </div>
             <div>
               <Mail size={16} />
-              {c.email}
+              {c.email || "—"}
             </div>
             <div style={{ alignItems: "flex-start" }}>
               <MapPin size={16} />
-              {c.address}
+              {c.address || s.orders.find((o) => o.delivery !== "pickup")?.address || "—"}
             </div>
           </div>
           <div className={styles.dSection}>

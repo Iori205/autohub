@@ -7,7 +7,23 @@ Next.js route handlers under `/api/v1`, on **http://localhost:4000**. Data comes
 npm run dev -w service        # reads the root .env (DATABASE_URL, AUTH_SECRET, …)
 npm run test:api -w service       # end-to-end checks; needs a freshly seeded dev DB
 npm run test:payments -w service  # QPay flow (MODE=demo|off|sandbox); same DB rule
+npm run test:e2e                  # (repo root) Playwright, web + dashboard, on a throwaway local DB
 ```
+
+## Database
+
+```bash
+npm run db:migrate   # apply migrations (DIRECT_URL)
+npm run db:seed      # wipe + load the mock history as of its own "today" (2026-10-11)
+npm run db:demo      # wipe + load the same data moved to the present — the newest order is a
+                     # minute old, today's KPIs/charts are filled and the pending orders are fresh
+                     # (their 15-minute invoices are open). Run right before a demo.
+```
+
+Both seeds **delete everything first** (orders placed since included). Migration
+`20261019010000_rls_lockdown` enables Row Level Security on every table and revokes the
+Supabase `anon`/`authenticated` roles, so Supabase's auto-generated REST/GraphQL API exposes
+nothing; the service connects as the table owner and isn't affected.
 
 ## Conventions
 
@@ -82,7 +98,8 @@ zone settings).
 | POST | `/admin/orders/:number/status` | `{ status: PAID \| PREPARING \| SHIPPING \| DELIVERED \| PENDING \| EXPIRED }` |
 | POST | `/admin/orders/:number/cancel` | `{ reason, comment }` — paid orders are refunded, stock returns |
 | POST | `/admin/orders/:number/notes`, `/admin/orders/bulk-status` | |
-| GET/POST | `/admin/products` | list incl. hidden (`stockLevel=ok\|low\|out`, `active`) / create |
+| POST | `/admin/orders/:number/check` | staff "QPay төлөв шалгах": asks QPay (or demo state) for a pending order, returns the order |
+| GET/POST | `/admin/products` | list incl. hidden (`stockLevel=ok\|low\|out`, `active`), items are full details with fitments / create |
 | GET/PATCH/DELETE | `/admin/products/:id` | PATCH is partial; `fitments` replaces the list; stock changes are logged |
 | POST | `/admin/products/bulk` | `activate`, `hide`, `delete`, `price` (up/down %, fixed), `stock` (add/set) |
 | GET/POST, PATCH/DELETE | `/admin/categories`, `/admin/brands`, `/admin/vehicles` (+ `/import` CSV) | in-use categories/brands can't be deleted (409) |
@@ -91,6 +108,7 @@ zone settings).
 | GET | `/admin/customers`, `/admin/customers/:id` | spend = paid orders |
 | GET | `/admin/settings` · PUT `/admin/settings/:key` (`store`, `delivery`, `qpay`) | ADMIN only to save; QPay secrets stay in env |
 | GET/POST, PATCH/DELETE | `/admin/staff` | ADMIN only to change; invite returns a temporary password |
+| POST | `/admin/qpay-test` | ADMIN: request a QPay token with the env credentials → `{ ok, message }` |
 
 Stock moves automatically: a payment deducts the order's items ("Борлуулалт · #A…"), a refund-cancel
 returns them ("Буцаалт · #A…"); every change is a `StockMovement` row and stock never goes below 0.

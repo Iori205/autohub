@@ -1,35 +1,39 @@
 "use client";
 
-import { setDb } from "../db";
-import { newId } from "../ids";
-import type { AdminRole, QPaySettings, Settings } from "../types";
+import type { StaffDto } from "@repo/types";
+import { reload } from "../db";
+import type { AdminRole, Settings } from "../types";
+import { api } from "./client";
 
-/* Store settings and admin users — MOCK. Later: /settings, /admins, POST /payments/qpay/test. */
+/* Store settings and staff → /admin/settings/:key, /admin/staff, /admin/qpay-test (ADMIN only). */
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-export async function saveSettings(settings: Settings) {
-  setDb(() => ({ settings }));
+/** QPay is configured in the service's .env, so only the store and delivery sections are saved. */
+export async function saveSettings(s: Settings) {
+  await Promise.all([
+    api("/admin/settings/store", { method: "PUT", body: s.store }),
+    api("/admin/settings/delivery", { method: "PUT", body: { zones: s.zones, freeOver: s.freeOver } }),
+  ]);
+  await reload("settings");
 }
 
-/** Try a token request against QPay. The mock only checks the username is set. */
-export async function testQPay(q: QPaySettings): Promise<{ ok: boolean; message: string }> {
-  await sleep(900);
-  return q.username.trim()
-    ? { ok: true, message: "QPay холболт амжилттай · token хүчинтэй" }
-    : { ok: false, message: "Холболт амжилтгүй: merchant username хоосон" };
-}
+/** Request a QPay token with the env credentials. */
+export const testQPay = () => api<{ ok: boolean; message: string }>("/admin/qpay-test", { method: "POST" });
 
-export async function inviteAdmin(name: string, email: string, role: AdminRole) {
-  setDb((db) => ({
-    admins: [...db.admins, { id: newId("u"), name, email, role, lastSeen: "Урилга илгээсэн" }],
-  }));
+const ROLE = { admin: "ADMIN", operator: "OPERATOR" } as const;
+
+/** Creates the account; returns a one-time temporary password (e-mail invites aren't wired yet). */
+export async function inviteAdmin(name: string, email: string, role: AdminRole): Promise<string> {
+  const r = await api<StaffDto & { tempPassword: string }>("/admin/staff", { method: "POST", body: { name, email, role: ROLE[role] } });
+  await reload("admins");
+  return r.tempPassword;
 }
 
 export async function setAdminRole(id: string, role: AdminRole) {
-  setDb((db) => ({ admins: db.admins.map((a) => (a.id === id ? { ...a, role } : a)) }));
+  await api(`/admin/staff/${id}`, { method: "PATCH", body: { role: ROLE[role] } });
+  await reload("admins");
 }
 
 export async function removeAdmin(id: string) {
-  setDb((db) => ({ admins: db.admins.filter((a) => a.id !== id) }));
+  await api(`/admin/staff/${id}`, { method: "DELETE" });
+  await reload("admins");
 }

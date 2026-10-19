@@ -11,8 +11,7 @@ import {
   toggleCampaign,
 } from "../../../lib/api/marketing";
 import { useDb } from "../../../lib/db";
-import { TODAY } from "../../../lib/metrics";
-import { shortDate } from "../../../lib/format";
+import { shortDate, ubToday } from "../../../lib/format";
 import type { BadgeSpec } from "../../../lib/status";
 import type { Banner, Campaign, Db } from "../../../lib/types";
 import { confirmAction, openForm, toast } from "../../../lib/ui";
@@ -31,17 +30,30 @@ function bannerForm(db: Db, b?: Banner) {
   openForm({
     title: b ? "Баннер засах" : "Шинэ баннер",
     fields: [
+      { key: "eyebrow", label: "Шошго", placeholder: "Хямдрал −20%" },
+      { key: "cta", label: "Товчны текст", placeholder: "Хямдрал үзэх" },
       { key: "title", label: "Гарчиг", required: true, full: true },
       { key: "sub", label: "Дэд текст", full: true },
       { key: "link", label: "Холбоос", required: true, placeholder: "/shop/brake" },
       { key: "order", label: "Дараалал", type: "number", required: true },
     ],
     values: b
-      ? { title: b.title, sub: b.sub, link: b.link, order: String(b.order) }
-      : { title: "", sub: "", link: "", order: String(db.banners.length + 1) },
+      ? { eyebrow: b.eyebrow, cta: b.cta, title: b.title, sub: b.sub, link: b.link, order: String(b.order) }
+      : { eyebrow: "", cta: "", title: "", sub: "", link: "", order: String(Math.max(0, ...db.banners.map((x) => x.order)) + 1) },
     validate: (v) => (v.link!.startsWith("/") || v.link!.startsWith("http") ? {} : { link: "“/” эсвэл “http”-ээр эхлэх ёстой" }),
     onSubmit: async (v) => {
-      await saveBanner({ title: v.title!.trim(), sub: v.sub!.trim(), link: v.link!.trim(), order: +v.order!, active: b?.active ?? true }, b?.id);
+      await saveBanner(
+        {
+          eyebrow: v.eyebrow!.trim(),
+          cta: v.cta!.trim(),
+          title: v.title!.trim(),
+          sub: v.sub!.trim(),
+          link: v.link!.trim(),
+          order: +v.order!,
+          active: b?.active ?? true,
+        },
+        b?.id,
+      );
       toast(`Баннер ${b ? "шинэчлэгдлээ" : "нэмэгдлээ"}`, "ok");
     },
   });
@@ -64,7 +76,7 @@ function campaignForm(db: Db, c?: Campaign) {
     ],
     values: c
       ? { name: c.name, pct: String(c.pct), target: c.target, from: c.from, to: c.to }
-      : { name: "", pct: "", target: "Бүх бараа", from: TODAY, to: "" },
+      : { name: "", pct: "", target: "Бүх бараа", from: ubToday(), to: "" },
     validate: (v) =>
       !(+v.pct! > 0 && +v.pct! <= 90) ? { pct: "1–90 хооронд" } : v.to! < v.from! ? { to: "Дуусах огноо эхлэхээс хойш" } : {},
     onSubmit: async (v) => {
@@ -74,12 +86,12 @@ function campaignForm(db: Db, c?: Campaign) {
   });
 }
 
-const campaignState = (c: Campaign): BadgeSpec =>
+const campaignState = (c: Campaign, today = ubToday()): BadgeSpec =>
   !c.active
     ? { label: "Зогсоосон", tone: "neutral" }
-    : c.to < TODAY
+    : c.to < today
       ? { label: "Дууссан", tone: "neutral" }
-      : c.from > TODAY
+      : c.from > today
         ? { label: "Төлөвлөсөн", tone: "blue" }
         : { label: "Идэвхтэй", tone: "green" };
 
@@ -127,11 +139,17 @@ function Promos({ db }: { db: Db }) {
                 </div>
                 <div className={styles.bannerBody}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                    {b.eyebrow && (
+                      <span className="faint" style={{ fontSize: 11.5 }}>
+                        {b.eyebrow}
+                      </span>
+                    )}
                     <strong>{b.title}</strong>
                     <span className="muted" style={{ fontSize: 12 }}>
                       {b.sub}
                     </span>
                     <span className="mono" style={{ fontSize: 11.5, color: "var(--accent)" }}>
+                      {b.cta ? `${b.cta} → ` : ""}
                       {b.link}
                     </span>
                   </div>
@@ -139,8 +157,9 @@ function Promos({ db }: { db: Db }) {
                     <Switch
                       on={b.active}
                       label="Идэвхтэй"
-                      onChange={() => {
-                        void toggleBanner(b.id);
+                      onChange={async () => {
+                        await toggleBanner(b.id);
+                        toast(`Баннер ${b.active ? "нуугдлаа" : "идэвхжлээ"}`, "ok");
                       }}
                     />
                     <span className="muted" style={{ fontSize: 12, marginLeft: 4 }}>
@@ -200,7 +219,14 @@ function Promos({ db }: { db: Db }) {
                     <Badge spec={campaignState(c)} dot />
                   </span>
                   <span>
-                    <Switch on={c.active} label="Идэвх" onChange={() => void toggleCampaign(c.id)} />
+                    <Switch
+                      on={c.active}
+                      label="Идэвх"
+                      onChange={async () => {
+                        await toggleCampaign(c.id);
+                        toast(`“${c.name}” ${c.active ? "зогслоо" : "идэвхжлээ"}`, "ok");
+                      }}
+                    />
                   </span>
                   <span className="cell-actions">
                     <button className="icon-btn" aria-label="Засах" onClick={() => campaignForm(db, c)}>

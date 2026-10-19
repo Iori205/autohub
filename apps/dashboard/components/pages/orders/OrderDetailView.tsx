@@ -18,7 +18,6 @@ import { useState } from "react";
 import { addOrderNote } from "../../../lib/api/orders";
 import { useDb } from "../../../lib/db";
 import { dotted, initials, money, shortDateTime } from "../../../lib/format";
-import { statusTime } from "../../../lib/data/seed";
 import { DELIVERY, FLOW, STATUS, STATUS_KEYS, payBadge, typeBadge } from "../../../lib/status";
 import type { Db, Order, OrderStatus } from "../../../lib/types";
 import { toast } from "../../../lib/ui";
@@ -37,17 +36,18 @@ const STEP_LABEL: Record<OrderStatus, string> = {
   shipping: "Хүргэлтэнд гарсан",
   delivered: "Хүргэгдсэн",
   cancelled: "Захиалга цуцлагдсан",
-  expired: "Нэхэмжлэхийн хугацаа дууссан (30 мин)",
+  expired: "Нэхэмжлэхийн хугацаа дууссан (15 мин)",
 };
-const STEP_BY: Record<OrderStatus, string> = {
-  pending: "Харилцагч · вэб",
-  paid: "QPay callback",
-  preparing: "Сүхбат Н.",
-  shipping: "Сүхбат Н. · Жолооч Бат",
-  delivered: "Жолооч Бат",
-  cancelled: "Ганболд Б.",
-  expired: "Систем",
-};
+const STEP_BY = (o: Order, k: OrderStatus): string =>
+  ({
+    pending: "Харилцагч · вэб",
+    paid: o.paymentId ? "QPay" : "Ажилтан баталгаажуулсан",
+    preparing: "Ажилтан",
+    shipping: "Ажилтан",
+    delivered: "Ажилтан",
+    cancelled: o.cancelReason ?? "Ажилтан",
+    expired: "Систем",
+  })[k];
 const NEXT_ICON = { pending: RefreshCw, paid: Package, preparing: Truck, shipping: CircleCheckBig } as const;
 
 export function OrderDetailView({ id }: { id: string }) {
@@ -91,15 +91,15 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
         ]
       : FLOW.map((k, i) => ({ k, done: i <= FLOW.indexOf(o.status), current: k === o.status }));
 
-  const car = c?.cars[0];
+  const saved = c?.cars[0];
+  const car = o.car ?? (saved ? `${saved.make} ${saved.model} ${saved.year}` : null);
   const nOrders = db.orders.filter((x) => x.customerId === o.customerId).length;
-  const vin = "JTMHV05J" + String(604000 + ((parseInt(o.id.slice(1)) * 37) % 9999)).padStart(9, "0");
 
   const apply = async () => {
     if (!nextSt) return toast("Шинэ төлөв сонгоно уу", "err");
     if (nextSt === o.status) return toast("Захиалга аль хэдийн энэ төлөвт байна", "info");
-    await changeStatus(o, nextSt as OrderStatus);
     setNextSt("");
+    await changeStatus(o, nextSt as OrderStatus);
   };
 
   const saveNote = async () => {
@@ -114,7 +114,7 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
       <PageHeader
         crumbs={[{ label: "Захиалгууд", href: "/orders" }, { label: `#${o.id}` }]}
         title={`Захиалга #${o.id}`}
-        sub={`${o.createdAt} · ${c?.name ?? ""} · ${money(o.total)}`}
+        sub={`${o.createdAt} · ${o.customer.name} · ${money(o.total)}`}
         actions={
           <>
             <button className="btn" onClick={() => setSlip(true)}>
@@ -156,7 +156,7 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
                 {o.items.map((it) => {
                   const p = db.products.find((x) => x.id === it.productId);
                   return (
-                    <div key={it.productId} className={`tr ${styles.itemCols}`}>
+                    <div key={`${it.productId}-${it.name}`} className={`tr ${styles.itemCols}`}>
                       <Thumb product={p} categories={db.categories} size={52} />
                       <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
                         {p ? (
@@ -167,12 +167,12 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
                           <span style={{ fontWeight: 500 }}>{it.name}</span>
                         )}
                         <span className="muted" style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12 }}>
-                          {p?.brand}
+                          <span>{p?.brand}</span>
                           {p && <Badge spec={typeBadge(p.genuine)} />}
                         </span>
                       </div>
                       <span className="mono muted" style={{ fontSize: 12 }}>
-                        {p?.oem[0]}
+                        {p?.oem[0] ?? it.oem}
                       </span>
                       <span className="right muted">× {it.qty}</span>
                       <span className="right muted">{money(it.price)}</span>
@@ -242,11 +242,11 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
                       <div>
                         <span style={{ fontWeight: 500, color: s.done ? "var(--text)" : "var(--faint)" }}>{STEP_LABEL[s.k]}</span>
                         <span className="faint" style={{ fontSize: 12 }}>
-                          {s.done ? STEP_BY[s.k] : ""}
+                          {s.done ? STEP_BY(o, s.k) : ""}
                         </span>
                       </div>
                       <span className="mono muted" style={{ fontSize: 12, whiteSpace: "nowrap" }}>
-                        {s.done ? shortDateTime(statusTime(o, s.k)) : "Хүлээгдэж байна"}
+                        {s.done ? (o.times[s.k] ? shortDateTime(o.times[s.k]!) : "—") : "Хүлээгдэж байна"}
                       </span>
                     </div>
                   </div>
@@ -302,22 +302,22 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
             <div className={styles.side}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span className="avatar" style={{ width: 36, height: 36, fontSize: 12 }}>
-                  {initials(c?.name ?? "")}
+                  {initials(o.customer.name)}
                 </span>
                 <div style={{ display: "flex", flexDirection: "column" }}>
-                  <strong>{c?.name}</strong>
+                  <strong>{o.customer.name}</strong>
                   <span className="muted" style={{ fontSize: 12 }}>
-                    {nOrders} захиалга · {c?.registeredAt.slice(0, 4)} оноос
+                    {nOrders} захиалга · {c?.isGuest ? "зочин" : `${c?.registeredAt.slice(0, 4) ?? ""} оноос`}
                   </span>
                 </div>
               </div>
               <div className={styles.contact}>
                 <Phone size={16} />
-                <span className="mono">{c?.phone}</span>
+                <span className="mono">{o.customer.phone}</span>
               </div>
               <div className={styles.contact}>
                 <Mail size={16} />
-                <span>{c?.email}</span>
+                <span>{o.customer.email || "—"}</span>
               </div>
               <div className={styles.contact} style={{ alignItems: "flex-start", paddingTop: 10, borderTop: "1px solid var(--divider)" }}>
                 <MapPin size={16} />
@@ -326,6 +326,11 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
                   <span className="muted" style={{ fontSize: 12 }}>
                     {DELIVERY[o.delivery]} · {o.shipping ? money(o.shipping) : "Үнэгүй"}
                   </span>
+                  {o.note && (
+                    <span className="muted" style={{ fontSize: 12 }}>
+                      Тэмдэглэл: {o.note}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -336,24 +341,19 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
                 <CarFront size={21} />
               </span>
               <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-                <strong>{car ? `${car.make} ${car.model} ${car.year}` : "Машин сонгоогүй"}</strong>
+                <strong>{car ?? "Машин сонгоогүй"}</strong>
                 <span className="muted" style={{ fontSize: 12 }}>
-                  {car?.engine ?? "—"}
+                  {o.car ? "Захиалга өгөхдөө сонгосон" : saved ? `Хадгалсан машин · ${saved.engine || "—"}` : "—"}
                 </span>
-                {car && (
-                  <span className="mono faint" style={{ fontSize: 11.5 }}>
-                    VIN {vin}
-                  </span>
-                )}
               </div>
             </div>
           </Panel>
           <Panel title="Төлбөр" action={<span className="tag" style={{ color: "var(--text)" }}>QPay</span>}>
             <div className={styles.pay}>
               {[
-                ["Нэхэмжлэх ID", o.invoiceId],
-                ["Төлбөрийн ID", o.paid ? o.paymentId : "—"],
-                ["Төлсөн огноо", o.paid ? dotted(statusTime(o, "paid")) : "—"],
+                ["Нэхэмжлэх ID", o.invoiceId ?? "—"],
+                ["Төлбөрийн ID", o.paid ? (o.paymentId ?? "—") : "—"],
+                ["Төлсөн огноо", o.paid && o.times.paid ? dotted(o.times.paid) : "—"],
                 ["Дүн", money(o.total)],
               ].map(([k, v]) => (
                 <div key={k} className={styles.payRow}>
@@ -386,7 +386,7 @@ function OrderDetail({ db, order: o }: { db: Db; order: Order }) {
           }
         >
           <div className="print-area" style={{ padding: 18 }}>
-            <Slip order={o} customer={c} products={db.products} store={db.settings.store} />
+            <Slip order={o} products={db.products} store={db.settings.store} />
           </div>
         </Modal>
       )}

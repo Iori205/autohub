@@ -195,7 +195,6 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
         if (!sessionStorage.getItem("audit:init")) {
           sessionStorage.setItem("audit:init", "1");
           localStorage.setItem("autohub:theme", t);
-          localStorage.removeItem("autohub-admin:db:v1"); // start from the seed
         }
       } catch {
         /* storage blocked */

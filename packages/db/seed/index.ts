@@ -3,7 +3,11 @@
  * dashboard's order history), so both apps show the same items after the
  * switch to the API. Safe to re-run: it clears every table first.
  *
- *   npm run db:seed            (from the repo root)
+ *   npm run db:seed            (from the repo root) — history as of the mock "today"
+ *   npm run db:demo            same data moved to the present: the newest order is
+ *                              "now", today's KPIs and charts are filled, and the
+ *                              pending orders are a few minutes old (their 15-minute
+ *                              QPay invoices are still open). Run it right before a demo.
  */
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -28,9 +32,13 @@ import type {
 } from "../src/generated/prisma/client";
 import type { Order as MockOrder } from "./mock/types";
 
+/** db:demo — every mock timestamp moves by this much (whole days for date-only values). */
+let shiftMs = 0;
+let shiftDays = 0;
 /** Mock timestamps are Ulaanbaatar local time ("2026-10-11 14:32"). */
-const ub = (ts: string) => new Date(`${ts.length === 10 ? ts + " 00:00" : ts}`.replace(" ", "T") + ":00+08:00");
-const date = (day: string) => new Date(`${day}T00:00:00Z`);
+const mockTime = (ts: string) => new Date(`${ts.length === 10 ? ts + " 00:00" : ts}`.replace(" ", "T") + ":00+08:00");
+const ub = (ts: string) => new Date(mockTime(ts).getTime() + shiftMs);
+const date = (day: string) => new Date(Date.parse(`${day}T00:00:00Z`) + shiftDays * 86_400_000);
 const digits = (s: string) => s.replace(/\D/g, "");
 const INVOICE_TTL_MIN = 15;
 
@@ -58,6 +66,24 @@ const REACHED: Record<MockOrder["status"], MockOrder["status"][]> = {
 async function main() {
   const m = createSeed();
   const t0 = Date.now();
+  if (process.env.SEED_NOW === "1") {
+    // the newest mock event (order, payment, delivery step, note, stock move) lands a minute ago
+    const stamps = [
+      ...m.orders.flatMap((o) => [o.createdAt, ...REACHED[o.status].map((st) => statusTime(o, st)), ...o.notes.map((n) => n.at)]),
+      ...m.orders.filter((o) => o.status === "cancelled").map((o) => statusTime(o, "cancelled")),
+      ...m.stockLog.map((x) => x.at),
+    ];
+    const latest = stamps.reduce((a, x) => (x > a ? x : a), "");
+    shiftMs = Math.floor((t0 - 60_000 - mockTime(latest).getTime()) / 60_000) * 60_000;
+    shiftDays = Math.round(shiftMs / 86_400_000);
+  }
+  // db:demo: pending orders placed 1½, 3, 4½… minutes ago, newest first
+  const pendingAge = new Map(
+    m.orders
+      .filter((o) => o.status === "pending")
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+      .map((o, i) => [o.id, (i + 1) * 90_000]),
+  );
   const log = (s: string) => console.log(`  ${s.padEnd(34)} ${((Date.now() - t0) / 1000).toFixed(1)}s`);
 
   console.log("Seeding AuToHub database…");
@@ -223,7 +249,7 @@ async function main() {
     const id = randomUUID();
     orderId.set(o.id, id);
     const car = c.cars[0];
-    const created = ub(o.createdAt);
+    const created = shiftMs && pendingAge.has(o.id) ? new Date(t0 - pendingAge.get(o.id)!) : ub(o.createdAt);
     return {
       id,
       number: o.id,
@@ -338,7 +364,11 @@ async function main() {
   await prisma.$executeRawUnsafe(`SELECT setval('order_number_seq', ${maxNo})`);
   log(`next order number: A${maxNo + 1}`);
 
-  console.log(`\nDone. Mock "today" is ${MOCK_TODAY}.`);
+  console.log(
+    shiftMs
+      ? `\nDone. Demo data moved to the present: the newest order is now, ${pendingAge.size} pending orders were placed in the last ${pendingAge.size * 1.5} minutes (they expire 15 minutes after that).`
+      : `\nDone. Mock "today" is ${MOCK_TODAY}.`,
+  );
   console.log(`Staff logins (password: ${process.env.SEED_ADMIN_PASSWORD ? "$SEED_ADMIN_PASSWORD" : password}):`);
   for (const a of staff) console.log(`  ${a.role.padEnd(8)} ${a.email}`);
 }

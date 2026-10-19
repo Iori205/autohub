@@ -23,7 +23,7 @@ export function ProductRow({ product: p }: { product: Product }) {
       </Link>
       <div className={styles.info}>
         <div className={styles.meta}>
-          {p.brand}
+          <span>{p.brand}</span>
           {p.genuine ? (
             <span className={styles.orig}>Оригинал</span>
           ) : (

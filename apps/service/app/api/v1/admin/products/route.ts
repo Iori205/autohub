@@ -1,21 +1,24 @@
 import { normalizeOem, prisma, type Prisma } from "@repo/db";
-import { adminProductQuery, productInput, type Page, type ProductDetailDto, type ProductSummaryDto } from "@repo/types";
+import { adminProductQuery, productInput, type Page, type ProductDetailDto } from "@repo/types";
 import { requireStaff } from "@/lib/auth";
 import { productOrder, productWhere } from "@/lib/catalog";
 import { body, created, ok, query, route } from "@/lib/http";
 import { moveStock } from "@/lib/orders";
-import { productDetail, productDetailInclude, productSummary, productSummaryInclude } from "@/lib/serialize";
+import { productDetail, productDetailInclude } from "@/lib/serialize";
 
-/** Бараа list incl. hidden products; ?stockLevel=ok|low|out &active=0|1 plus the catalog filters. */
+/**
+ * Бараа list incl. hidden products; ?stockLevel=ok|low|out &active=0|1 plus the catalog filters.
+ * Items are full details (description, specs, fitments) so the dashboard needs no second request.
+ */
 export const GET = route(async (req) => {
   await requireStaff(req);
   const q = query(req, adminProductQuery);
   const where = await productWhere(q, false);
   const [total, rows] = await Promise.all([
     prisma.product.count({ where }),
-    prisma.product.findMany({ where, orderBy: productOrder(q.sort), skip: (q.page - 1) * q.pageSize, take: q.pageSize, include: productSummaryInclude }),
+    prisma.product.findMany({ where, orderBy: productOrder(q.sort), skip: (q.page - 1) * q.pageSize, take: q.pageSize, include: productDetailInclude }),
   ]);
-  return ok<Page<ProductSummaryDto>>({ items: rows.map(productSummary), total, page: q.page, pageSize: q.pageSize });
+  return ok<Page<ProductDetailDto>>({ items: rows.map(productDetail), total, page: q.page, pageSize: q.pageSize });
 });
 
 export const POST = route(async (req) => {

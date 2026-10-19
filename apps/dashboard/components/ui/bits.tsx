@@ -11,7 +11,7 @@ export function Badge({ spec, dot, lg }: { spec: BadgeSpec; dot?: boolean; lg?: 
   return (
     <span className={`badge tone-${spec.tone}${lg ? " lg" : ""}`}>
       {dot && <span className="dot" />}
-      {spec.label}
+      <span>{spec.label}</span>
     </span>
   );
 }
