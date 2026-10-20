@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronDown, Clock, Store, Truck } from "lucide-react";
 import { FREE_SHIPPING_FROM, shippingFor } from "../../lib/catalog";
+import { useCustomer } from "../../lib/api/auth";
 import { ApiError } from "../../lib/api/client";
 import { createOrder } from "../../lib/api/orders";
 import { fmt } from "../../lib/format";
@@ -28,6 +29,10 @@ const DISTRICTS = [
   "Чингэлтэй",
 ];
 const KHOROOS = Array.from({ length: 32 }, (_, i) => `${i + 1}-р хороо`);
+
+/** What was typed before the login detour, restored on the way back. */
+const DRAFT_KEY = "autohub:checkout-draft";
+const LOGIN_HREF = "/login?next=/checkout";
 
 type ErrKey = "name" | "phone" | "email" | "district" | "khoroo" | "addr";
 
@@ -62,6 +67,32 @@ export function CheckoutForm() {
   });
   const [tried, setTried] = useState(false);
   const [busy, setBusy] = useState(false);
+  const me = useCustomer();
+
+  // Back from /login: restore the draft, then fill name/phone/e-mail from the account
+  useEffect(() => {
+    if (!me) return;
+    let draft: Partial<Form> = {};
+    try {
+      draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "{}") as Partial<Form>;
+      sessionStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* storage blocked */
+    }
+    setForm((f) => {
+      const d = { ...f, ...draft };
+      return { ...d, name: d.name || me.name || "", phone: d.phone || me.phone || "", email: d.email || me.email || "" };
+    });
+  }, [me]);
+
+  const toLogin = () => {
+    try {
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
+    } catch {
+      /* storage blocked */
+    }
+    router.push(LOGIN_HREF);
+  };
 
   const errs = validate(form, delivery);
   const err = (k: ErrKey) => (tried ? errs[k] : undefined);
@@ -72,6 +103,8 @@ export function CheckoutForm() {
   });
 
   const confirm = async () => {
+    // Orders need an account; registering/logging in keeps this cart
+    if (!me) return toLogin();
     if (Object.keys(errs).length) {
       setTried(true);
       return;
@@ -82,6 +115,7 @@ export function CheckoutForm() {
       clearCart();
       router.push(`/checkout/payment?order=${order.no}`);
     } catch (e) {
+      if (e instanceof ApiError && e.status === 401) return toLogin();
       // the server re-validates (and re-prices); show its Mongolian message
       showToast(e instanceof ApiError ? Object.values(e.fields ?? {})[0] ?? e.message : "Алдаа гарлаа. Дахин оролдоно уу");
       setBusy(false);
@@ -321,8 +355,8 @@ export function CheckoutForm() {
               Шаардлагатай талбаруудыг бөглөнө үү.
             </div>
           )}
-          <button className="btn btn-primary btn-lg" onClick={confirm} disabled={busy}>
-            Захиалга баталгаажуулах
+          <button className="btn btn-primary btn-lg" onClick={confirm} disabled={busy || me === undefined}>
+            <span>Захиалга баталгаажуулах</span>
           </button>
           <Link href="/cart" className="btn-link">
             <ArrowLeft size={15} />

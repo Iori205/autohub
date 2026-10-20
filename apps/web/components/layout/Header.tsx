@@ -13,7 +13,6 @@ import {
   Search,
   ShoppingCart,
   Sun,
-  User,
   X,
 } from "lucide-react";
 import { carLabel } from "../../lib/catalog";
@@ -23,6 +22,7 @@ import { useSite } from "../../lib/site-context";
 import { cartTotals, setCar, useShop } from "../../lib/store/shop";
 import { toggleTheme, useTheme } from "../../lib/store/theme";
 import type { Category, CategoryKey } from "../../lib/types";
+import { AccountMenu } from "./AccountMenu";
 import { Logo } from "./Logo";
 import { MobileDrawer } from "./MobileDrawer";
 import styles from "./Header.module.css";
@@ -121,11 +121,7 @@ export function Header({ categories }: { categories: Category[] }) {
                   <b>{fmt(subtotal)}</b>
                 </span>
               </Link>
-              <Link href="/account/orders" className={styles.accountBtn}>
-                <User size={16} />
-                <span className="only-wide">Миний захиалгууд</span>
-                <span className="not-wide">Профайл</span>
-              </Link>
+              <AccountMenu />
             </div>
           </div>
 
@@ -169,6 +165,7 @@ export function Header({ categories }: { categories: Category[] }) {
               <ShoppingCart size={19} />
               {count > 0 && <span className={styles.mBadge}>{count}</span>}
             </Link>
+            <AccountMenu className={styles.mBtnPlain} />
             <button
               className={`icon-btn ${styles.mBtnPlain}`}
               onClick={() => setDrawer(true)}

@@ -100,8 +100,7 @@
   border: 1px solid var(--line);
   background: var(--card);
 }
-.cartBtn:hover,
-.accountBtn:hover {
+.cartBtn:hover {
   color: inherit;
   border-color: var(--line2);
 }
@@ -138,18 +137,6 @@
 .cartText b {
   font-weight: 800;
   font-size: 14px;
-}
-.accountBtn {
-  height: 42px;
-  padding: 0 16px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--line2);
-  font-weight: 700;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
 }
 
 /* nav row */

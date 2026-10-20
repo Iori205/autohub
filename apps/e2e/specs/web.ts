@@ -140,19 +140,59 @@ export async function run(ctx: Ctx) {
     expect((await page.locator("main").getByText(p1.name).count()) === 0, "removed line came back after reload");
   });
 
-  /* ---------- checkout ---------- */
+  /* ---------- checkout (account required) ---------- */
   let orderNo = "";
-  await s.step(W, "Checkout validation (Mongolian)", async () => {
+  const NAME = "Е2Е Хэрэглэгч";
+  const PHONE = "88001122";
+  const PASSWORD = "e2e-secret-1";
+  let accountId = "";
+  const profile = () => page.locator("header").getByRole("button", { name: "Профайл" }).first();
+
+  await s.step(W, "Guest checkout → /login?next=/checkout with cart summary", async () => {
     await go("/checkout");
+    expect((await page.locator("header a[href='/login']").count()) > 0, "header has no login icon for a guest");
     await page.getByRole("button", { name: "Захиалга баталгаажуулах" }).click();
-    for (const t of ["Нэрээ оруулна уу", "8 оронтой утасны дугаар оруулна уу", "Дүүрэг сонгоно уу"])
+    await page.waitForURL(/\/login\?next=(\/|%2F)checkout$/);
+    await page.waitForLoadState("networkidle");
+    expect((await page.locator("header, footer").count()) === 0, "store header/footer shown on /login");
+    const p = await prisma.product.findUniqueOrThrow({ where: { id: 17 } });
+    await page.getByText("ТАНЫ САГС · 2 БАРАА", { exact: true }).waitFor();
+    expect((await page.getByText("Захиалга өгөхийн тулд нэвтэрнэ үү").count()) > 0, "gate note missing");
+    expect((await page.locator("aside").getByText(p.name).count()) > 0, "cart line missing in the summary");
+    return "no store chrome; cart summary (2 × #17) on the right";
+  });
+
+  await s.step(W, "Register → back to checkout, name + phone pre-filled, cart intact", async () => {
+    const guestId = await sessionUserId(bctx);
+    await page.getByRole("button", { name: "Бүртгүүлэх" }).click();
+    await page.getByPlaceholder("Таны нэр").fill(NAME);
+    await page.getByPlaceholder("9911 2233", { exact: true }).fill("8800 1122");
+    await page.getByPlaceholder("Хамгийн багадаа 8 тэмдэгт").fill(PASSWORD);
+    await page.getByPlaceholder("Нууц үгээ давтан оруулна уу").fill(PASSWORD);
+    await page.getByRole("button", { name: "Бүртгүүлэх", exact: true }).click();
+    await page.waitForURL((u) => u.pathname === "/checkout");
+    await page.waitForLoadState("networkidle");
+    const u = await prisma.user.findUniqueOrThrow({ where: { id: guestId } });
+    expect(!u.isGuest && u.phone === PHONE && u.name === NAME, `user ${u.isGuest ? "still guest" : u.phone}`);
+    accountId = u.id;
+    expect((await sessionUserId(bctx)) === guestId, "session moved to another user");
+    const lines = await prisma.cartItem.findMany({ where: { cart: { userId: u.id } } });
+    expect(lines.length === 1 && lines[0]!.productId === 17 && lines[0]!.qty === 2, `cart ${JSON.stringify(lines.map((l) => [l.productId, l.qty]))}`);
+    await eventually(async () => (await page.getByPlaceholder("Таны нэр").inputValue()) === NAME, "name not pre-filled");
+    expect((await page.getByPlaceholder("9911 2233").inputValue()).replace(/\s/g, "") === PHONE, "phone not pre-filled");
+    return "guest upgraded in place; cart kept (#17 × 2); form pre-filled from the account";
+  });
+
+  await s.step(W, "Checkout validation (Mongolian)", async () => {
+    await page.getByPlaceholder("Таны нэр").fill("");
+    await page.getByRole("button", { name: "Захиалга баталгаажуулах" }).click();
+    for (const t of ["Нэрээ оруулна уу", "Дүүрэг сонгоно уу", "Хаягаа оруулна уу"])
       expect((await page.getByText(t).count()) > 0, `missing message "${t}"`);
   });
 
   await s.step(W, "Checkout → order in DB, cart emptied", async () => {
     const userId = await sessionUserId(bctx);
-    await page.getByPlaceholder("Таны нэр").fill("Е2Е Хэрэглэгч");
-    await page.getByPlaceholder("9911 2233").fill("8800 1122");
+    await page.getByPlaceholder("Таны нэр").fill(NAME);
     const selects = page.locator("main select");
     await selects.nth(0).selectOption({ index: 1 });
     await selects.nth(1).selectOption({ index: 1 });
@@ -161,7 +201,7 @@ export async function run(ctx: Ctx) {
     await page.waitForURL("**/checkout/payment?order=*");
     orderNo = new URL(page.url()).searchParams.get("order")!;
     const o = await prisma.order.findUniqueOrThrow({ where: { number: orderNo }, include: { items: true } });
-    expect(o.userId === userId && o.paymentStatus === "PENDING", `order ${orderNo} ${o.paymentStatus}`);
+    expect(o.userId === userId && userId === accountId && o.paymentStatus === "PENDING", `order ${orderNo} ${o.paymentStatus}`);
     expect(o.customerPhone === "88001122" && o.car?.includes("Land Cruiser 200"), `phone ${o.customerPhone}, car ${o.car}`);
     const p = await prisma.product.findUniqueOrThrow({ where: { id: 17 } });
     expect(o.items[0]?.qty === 2 && o.subtotal === p.price * 2, `items ${JSON.stringify(o.items.map((i) => [i.productId, i.qty]))}`);
@@ -238,6 +278,43 @@ export async function run(ctx: Ctx) {
     await go("/product/3");
     expect((await page.getByText(fmt(19900)).count()) > 0, "new price not shown");
     expect((await page.getByText("Үлдэгдэл: 41 ш").count()) > 0, "new stock not shown");
+  });
+
+  /* ---------- account ---------- */
+  await s.step(W, "Account menu: name, orders, saved car", async () => {
+    await go("/");
+    await profile().click();
+    const menu = page.getByRole("menu");
+    await menu.waitFor();
+    expect((await menu.getByText(NAME).count()) > 0, "name missing in the menu");
+    for (const l of ["Миний захиалгууд", "Хадгалсан машин", "Гарах"])
+      expect((await menu.getByRole("menuitem", { name: new RegExp(l) }).count()) === 1, `menu item "${l}" missing`);
+    expect((await menu.getByText("Хүслийн жагсаалт").count()) === 0, "wishlist item should be hidden");
+    expect((await menu.getByRole("menuitem", { name: /Хадгалсан машин/ }).getAttribute("href"))?.includes("finder"), "saved car doesn't link to the finder");
+    await page.keyboard.press("Escape");
+  });
+
+  await s.step(W, "Logout → guest again, order not visible", async () => {
+    await profile().click();
+    await page.getByRole("menuitem", { name: /Гарах/ }).click();
+    await page.waitForURL(ctx.web + "/");
+    await page.locator("header a[href='/login']").first().waitFor();
+    await go("/account/orders");
+    expect((await page.getByText(orderNo).count()) === 0, `${orderNo} still listed after logout`);
+    const id = await sessionUserId(bctx).catch(() => "");
+    expect(id !== accountId, "still on the account session");
+  });
+
+  await s.step(W, "Login again → order still in Миний захиалгууд", async () => {
+    await page.locator("header a[href='/login']").first().click();
+    await page.waitForURL((u) => u.pathname === "/login");
+    await page.getByPlaceholder("9911 2233 эсвэл name@mail.mn").fill("8800 1122");
+    await page.getByPlaceholder("Нууц үгээ оруулна уу").fill(PASSWORD);
+    await page.getByRole("button", { name: "Нэвтрэх", exact: true }).click();
+    await page.waitForURL((u) => u.pathname === "/account/orders");
+    await page.getByText(orderNo).first().waitFor();
+    expect((await sessionUserId(bctx)) === accountId, "logged into a different user");
+    return `${orderNo} listed after logout → login`;
   });
 
   /* ---------- not wired by design ---------- */

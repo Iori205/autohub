@@ -7,6 +7,7 @@ import { Footer } from "../components/layout/Footer";
 import { TrustStrip } from "../components/layout/TrustStrip";
 import { ChatWidget } from "../components/layout/ChatWidget";
 import { Toast } from "../components/layout/Toast";
+import { StoreChrome } from "../components/layout/StoreChrome";
 import { getCategories, getSiteSettings } from "../lib/api/catalog";
 import { themeInitScript } from "../lib/site";
 import { SiteProvider } from "../lib/site-context";
@@ -57,11 +58,15 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body>
         <SiteProvider store={toStoreInfo(settings.store)}>
-          <Header categories={categories} />
+          <StoreChrome>
+            <Header categories={categories} />
+          </StoreChrome>
           {children}
-          <TrustStrip />
-          <Footer />
-          <ChatWidget />
+          <StoreChrome>
+            <TrustStrip />
+            <Footer />
+            <ChatWidget />
+          </StoreChrome>
           <Toast />
         </SiteProvider>
       </body>

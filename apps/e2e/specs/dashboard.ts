@@ -693,6 +693,12 @@ export async function run(ctx: Ctx) {
       await wp.getByRole("button", { name: "Сагслах" }).first().click();
       const userId = await sessionUserId(web!);
       await eventually(async () => (await prisma.cartItem.count({ where: { cart: { userId } } })) === 1, "cart row not in DB");
+      // checkout needs an account: register this guest (same browser cookies; the cart stays)
+      const reg = await web!.request.post(`${ctx.api}/api/v1/auth/register`, {
+        headers: { origin: ctx.web },
+        data: { name: "Кросс Апп", phone: "88003344", password: "e2e-secret-2" },
+      });
+      expect(reg.status() === 201, `register → ${reg.status()}`);
       await wgo("/checkout");
       await wp.getByPlaceholder("Таны нэр").fill("Кросс Апп");
       await wp.getByPlaceholder("9911 2233").fill("8800 3344");

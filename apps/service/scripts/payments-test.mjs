@@ -45,6 +45,9 @@ function client() {
 }
 
 const shopper = client();
+// Checkout needs a registered customer; a fresh phone per run keeps re-runs on the same DB working
+const reg = await shopper("POST", "/auth/register", { name: "Төлбөр Тест", phone: `8${String(Date.now()).slice(-7)}`, password: "secret12" });
+check("shopper registered", reg.status === 201, `${reg.status}`);
 const placeOrder = async (productId = 3, qty = 1) =>
   (await shopper("POST", "/orders", { customer: { name: "Төлбөр Тест", phone: "88001122" }, delivery: { method: "PICKUP" }, items: [{ productId, qty }] })).json;
 

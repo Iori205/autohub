@@ -116,6 +116,13 @@ let orderNo;
   await guest("PUT", "/wishlist/17");
   check("wishlist", (await guest("GET", "/wishlist")).json?.[0]?.id === 17);
 
+  const asGuest = await guest("POST", "/orders", { customer: { name: "Тест", phone: "99110000" }, delivery: { method: "PICKUP" } });
+  check("guest checkout needs login 401", asGuest.status === 401, String(asGuest.status));
+  check("checkout without session 401", (await client()("POST", "/orders", { customer: { name: "Тест", phone: "99110000" }, delivery: { method: "PICKUP" } })).status === 401);
+  const reg = await guest("POST", "/auth/register", { name: "Тест Хэрэглэгч", phone: "99110000", password: "secret12" });
+  check("register upgrades guest", reg.status === 201 && reg.json?.isGuest === false);
+  check("cart kept after register", (await guest("GET", "/cart")).json?.count === 3);
+
   const invalid = await guest("POST", "/orders", { customer: { name: "", phone: "123" }, delivery: { method: "UB" } });
   check(
     "checkout validation",
@@ -151,8 +158,6 @@ let orderNo;
 
 // ---------- customer accounts ----------
 {
-  const reg = await guest("POST", "/auth/register", { name: "Тест Хэрэглэгч", phone: "99110000", password: "secret12" });
-  check("register upgrades guest", reg.status === 201 && reg.json?.isGuest === false);
   check("register duplicate phone 409", (await client()("POST", "/auth/register", { name: "X", phone: "99110000", password: "secret12" })).status === 409);
   await guest("POST", "/auth/logout");
   check("logged out", (await guest("GET", "/auth/me")).json === null);
