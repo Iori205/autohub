@@ -3,7 +3,7 @@ import { stockQuery, type Page, type StockMovementDto } from "@repo/types";
 import { requireStaff } from "@/lib/auth";
 import { ok, query, route } from "@/lib/http";
 
-/** Нөөцийн хөдөлгөөний түүх, newest first. */
+/** Нөөцийн хөдөлгөөний түүх, хамгийн шинэ нь эхэндээ. */
 export const GET = route(async (req) => {
   await requireStaff(req);
   const q = query(req, stockQuery);

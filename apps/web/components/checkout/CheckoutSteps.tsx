@@ -8,7 +8,7 @@ const STEPS = [
   { label: "Амжилттай", href: null },
 ];
 
-/** 1 Сагс · 2 Мэдээлэл · 3 Төлбөр · 4 Амжилттай. Back-navigation only before an order exists. */
+/** 1 Сагс · 2 Мэдээлэл · 3 Төлбөр · 4 Амжилттай. Захиалга үүсэхээс өмнө л буцаж болно. */
 export function CheckoutSteps({ step }: { step: 1 | 2 | 3 | 4 }) {
   return (
     <div className={styles.steps}>

@@ -39,8 +39,8 @@ export function Header({ categories }: { categories: Category[] }) {
   const [drawer, setDrawer] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
-  // Keep --header-h equal to the real header height (it grows with the car
-  // chip / wrapping), so sticky elements and scroll targets always clear it.
+  // --header-h-ийг толгойн бодит өндөртэй тэнцүү байлгана (машины шошго / мөр шилжихэд өсдөг),
+  // ингэснээр наалттай элемент, гүйлгэлтийн зорилт толгойд дарагдахгүй.
   useEffect(() => {
     const el = headerRef.current;
     if (!el) return;
@@ -62,7 +62,7 @@ export function Header({ categories }: { categories: Category[] }) {
   return (
     <>
       <header ref={headerRef} className={styles.header}>
-        {/* ---------- desktop / tablet ---------- */}
+        {/* ---------- desktop / таблет ---------- */}
         <div className="not-mobile">
           <div className={styles.topbar}>
             <div className={`container ${styles.topbarInner}`}>
@@ -157,7 +157,7 @@ export function Header({ categories }: { categories: Category[] }) {
           </div>
         </div>
 
-        {/* ---------- mobile ---------- */}
+        {/* ---------- гар утас ---------- */}
         <div className={`only-mobile ${styles.mobile}`}>
           <div className={styles.mobileTop}>
             <Logo size="md" />

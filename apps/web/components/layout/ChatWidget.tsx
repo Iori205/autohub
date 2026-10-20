@@ -9,7 +9,7 @@ interface Msg {
   t: string;
 }
 
-// Mock live-chat. Replace the canned reply with the real chat backend later.
+// Туршилтын чат: бэлэн хариуг дараа нь жинхэнэ чатын backend-ээр солино.
 export function ChatWidget() {
   const [open, setOpen] = useState(false);
   const [msg, setMsg] = useState("");

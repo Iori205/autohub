@@ -2,7 +2,7 @@ import Link from "next/link";
 import { shopHref } from "../../lib/site";
 import styles from "./BrandStrip.module.css";
 
-/** Grid on desktop, horizontal snap-scroller on mobile. */
+/** Desktop дээр grid, гар утсанд хэвтээ гүйдэг жагсаалт. */
 export function BrandStrip({ brands }: { brands: string[] }) {
   return (
     <div className={styles.strip}>

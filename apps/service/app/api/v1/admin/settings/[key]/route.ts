@@ -6,7 +6,7 @@ import { putSetting } from "@/lib/settings";
 
 const SCHEMA = { store: storeSettingsInput, delivery: deliverySettingsInput, qpay: qpaySettingsInput } as const;
 
-/** Save one settings section (ADMIN only). */
+/** Тохиргооны нэг хэсгийг хадгална (зөвхөн ADMIN). */
 export const PUT = route<RouteContext<"/api/v1/admin/settings/[key]">>(async (req, { params }) => {
   await requireStaff(req, "ADMIN");
   const key = (await params).key as SettingKey;

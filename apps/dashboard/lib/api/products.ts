@@ -5,7 +5,7 @@ import { getDb, reload } from "../db";
 import type { Fitment, Product } from "../types";
 import { api } from "./client";
 
-/* Products & inventory → /admin/products, /admin/products/bulk, /admin/stock/adjust. */
+/* Бараа ба нөөц → /admin/products, /admin/products/bulk, /admin/stock/adjust. */
 
 export type ProductInput = Omit<Product, "id">;
 
@@ -14,7 +14,7 @@ const parseYears = (y: string): [number, number] => {
   return [a!, b || a!];
 };
 
-/** Fitment rows → vehicle ids (picker rows name make/model/year/engine; loaded rows already carry the id). */
+/** Тохирлын мөр → машины id (сонгогчийн мөрд make/model/year/engine байдаг; ачаалсан мөрд id аль хэдийн бий). */
 function toFitments(fits: Fitment[]) {
   const vehicles = getDb()?.vehicles ?? [];
   const out = new Map<string, { vehicleId: string; yearFrom: number; yearTo: number }>();
@@ -94,7 +94,7 @@ export async function setThreshold(id: number, threshold: number) {
   await reload("products");
 }
 
-/** "Нөөц тохируулах" — returns the new stock level. */
+/** «Нөөц тохируулах» — шинэ үлдэгдлийг буцаана. */
 export async function adjustStock(productId: number, delta: number, reason: string) {
   const r = await api<{ stock: number }>("/admin/stock/adjust", { method: "POST", body: { productId, delta, reason } });
   await reload("products", "stockLog");

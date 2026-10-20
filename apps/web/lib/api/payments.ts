@@ -4,19 +4,16 @@ import type { PaymentStateDto, QPayInvoiceDto } from "@repo/types";
 import { api } from "./client";
 import { refreshOrder } from "./orders";
 
-/*
- * QPay through apps/service: the server talks to QPay (or simulates it in
- * DEMO_MODE) and confirms payments; the modal only polls and displays.
- */
+/* QPay apps/service-ээр дамжина: сервер QPay-тэй ярьж (DEMO_MODE-д дуурайж) төлбөрийг баталгаажуулна; цонх зөвхөн polling хийж харуулна. */
 
-/** Current invoice, or a new 15-minute one (also after expiry / cancel). */
+/** Одоогийн нэхэмжлэх, эсвэл шинэ 15 минутынх (хугацаа дууссан / цуцалсны дараа ч). */
 export async function openInvoice(no: string): Promise<QPayInvoiceDto> {
   const inv = await api<QPayInvoiceDto>("/payments/qpay/invoice", { method: "POST", body: { number: no } });
   await refreshOrder(no);
   return inv;
 }
 
-/** Ask the server to check with QPay; refreshes the cached order. */
+/** Серверээр QPay-ээс шалгуулж, кэш дэх захиалгыг шинэчилнэ. */
 export async function checkPayment(no: string): Promise<PaymentStateDto> {
   const st = await api<PaymentStateDto>("/payments/qpay/check", { method: "POST", body: { number: no } });
   await refreshOrder(no);
@@ -29,14 +26,14 @@ export async function cancelPayment(no: string): Promise<PaymentStateDto> {
   return st;
 }
 
-/** DEMO_MODE test buttons (the endpoints don't exist when DEMO_MODE is off). */
+/** DEMO_MODE-ийн туршилтын товчнууд (DEMO_MODE унтраалттай үед endpoint байхгүй). */
 export async function demoAction(no: string, action: "paid" | "expired" | "error"): Promise<PaymentStateDto> {
   const st = await api<PaymentStateDto>(`/payments/demo/${action}`, { method: "POST", body: { number: no } });
   await refreshOrder(no);
   return st;
 }
 
-/** Abbreviations for the bank tiles (QPay sends the bank name and app link). */
+/** Банкны хавтангийн товчлол (QPay банкны нэр, аппын холбоосыг илгээдэг). */
 const ABBR: Record<string, string> = {
   "Хаан банк": "ХААН",
   Голомт: "ГОЛ",

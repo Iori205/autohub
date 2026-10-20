@@ -82,7 +82,7 @@ export function ProductDetail({
       </div>
 
       <div className={styles.top}>
-        {/* desktop gallery */}
+        {/* desktop галерей */}
         <div className={`not-mobile ${styles.gallery}`}>
           <div className={styles.main}>
             <ProductImage product={p} index={gi} iconSize={96} className={styles.fill} />
@@ -103,7 +103,7 @@ export function ProductDetail({
           </div>
         </div>
 
-        {/* mobile swipe gallery */}
+        {/* гар утасны шудардаг галерей */}
         <div className={`only-mobile ${styles.mGallery}`}>
           <div
             className={styles.mTrack}
@@ -300,7 +300,7 @@ export function ProductDetail({
         </div>
       </section>
 
-      {/* mobile sticky buy bar */}
+      {/* гар утасны наалттай худалдан авах мөр */}
       <div className={`only-mobile ${styles.bar}`} data-detail-bar>
         <div className={styles.barPrice}>
           <span>{fmt(p.price)}</span>

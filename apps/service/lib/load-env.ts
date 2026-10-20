@@ -3,10 +3,8 @@ import path from "node:path";
 import { loadEnvConfig } from "@next/env";
 
 /**
- * Loads the repo-root .env (one file for the whole monorepo). Next.js only
- * reads .env files from the app folder, and route handlers run in a worker,
- * so this is imported by the modules that need env (http, env, proxy) rather
- * than only by next.config. Variables already set in the process win.
+ * Repo-ийн язгуур .env-ийг ачаална. Next.js зөвхөн апп хавтасны .env-ийг уншдаг, route handler worker-т ажилладаг тул
+ * env хэрэгтэй модуль бүр (http, env, proxy) үүнийг импортолно. Процесст аль хэдийн байгаа утга давуу.
  */
 function repoRoot(from: string) {
   for (let dir = from; ; dir = path.dirname(dir)) {

@@ -1,4 +1,4 @@
-/* Dashboard (apps/dashboard) against the real API + DB; cross-app flows also drive the storefront. */
+/* Dashboard (apps/dashboard)-ыг жинхэнэ API + DB-тэй шалгана; cross-app урсгал дэлгүүрийг ч ажиллуулна. */
 import type { Browser, BrowserContext, Page } from "playwright";
 import { adminApi } from "../lib/admin-api";
 import { Suite, eventually, expect, launch, sessionUserId, watch } from "../lib/harness";
@@ -7,7 +7,7 @@ import type { Ctx } from "../lib/types";
 const fmt = (n: number) => n.toLocaleString("en-US") + "₮";
 const ubToday = () => new Date(Date.now() + 8 * 3600_000).toISOString().slice(0, 10);
 const ubStart = (day: string) => new Date(`${day}T00:00:00+08:00`);
-/** 1×1 PNG for the image upload */
+/** Зураг оруулахад зориулсан 1×1 PNG */
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 
 export async function run(ctx: Ctx) {
@@ -19,7 +19,7 @@ export async function run(ctx: Ctx) {
   const s = new Suite(bctx, ctx.out);
   const D = ctx.dashboard;
 
-  /** Navigate and wait until the page has its data (skeleton gone). */
+  /** Шилжээд хуудас өгөгдлөө авах (skeleton алга болох) хүртэл хүлээнэ. */
   const go = async (p: string, pg: Page = page) => {
     await pg.goto(D + p);
     await pg.waitForLoadState("networkidle");
@@ -40,7 +40,7 @@ export async function run(ctx: Ctx) {
     pg.locator("[aria-live=polite] [data-kind]").filter({ hasText: text }).first().waitFor({ timeout: 8000 });
   const row = (text: string | RegExp, pg: Page = page) => pg.locator(".tr").filter({ hasText: text }).first();
   const shows = async (text: string | RegExp, pg: Page = page) => (await pg.getByText(text).count()) > 0;
-  /** product editor's fitment picker: make → model → year (all engines) */
+  /** барааны засварлагчийн тохирол сонгогч: make → model → year (бүх хөдөлгүүр) */
   const pick = async (...v: string[]) => {
     const sel = page.locator(".panel", { hasText: "Тохирох машинууд" }).locator("select");
     for (const [i, x] of v.entries()) await sel.nth(i).selectOption(x);
@@ -49,7 +49,7 @@ export async function run(ctx: Ctx) {
   const P = { login: "Нэвтрэх", dash: "Хянах самбар", prod: "Бараа", cat: "Ангилал & Брэнд", veh: "Машины сан", inv: "Нөөц", promo: "Баннер & Хямдрал", cust: "Хэрэглэгчид", ord: "Захиалгууд", rep: "Тайлан", set: "Тохиргоо", role: "Эрх", x: "Cross-app" };
   console.log("\nDashboard");
 
-  /* ---------- auth ---------- */
+  /* ---------- нэвтрэлт ---------- */
   await s.step(P.login, "Signed-out visit → /login", async () => {
     await page.goto(D + "/products");
     await page.waitForURL("**/login?next=%2Fproducts");
@@ -69,7 +69,7 @@ export async function run(ctx: Ctx) {
     await page.waitForURL("**/products");
     const cookie = (await bctx.cookies()).find((c) => c.name === "autohub_admin_session");
     expect(cookie?.httpOnly, "no httpOnly autohub_admin_session cookie");
-    // production flags, and first-party: set for the dashboard's own host via its /api proxy
+    // production туг, мөн first-party: самбарын /api проксигоор өөрийн host-д тавигдсан
     const host = new URL(ctx.dashboard).hostname;
     expect(cookie!.secure && cookie!.sameSite === "Lax" && cookie!.path === "/", `flags secure=${cookie!.secure} sameSite=${cookie!.sameSite}`);
     expect(cookie!.domain === host, `cookie domain ${cookie!.domain} ≠ ${host}`);
@@ -78,7 +78,7 @@ export async function run(ctx: Ctx) {
     return `HttpOnly + Secure + SameSite=Lax cookie on ${host} (first-party via /api proxy); back to ?next`;
   });
 
-  /* ---------- dashboard ---------- */
+  /* ---------- хянах самбар ---------- */
   await s.step(P.dash, "KPIs + recent orders = DB", async () => {
     await go("/");
     const today = ubStart(ubToday());
@@ -108,7 +108,7 @@ export async function run(ctx: Ctx) {
     return "skeleton until data arrives";
   });
 
-  /* ---------- products ---------- */
+  /* ---------- бараа ---------- */
   const NAME = "Е2Е туршилтын шүүлтүүр";
   let pid = 0;
   await s.step(P.prod, "Create (images, OEM numbers, fitment) → DB → reload", async () => {
@@ -140,7 +140,7 @@ export async function run(ctx: Ctx) {
     pid = p.id;
     const lc = await prisma.vehicle.count({ where: { model: "Land Cruiser 200", yearFrom: { lte: 2015 }, yearTo: { gte: 2015 } } });
     expect(p.oemNumbers.join() === "E2E-0001,E2E-0002", `oem ${p.oemNumbers}`);
-    expect(p.images.length === 1 && p.images[0]!.startsWith("data:image/jpeg") /* shrunk to JPEG before upload */, `images ${p.images.length}`);
+    expect(p.images.length === 1 && p.images[0]!.startsWith("data:image/jpeg") /* илгээхээс өмнө JPEG болгож багасгасан */, `images ${p.images.length}`);
     expect(p.price === 45000 && p.oldPrice === 52000 && p.stock === 12 && p.lowStockThreshold === 4, `price/stock ${p.price}/${p.oldPrice}/${p.stock}/${p.lowStockThreshold}`);
     expect(p.brand.name === "Bosch" && p.category.slug === "filter" && p.type === "AFTERMARKET", `${p.brand.name} ${p.category.slug} ${p.type}`);
     expect(p.fitments.length === lc && lc > 0, `fitments ${p.fitments.length}, LC200 engines in 2015: ${lc}`);
@@ -205,7 +205,7 @@ export async function run(ctx: Ctx) {
     expect(!(await shows(NAME)), "product still listed after reload");
   });
 
-  /* ---------- categories & brands ---------- */
+  /* ---------- ангилал ба брэнд ---------- */
   await s.step(P.cat, "Category create → edit → delete (DB)", async () => {
     await go("/catalog");
     await page.getByRole("button", { name: "Ангилал нэмэх" }).click();
@@ -277,7 +277,7 @@ export async function run(ctx: Ctx) {
     return `409: "${r.json.error.message}"`;
   });
 
-  /* ---------- vehicles ---------- */
+  /* ---------- машины сан ---------- */
   await s.step(P.veh, "Vehicle create → edit → delete (DB)", async () => {
     await go("/vehicles");
     await page.getByRole("button", { name: "Машин нэмэх" }).click();
@@ -333,7 +333,7 @@ export async function run(ctx: Ctx) {
     return "parsed by the service; duplicate skipped, bad row reported";
   });
 
-  /* ---------- inventory ---------- */
+  /* ---------- нөөц ---------- */
   await s.step(P.inv, "Stock adjustment → DB + history", async () => {
     const p = await prisma.product.findUniqueOrThrow({ where: { id: 2 } });
     await go("/inventory");
@@ -367,7 +367,7 @@ export async function run(ctx: Ctx) {
     expect((await row(p.name).getByLabel("Доод хязгаар").inputValue()) === "9", "threshold lost after reload");
   });
 
-  /* ---------- banners & campaigns ---------- */
+  /* ---------- баннер ба хямдрал ---------- */
   await s.step(P.promo, "Banner create → edit → toggle → reorder → delete (DB)", async () => {
     await go("/promos");
     await page.getByRole("button", { name: "Баннер нэмэх" }).click();
@@ -442,7 +442,7 @@ export async function run(ctx: Ctx) {
     expect(!(await prisma.campaign.findUnique({ where: { id: c.id } })), "campaign still in DB");
   });
 
-  /* ---------- customers ---------- */
+  /* ---------- хэрэглэгчид ---------- */
   await s.step(P.cust, "List + profile drawer = DB", async () => {
     await go("/customers");
     const n = await prisma.user.count({ where: { role: "CUSTOMER", OR: [{ isGuest: false }, { orders: { some: {} } }] } });
@@ -456,8 +456,8 @@ export async function run(ctx: Ctx) {
     return `${n} customers (incl. guests who ordered); drawer orders = DB`;
   });
 
-  /* ---------- orders ---------- */
-  // seed stages: a couple of "paid" (waiting) orders, more in preparing / shipping / delivered
+  /* ---------- захиалга ---------- */
+  // seed-ийн төлөв: цөөн «төлөгдсөн» (хүлээгдэж буй), бусад нь бэлтгэж / хүргэлтэнд / хүргэгдсэн
   const stage = (deliveryStatus: "NONE" | "PREPARING" | "SHIPPING") =>
     prisma.order.findMany({ where: { paymentStatus: "PAID", deliveryStatus }, orderBy: { createdAt: "desc" }, take: 2, include: { items: true } });
   const [paid, preparing, shipping] = await Promise.all([stage("NONE"), stage("PREPARING"), stage("SHIPPING")]);
@@ -552,7 +552,7 @@ export async function run(ctx: Ctx) {
     return "asks the service (DEMO_MODE state)";
   });
 
-  /* ---------- reports ---------- */
+  /* ---------- тайлан ---------- */
   await s.step(P.rep, "Totals = DB (6 months)", async () => {
     await go("/reports");
     const t = ubToday();
@@ -568,7 +568,7 @@ export async function run(ctx: Ctx) {
     return `${agg._count} paid orders, ${fmt(agg._sum.total ?? 0)} since ${from}`;
   });
 
-  /* ---------- settings ---------- */
+  /* ---------- тохиргоо ---------- */
   await s.step(P.set, "Store tab: validation, save → DB → reload", async () => {
     await go("/settings");
     const input = (label: string) => page.locator("label.field", { hasText: label }).locator("input");
@@ -632,7 +632,7 @@ export async function run(ctx: Ctx) {
     return "temporary password shown once";
   });
 
-  /* ---------- roles ---------- */
+  /* ---------- эрх ---------- */
   await s.step(P.role, "Operator: orders yes, settings read-only, API 403", async () => {
     const op = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const pg = await op.newPage();
@@ -648,7 +648,7 @@ export async function run(ctx: Ctx) {
     expect((await pg.getByRole("button", { name: /Хадгалах/ }).count()) === 0, "operator sees Save");
     await go("/settings?tab=admins", pg);
     expect((await pg.getByRole("button", { name: "Урих" }).count()) === 0, "operator sees Invite");
-    // through the dashboard's /api proxy, with the operator's first-party session cookie
+    // операторын first-party сесс күүкитэй, самбарын /api проксигоор
     const r = await pg.request.put(`${ctx.dashboard}/api/v1/admin/settings/store`, {
       data: { name: "x", phone: "7711-2233", email: "", address: "", hours: "" },
     });
@@ -677,7 +677,7 @@ export async function run(ctx: Ctx) {
     expect(r.status === 401, `login after removal → ${r.status}`);
   });
 
-  /* ---------- cross-app (storefront) ---------- */
+  /* ---------- cross-app (дэлгүүр) ---------- */
   const webUp = await fetch(ctx.web).then((r) => r.ok).catch(() => false);
   let web: BrowserContext | null = null;
   let wpage: Page | null = null;
@@ -698,7 +698,7 @@ export async function run(ctx: Ctx) {
       await wp.getByRole("button", { name: "Сагслах" }).first().click();
       const userId = await sessionUserId(web!);
       await eventually(async () => (await prisma.cartItem.count({ where: { cart: { userId } } })) === 1, "cart row not in DB");
-      // checkout needs an account: register this guest (same browser cookies; the cart stays)
+      // захиалгад бүртгэл хэрэгтэй: энэ зочныг бүртгэнэ (ижил хөтчийн күүки; сагс хадгалагдана)
       const reg = await web!.request.post(`${ctx.web}/api/v1/auth/register`, {
         data: { name: "Кросс Апп", phone: "88003344", password: "e2e-secret-2" },
       });
@@ -775,7 +775,7 @@ export async function run(ctx: Ctx) {
     await web.close();
   }
 
-  /* ---------- sign out ---------- */
+  /* ---------- гарах ---------- */
   await s.step(P.login, "Logout → cookie cleared, back to /login", async () => {
     await go("/");
     await page.locator("header").getByRole("button", { expanded: false }).last().click();

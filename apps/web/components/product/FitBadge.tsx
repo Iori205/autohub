@@ -10,7 +10,7 @@ const LABELS: Record<FitStatus, { long: string; short: string }> = {
 
 const ICONS = { yes: CircleCheck, no: CircleX, unknown: CircleHelp };
 
-/** `responsive` shows the short label below 820px (product cards). */
+/** `responsive` нь 820px-ээс доош богино шошго харуулна (барааны карт). */
 export function FitBadge({
   status,
   responsive = false,

@@ -1,4 +1,4 @@
-/* Storefront (apps/web) against the real API + DB. */
+/* Дэлгүүр (apps/web)-ийг жинхэнэ API + DB-тэй шалгана. */
 import { adminApi } from "../lib/admin-api";
 import { Suite, eventually, expect, launch, sessionUserId, watch } from "../lib/harness";
 import type { Ctx } from "../lib/types";
@@ -19,7 +19,7 @@ export async function run(ctx: Ctx) {
   const W = "Web";
   console.log("\nStorefront");
 
-  /* ---------- catalog ---------- */
+  /* ---------- каталог ---------- */
   await s.step(W, "Home: banners, categories, featured from DB", async () => {
     await go("/");
     const banner = await prisma.banner.findFirst({ where: { active: true }, orderBy: { sortOrder: "asc" } });
@@ -87,7 +87,7 @@ export async function run(ctx: Ctx) {
     for (const m of models) expect((await page.getByText(m, { exact: true }).count()) > 0, `fitment ${m} missing`);
   });
 
-  /* ---------- wishlist ---------- */
+  /* ---------- хүслийн жагсаалт ---------- */
   await s.step(W, "Wishlist add → DB → reload → remove", async () => {
     const userId = await sessionUserId(bctx);
     await go("/product/17");
@@ -101,7 +101,7 @@ export async function run(ctx: Ctx) {
     return `persisted across reload (heart colour ${color}), removed from DB`;
   });
 
-  /* ---------- cart ---------- */
+  /* ---------- сагс ---------- */
   await s.step(W, "Cart add → DB → reload", async () => {
     const userId = await sessionUserId(bctx);
     for (const id of [17, 1]) {
@@ -140,7 +140,7 @@ export async function run(ctx: Ctx) {
     expect((await page.locator("main").getByText(p1.name).count()) === 0, "removed line came back after reload");
   });
 
-  /* ---------- checkout (account required) ---------- */
+  /* ---------- захиалга (бүртгэл шаардлагатай) ---------- */
   let orderNo = "";
   const NAME = "Е2Е Хэрэглэгч";
   const PHONE = "88001122";
@@ -224,7 +224,7 @@ export async function run(ctx: Ctx) {
   });
 
   await s.step(W, "QPay DEMO error → network error screen → retry", async () => {
-    problems.allowOnce("/payments/qpay/check"); // the simulated QPay outage answers 502 once
+    problems.allowOnce("/payments/qpay/check"); // дуурайсан QPay тасалдал нэг удаа 502 буцаана
     await dialog().getByRole("button", { name: "Сүлжээний алдаа" }).click();
     await dialog().getByText("Сүлжээний алдаа", { exact: true }).last().waitFor();
     await dialog().getByRole("button", { name: /Дахин шалгах|Дахин оролдох/ }).first().click();
@@ -282,7 +282,7 @@ export async function run(ctx: Ctx) {
     expect((await page.getByText("Үлдэгдэл: 41 ш").count()) > 0, "new stock not shown");
   });
 
-  /* ---------- account ---------- */
+  /* ---------- бүртгэл ---------- */
   await s.step(W, "Account menu: name, orders, saved car", async () => {
     await go("/");
     await profile().click();
@@ -319,7 +319,7 @@ export async function run(ctx: Ctx) {
     return `${orderNo} listed after logout → login`;
   });
 
-  /* ---------- not wired by design ---------- */
+  /* ---------- санаатайгаар холбоогүй ---------- */
   s.note(W, "Guest order lookup (phone + number)", "todo", "API works (POST /orders/lookup, covered by test:api); no storefront UI is designed yet");
   s.note(W, "Compare list", "todo", "browser-only by design: there is no compare table in the schema");
   s.note(W, "Hero side promo tiles", "todo", "static design content (not managed in the dashboard)");

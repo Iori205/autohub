@@ -5,7 +5,7 @@ import { cancelOrder, findOrder } from "@/lib/orders";
 import { retireInvoice } from "@/lib/payments";
 import { adminOrderDto } from "@/lib/serialize";
 
-/** Cancel with a reason; a paid order is marked refunded and its stock is returned. */
+/** Шалтгаантай цуцлах; төлөгдсөн захиалгыг буцаалттай гэж тэмдэглэж нөөцийг нь буцаана. */
 export const POST = route<RouteContext<"/api/v1/admin/orders/[number]/cancel">>(async (req, { params }) => {
   const staff = await requireStaff(req);
   const { reason, comment } = await body(req, orderCancelInput);

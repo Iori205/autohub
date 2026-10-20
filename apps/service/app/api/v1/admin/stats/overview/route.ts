@@ -4,7 +4,7 @@ import { ok, query, route } from "@/lib/http";
 import { overview } from "@/lib/stats";
 import { sweepExpired } from "@/lib/payments";
 
-/** Хянах самбар: KPIs, revenue series (?days=7|30|90), status donut, top lists. */
+/** Хянах самбар: KPI, орлогын цуваа (?days=7|30|90), төлөвийн дугуй график, шилдэг жагсаалт. */
 export const GET = route(async (req) => {
   await sweepExpired();
   await requireStaff(req);

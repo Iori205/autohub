@@ -7,7 +7,7 @@ export async function cartDto(userId: string): Promise<CartDto> {
     where: { userId },
     include: { items: { orderBy: { addedAt: "asc" }, include: { product: { include: productSummaryInclude } } } },
   });
-  // hidden/deleted products drop out of the cart view
+  // нуусан/устгасан бараа сагсанд харагдахгүй
   const items = (cart?.items ?? [])
     .filter((i) => i.product.active)
     .map((i) => ({ product: productSummary(i.product), qty: i.qty, lineTotal: i.product.price * i.qty }));
@@ -22,10 +22,7 @@ export async function ensureCart(userId: string) {
   return prisma.cart.upsert({ where: { userId }, create: { userId }, update: {} });
 }
 
-/**
- * Called when a guest logs into an existing account: the guest's cart lines,
- * wishlist and orders move to the account, then the guest record is removed.
- */
+/** Зочин байгаа бүртгэлээр нэвтрэхэд дуудагдана: зочны сагс, хүслийн жагсаалт, захиалга бүртгэл рүү шилжиж, зочны бичлэг устна. */
 export async function adoptGuest(guestId: string, userId: string) {
   if (guestId === userId) return;
   await prisma.$transaction(async (tx) => {

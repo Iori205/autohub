@@ -6,7 +6,7 @@ import { openForm, toast } from "../../../lib/ui";
 
 const REASONS = ["Шинэ орлого", "Буцаалт", "Гэмтэл / гологдол", "Тооллогын зөрүү", "Борлуулалт (гараар)"];
 
-/** "Нөөц тохируулах" form — used from Нөөц, the dashboard and the low-stock list. */
+/** «Нөөц тохируулах» маягт — Нөөц, хянах самбар, нөөц багассан жагсаалтаас дуудагдана. */
 export function openAdjustStock(products: Product[], product?: Product) {
   openForm({
     title: "Нөөц тохируулах",

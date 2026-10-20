@@ -11,7 +11,7 @@ import {
   type VehicleDto,
 } from "@repo/types";
 
-/* Prisma includes used with the serializers below */
+/* Доорх serializer-үүдэд хэрэглэх Prisma include */
 
 export const productSummaryInclude = {
   brand: { select: { id: true, name: true } },
@@ -82,7 +82,7 @@ export const vehicleDto = (v: VehicleDto): VehicleDto => ({
   fuel: v.fuel,
 });
 
-/* ---------- orders ---------- */
+/* ---------- захиалга ---------- */
 
 const latestInvoice = { orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true } } as const;
 
@@ -143,7 +143,7 @@ export function adminOrderDto(o: AdminOrderRow): AdminOrderDto {
   };
 }
 
-/* ---------- marketing ---------- */
+/* ---------- маркетинг ---------- */
 
 type CampaignRow = Prisma.CampaignGetPayload<{ include: { category: true; brand: true } }>;
 

@@ -1,4 +1,4 @@
-/* Shared layout for cart / checkout / payment / orders. */
+/* Сагс / checkout / төлбөр / захиалгын нийтлэг байрлал. */
 
 .page {
   padding-top: var(--space-page-top);
@@ -132,7 +132,7 @@
   flex-wrap: wrap;
 }
 
-/* status pill */
+/* төлөвийн шошго */
 .pill {
   display: inline-flex;
   align-items: center;
@@ -150,7 +150,7 @@
   border-radius: 50%;
 }
 
-/* key/value list (payment info) */
+/* түлхүүр/утгын жагсаалт (төлбөрийн мэдээлэл) */
 .kvCard {
   padding: 6px 22px 12px;
   border: 1px solid var(--line);

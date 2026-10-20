@@ -5,7 +5,7 @@ import { customerDtos } from "@/lib/customers";
 import { notFound, ok, route } from "@/lib/http";
 import { orderDto, orderInclude } from "@/lib/serialize";
 
-/** Customer drawer: profile, saved cars, stats and all orders. */
+/** Хэрэглэгчийн дэлгэрэнгүй: профайл, хадгалсан машин, статистик, бүх захиалга. */
 export const GET = route<RouteContext<"/api/v1/admin/customers/[id]">>(async (req, { params }) => {
   await requireStaff(req);
   const u = await prisma.user.findFirst({ where: { id: (await params).id, role: "CUSTOMER" }, include: { cars: true } });

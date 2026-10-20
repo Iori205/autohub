@@ -5,8 +5,8 @@ import { badRequest, ok, query, route } from "@/lib/http";
 import { productSummary, productSummaryInclude } from "@/lib/serialize";
 
 /**
- * Parts that fit a vehicle: ?vehicleId= or ?make=&model=(&year=&engine=).
- * Same filters as /catalog/products, without paging.
+ * Машинд тохирох сэлбэг: ?vehicleId= эсвэл ?make=&model=(&year=&engine=).
+ * /catalog/products-тэй ижил шүүлтүүр, хуудаслалтгүй.
  */
 export const GET = route(async (req) => {
   const q = query(req, productQuery);

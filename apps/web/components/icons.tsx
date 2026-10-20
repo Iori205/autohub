@@ -29,7 +29,7 @@ export const CATEGORY_ICONS: Record<CategoryKey, LucideIcon> = {
   acc: Package,
 };
 
-// lucide-react dropped brand icons; minimal outline versions in the same style.
+// lucide-react брэндийн дүрсүүдийг хассан тул ижил хэв маягтай энгийн хувилбар.
 type P = SVGProps<SVGSVGElement> & { size?: number };
 const base = (size = 18): SVGProps<SVGSVGElement> => ({
   width: size,

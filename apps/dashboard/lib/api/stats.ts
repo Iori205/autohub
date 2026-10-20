@@ -7,9 +7,8 @@ import { toast } from "../ui";
 import { api } from "./client";
 
 /*
- * Server-side figures (/admin/stats/*): Ulaanbaatar days, revenue = paid and
- * not refunded orders incl. delivery. Re-fetched whenever the admin data
- * cache changes, so a status change elsewhere updates the numbers.
+ * Серверийн тооцоо (/admin/stats/*): Улаанбаатарын өдөр, орлого = төлөгдсөн, буцаагдаагүй захиалга (хүргэлттэй).
+ * Админы өгөгдлийн кэш өөрчлөгдөх бүрт дахин татдаг тул өөр газрын төлөвийн өөрчлөлт тоонд шууд тусна.
  */
 
 function useStat<T>(path: string): T | null {
@@ -24,7 +23,7 @@ function useStat<T>(path: string): T | null {
       live = false;
     };
   }, [path, db]);
-  // keep showing the previous figures while a new range loads
+  // шинэ хугацааг ачаалах зуур өмнөх тоо харагдсаар байна
   return data?.value ?? null;
 }
 

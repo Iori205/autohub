@@ -5,7 +5,7 @@ import { body, notFound, ok, route } from "@/lib/http";
 import { orderDto, orderInclude } from "@/lib/serialize";
 import { sweepExpired } from "@/lib/payments";
 
-/** Guest lookup: the phone number given at checkout + the order number. */
+/** Зочны хайлт: захиалгад өгсөн утасны дугаар + захиалгын дугаар. */
 export const POST = route(async (req) => {
   await sweepExpired();
   const { phone, number } = await body(req, orderLookupInput);

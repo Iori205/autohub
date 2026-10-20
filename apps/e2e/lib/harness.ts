@@ -3,7 +3,7 @@ import process from "node:process";
 import type { Browser, BrowserContext, Page } from "playwright";
 import type { Result, Status } from "./types";
 
-// Browsers are installed into node_modules (PLAYWRIGHT_BROWSERS_PATH=0).
+// Хөтчүүдийг node_modules-д суулгасан (PLAYWRIGHT_BROWSERS_PATH=0).
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= "0";
 
 export async function launch(): Promise<Browser> {
@@ -12,24 +12,24 @@ export async function launch(): Promise<Browser> {
 }
 
 /**
- * Collects console errors, page errors and failed / 5xx requests per page.
- * `expect4xx` lists URL parts whose 4xx answers are intended by a test.
+ * Хуудас бүрийн console алдаа, page error, амжилтгүй / 5xx хүсэлтийг цуглуулна.
+ * `expect4xx` нь тестийн санаатай 4xx хариутай URL хэсгүүд.
  */
 export function watch(page: Page, expect4xx: string[] = []) {
   const problems: string[] = [];
-  /** URL parts whose next error response is intended by the running step (e.g. a simulated outage) */
+  /** Ажиллаж буй алхмын санаатай алдаатай хариутай URL хэсгүүд (жишээ нь QPay тасалдлыг дуурайх) */
   const allowed: string[] = [];
   page.on("pageerror", (e) => problems.push(`page error: ${e.message.split("\n")[0]}`));
   page.on("console", (m) => {
     if (m.type() !== "error") return;
     const t = m.text();
-    // the browser logs every non-2xx fetch; real failures are reported from responses below
+    // хөтөч 2xx бус fetch бүрийг log-лодог; жинхэнэ алдааг доорх хариунаас мэдээлнэ
     if (/Failed to load resource/.test(t)) return;
     problems.push(`console: ${t.slice(0, 200)}`);
   });
   page.on("requestfailed", (r) => {
     const f = r.failure()?.errorText ?? "";
-    if (/ERR_ABORTED|NS_BINDING_ABORTED/.test(f)) return; // navigations cancel in-flight fetches
+    if (/ERR_ABORTED|NS_BINDING_ABORTED/.test(f)) return; // шилжилт явагдаж буй fetch-ийг цуцалдаг
     problems.push(`request failed: ${r.method()} ${r.url()} ${f}`);
   });
   page.on("response", (r) => {
@@ -45,7 +45,7 @@ export function watch(page: Page, expect4xx: string[] = []) {
   return Object.assign(problems, { allowOnce: (urlPart: string) => allowed.push(urlPart) });
 }
 
-/** One table row per user action; `check` throws on the first failed expectation. */
+/** Хэрэглэгчийн үйлдэл бүрт хүснэгтийн нэг мөр; `check` эхний биелээгүй хүлээлт дээр алдаа шиднэ. */
 export class Suite {
   results: Result[] = [];
   constructor(
@@ -59,7 +59,7 @@ export class Suite {
       this.results.push({ page, action, status: opts.status ?? "ok", notes: note });
       process.stdout.write(`  ✓ ${page} · ${action}\n`);
     } catch (e) {
-      // first non-empty line; Prisma puts the actual cause on the last one
+      // эхний хоосон биш мөр; Prisma жинхэнэ шалтгааныг сүүлийн мөрд бичдэг
       const lines = ((e as Error).message ?? String(e)).split("\n").map((l) => l.trim()).filter(Boolean);
       const msg = (lines[0]?.startsWith("Invalid `prisma") ? lines.at(-1) : lines[0]) ?? String(e);
       this.results.push({ page, action, status: "fail", notes: msg });
@@ -84,7 +84,7 @@ export function expect(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg);
 }
 
-/** Decode the session cookie (JWT) to find the DB user behind a browser session. */
+/** Сессийн күүкиг (JWT) задалж хөтчийн сессийн ард байгаа DB хэрэглэгчийг олно. */
 export async function sessionUserId(ctx: BrowserContext, cookie = "autohub_customer"): Promise<string> {
   const c = (await ctx.cookies()).find((x) => x.name === cookie);
   expect(c, `no ${cookie} cookie`);
@@ -92,7 +92,7 @@ export async function sessionUserId(ctx: BrowserContext, cookie = "autohub_custo
   return payload.sub;
 }
 
-/** Poll until `fn` returns a truthy value (DB writes from optimistic UI land a moment later). */
+/** `fn` truthy утга буцаах хүртэл давтан шалгана (optimistic UI-ийн DB бичилт бага зэрэг хоцордог). */
 export async function eventually<T>(fn: () => Promise<T>, msg: string, ms = 8000): Promise<NonNullable<T>> {
   const end = Date.now() + ms;
   do {

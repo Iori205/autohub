@@ -1,18 +1,13 @@
 /*
- * End-to-end API check against a running service and a freshly seeded DB.
- * It creates orders, products etc. — run it on a dev/test database:
- *
- *   npm run db:seed && npm run dev -w service      (other terminal)
- *   npm run test:api -w service
- *
- * API_URL overrides http://localhost:4000. Staff password: SEED_ADMIN_PASSWORD or autohub123.
+ * Ажиллаж буй сервис, шинээр seed хийсэн DB дээрх end-to-end API шалгалт (захиалга, бараа үүсгэдэг — зөвхөн dev/test DB).
+ * npm run db:seed && npm run dev -w service · npm run test:api -w service · API_URL анхдагч http://localhost:4000-ийг сольно.
  */
 import process from "node:process";
 
 const API = (process.env.API_URL ?? "http://localhost:4000") + "/api/v1";
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- test script only
 const STAFF_PW = process.env.SEED_ADMIN_PASSWORD || "autohub123";
-const TODAY = "2026-10-11"; // the seed's "today"
+const TODAY = "2026-10-11"; // seed-ийн «өнөөдөр»
 
 let passed = 0;
 const failures = [];
@@ -21,7 +16,7 @@ const check = (name, cond, detail = "") => {
   else failures.push(`${name}${detail ? ` — ${detail}` : ""}`);
 };
 
-/** A browser-like client with its own cookie jar. */
+/** Өөрийн күүкийн сантай, хөтөч шиг клиент. */
 function client(origin = "http://localhost:3000") {
   const jar = new Map();
   return async function call(method, path, body) {
@@ -53,7 +48,7 @@ function client(origin = "http://localhost:3000") {
 
 const anon = client();
 
-// ---------- health & CORS ----------
+// ---------- health ба CORS ----------
 check("health", (await anon("GET", "/health")).status === 200);
 {
   const pre = await fetch(API + "/cart", { method: "OPTIONS", headers: { origin: "http://localhost:3001", "access-control-request-method": "PUT" } });
@@ -62,7 +57,7 @@ check("health", (await anon("GET", "/health")).status === 200);
   check("CORS other origin gets no allow header", !evil.headers.get("access-control-allow-origin"));
 }
 
-// ---------- catalog ----------
+// ---------- каталог ----------
 {
   const cats = await anon("GET", "/catalog/categories");
   check("categories", cats.status === 200 && cats.json.length === 11, `${cats.json?.length}`);
@@ -101,7 +96,7 @@ check("health", (await anon("GET", "/health")).status === 200);
   check("public settings", settings.json?.store?.name === "AuToHub" && settings.json?.fees?.UB === 5000 && settings.json?.delivery?.freeOver === 200000);
 }
 
-// ---------- guest cart → checkout ----------
+// ---------- зочны сагс → checkout ----------
 const guest = client();
 let orderNo;
 {
@@ -155,7 +150,7 @@ let orderNo;
   check("pickup is free, branch address", pickup.json?.shippingFee === 0 && pickup.json?.address.includes("Хан-Уул салбар"));
 }
 
-// ---------- customer accounts ----------
+// ---------- хэрэглэгчийн бүртгэл ----------
 {
   check("register duplicate phone 409", (await client()("POST", "/auth/register", { name: "X", phone: "99110000", password: "secret12" })).status === 409);
   await guest("POST", "/auth/logout");
@@ -169,7 +164,7 @@ let orderNo;
   check("bad password 401", (await client()("POST", "/auth/login", { login: "99110000", password: "nope" })).status === 401);
 }
 
-// ---------- admin ----------
+// ---------- админ ----------
 const admin = client("http://localhost:3001");
 const operator = client("http://localhost:3001");
 {
@@ -220,7 +215,7 @@ const operator = client("http://localhost:3001");
   check("stock returned on refund", (await admin("GET", "/admin/products/10")).json.stock === p10before);
   check("cancel validation", (await admin("POST", "/admin/orders/A1022/cancel", { reason: "" })).status === 422);
 
-  // products
+  // бараа
   const cats = (await admin("GET", "/admin/categories")).json;
   const brands = (await admin("GET", "/admin/brands")).json;
   const veh = (await admin("GET", "/admin/vehicles?make=Toyota&model=Prius")).json;
@@ -240,7 +235,7 @@ const operator = client("http://localhost:3001");
   check("delete product", (await admin("DELETE", `/admin/products/${created.json.id}`)).status === 204);
   check("admin product filters", (await admin("GET", "/admin/products?stockLevel=out")).json?.total === 2);
 
-  // catalog
+  // каталог
   check("category in use can't be deleted", (await admin("DELETE", `/admin/categories/${cats.find((c) => c.slug === "brake").id}`)).status === 409);
   const cat = await admin("POST", "/admin/categories", { name: "Туршилт", slug: "test-cat", icon: "package" });
   check("create category", cat.status === 201);
@@ -251,12 +246,12 @@ const operator = client("http://localhost:3001");
   check("vehicle CSV import", imp.json?.added === 1 && imp.json?.errors?.length === 1, JSON.stringify(imp.json));
   check("vehicle year validation", (await admin("POST", "/admin/vehicles", { make: "A", model: "B", yearFrom: 2020, yearTo: 2010, engine: "E", fuel: "PETROL" })).status === 422);
 
-  // stock
+  // нөөц
   check("adjust below zero rejected", (await admin("POST", "/admin/stock/adjust", { productId: 12, delta: -1, reason: "Тест" })).status === 400);
   const adj = await admin("POST", "/admin/stock/adjust", { productId: 12, delta: 4, reason: "Шинэ орлого" });
   check("stock adjust", adj.json?.stock === 4);
 
-  // marketing
+  // маркетинг
   const banner = await admin("POST", "/admin/banners", { title: "Тест баннер", link: "/shop" });
   check("create banner", banner.status === 201 && banner.json?.sortOrder === 5);
   check("banner link validation", (await admin("POST", "/admin/banners", { title: "x", link: "shop" })).status === 422);
@@ -264,13 +259,13 @@ const operator = client("http://localhost:3001");
   check("create campaign", camp.status === 201 && camp.json?.targetLabel?.startsWith("Брэнд:"));
   check("campaign date validation", (await admin("POST", "/admin/campaigns", { name: "x", percent: 10, startsAt: "2026-10-10", endsAt: "2026-10-01" })).status === 422);
 
-  // customers
+  // хэрэглэгчид
   const custs = await admin("GET", "/admin/customers");
   check("customers list sorted by spend", custs.json?.items?.length > 0 && custs.json.items.every((c, i, a) => i === 0 || a[i - 1].spent >= c.spent));
   const c1 = await admin("GET", `/admin/customers/${custs.json.items[0].id}`);
   check("customer detail with orders", c1.json?.orders?.length === c1.json?.orderCount);
 
-  // settings & staff permissions
+  // тохиргоо ба ажилтны эрх
   const st = await admin("GET", "/admin/settings");
   check("settings never expose QPay secrets", st.json?.qpay && !("password" in st.json.qpay) && !("username" in st.json.qpay));
   check("operator can't change settings", (await operator("PUT", "/admin/settings/store", st.json.store)).status === 403);

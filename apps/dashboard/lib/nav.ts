@@ -16,7 +16,7 @@ export interface NavItem {
   href: string;
   label: string;
   icon: LucideIcon;
-  /** Show the "to process" count */
+  /** «Боловсруулах» тоог харуулах */
   badge?: "orders";
 }
 

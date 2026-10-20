@@ -30,7 +30,7 @@ const DISTRICTS = [
 ];
 const KHOROOS = Array.from({ length: 32 }, (_, i) => `${i + 1}-р хороо`);
 
-/** What was typed before the login detour, restored on the way back. */
+/** Нэвтрэх гэж гарахаас өмнө бичсэнийг буцаж ирэхэд сэргээнэ. */
 const DRAFT_KEY = "autohub:checkout-draft";
 const LOGIN_HREF = "/login?next=/checkout";
 
@@ -69,7 +69,7 @@ export function CheckoutForm() {
   const [busy, setBusy] = useState(false);
   const me = useCustomer();
 
-  // Back from /login: restore the draft, then fill name/phone/e-mail from the account
+  // /login-оос буцаж ирэхэд ноорогоо сэргээгээд нэр/утас/и-мэйлийг бүртгэлээс бөглөнө
   useEffect(() => {
     if (!me) return;
     let draft: Partial<Form> = {};
@@ -77,7 +77,7 @@ export function CheckoutForm() {
       draft = JSON.parse(sessionStorage.getItem(DRAFT_KEY) ?? "{}") as Partial<Form>;
       sessionStorage.removeItem(DRAFT_KEY);
     } catch {
-      /* storage blocked */
+      /* хадгалах сан хаалттай */
     }
     setForm((f) => {
       const d = { ...f, ...draft };
@@ -89,7 +89,7 @@ export function CheckoutForm() {
     try {
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify(form));
     } catch {
-      /* storage blocked */
+      /* хадгалах сан хаалттай */
     }
     router.push(LOGIN_HREF);
   };
@@ -103,7 +103,7 @@ export function CheckoutForm() {
   });
 
   const confirm = async () => {
-    // Orders need an account; registering/logging in keeps this cart
+    // Захиалгад бүртгэл хэрэгтэй; бүртгүүлэх/нэвтрэхэд энэ сагс хадгалагдана
     if (!me) return toLogin();
     if (Object.keys(errs).length) {
       setTried(true);
@@ -116,7 +116,7 @@ export function CheckoutForm() {
       router.push(`/checkout/payment?order=${order.no}`);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) return toLogin();
-      // the server re-validates (and re-prices); show its Mongolian message
+      // сервер дахин шалгаж (үнийг ч дахин бодно) монгол мессежээ буцаана
       showToast(e instanceof ApiError ? Object.values(e.fields ?? {})[0] ?? e.message : "Алдаа гарлаа. Дахин оролдоно уу");
       setBusy(false);
     }
@@ -160,7 +160,7 @@ export function CheckoutForm() {
 
   const field = (k: ErrKey, label: React.ReactNode, input: React.ReactNode) => (
     <label className="field">
-      {/* one inline label line, so inputs in the same row line up */}
+      {/* нэг мөрийн шошго тул нэг мөрийн оролтууд тэгшрэнэ */}
       <span className="field-label">{label}</span>
       {input}
       <span className="field-error">{err(k)}</span>

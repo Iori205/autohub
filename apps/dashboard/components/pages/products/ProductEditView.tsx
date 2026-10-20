@@ -38,7 +38,7 @@ export function ProductEditView({ id }: { id?: number }) {
         </div>
       </>
     );
-  // key: a different product (or "new") starts with a fresh form
+  // key: өөр бараа (эсвэл «шинэ») нээгдэхэд маягт шинээр эхэлнэ
   return <ProductForm key={id ?? "new"} db={db} product={product} />;
 }
 
@@ -112,7 +112,6 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
     if (clear) setErr((e) => ({ ...e, [clear]: undefined }));
   };
 
-  /* images */
   const addFiles = (files: FileList | null) => {
     [...(files ?? [])]
       .filter((f) => f.type.startsWith("image/"))
@@ -130,7 +129,6 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
     addFiles(e.dataTransfer.files);
   };
 
-  /* OEM chips */
   const addOem = () => {
     const v = d.oemIn.trim().toUpperCase().replace(/,$/, "");
     if (!v) return;
@@ -138,7 +136,7 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
     set({ oem: [...d.oem, v], oemIn: "" }, "oem");
   };
 
-  /* fitment picker: make → model → year → engine */
+  /* тохирох машин сонгогч: үйлдвэрлэгч → загвар → он → хөдөлгүүр */
   const V = db.vehicles;
   const uniq = <T,>(a: T[]) => [...new Set(a)];
   const makes = uniq(V.map((v) => v.make));
@@ -562,9 +560,8 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
 }
 
 /**
- * Images are stored inline (data URLs) with the product, and request/response
- * bodies on Vercel are capped at 4.5 MB — so photos are scaled down to at most
- * 1280 px and re-encoded as JPEG (typically 100–300 KB) before upload.
+ * Зургийг бараатай хамт data URL-ээр хадгалдаг, Vercel хүсэлт/хариуг 4.5 MB-аар хязгаарладаг тул
+ * илгээхээс өмнө 1280 px хүртэл багасгаж JPEG болгоно (ихэвчлэн 100–300 KB).
  */
 function shrinkImage(file: File, max = 1280, quality = 0.82): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -578,7 +575,7 @@ function shrinkImage(file: File, max = 1280, quality = 0.82): Promise<string> {
       canvas.height = Math.round(img.naturalHeight * k);
       const ctx = canvas.getContext("2d");
       if (!ctx) return reject(new Error("canvas"));
-      ctx.fillStyle = "#fff"; // transparent PNGs become white, not black
+      ctx.fillStyle = "#fff"; // тунгалаг PNG хар биш цагаан дэвсгэртэй болно
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       resolve(canvas.toDataURL("image/jpeg", quality));

@@ -1,10 +1,7 @@
 import { normalizeOem, prisma, Prisma } from "@repo/db";
 import type { ProductQuery } from "@repo/types";
 
-/**
- * Product filter shared by the storefront (/catalog/products) and the
- * dashboard (/admin/products). `publicOnly` hides inactive products.
- */
+/** Дэлгүүр (/catalog/products) ба самбарын (/admin/products) нийтлэг барааны шүүлтүүр. `publicOnly` идэвхгүй барааг нууна. */
 export async function productWhere(
   q: ProductQuery & { stockLevel?: "ok" | "low" | "out"; active?: boolean },
   publicOnly: boolean,
@@ -14,7 +11,7 @@ export async function productWhere(
   else if (q.active !== undefined) and.push({ active: q.active });
 
   if (q.q) {
-    // Name match, or OEM number containing the query with spaces/dashes ignored.
+    // Нэрээр, эсвэл зай/зураасыг үл тоон хайлтыг агуулсан OEM дугаараар таарна.
     const oem = normalizeOem(q.q);
     const oemIds = oem.length >= 3
       ? await prisma.$queryRaw<{ id: number }[]>`
@@ -38,7 +35,7 @@ export async function productWhere(
   if (q.priceMin !== undefined) and.push({ price: { gte: q.priceMin } });
   if (q.priceMax !== undefined) and.push({ price: { lte: q.priceMax } });
 
-  // Fitment: a specific vehicle row, or make/model(/engine) with an optional year.
+  // Тохирол: тодорхой машины мөр, эсвэл make/model(/engine) ба сонголтоор он.
   if (q.vehicleId || q.make || q.model) {
     const vehicle: Prisma.VehicleWhereInput = q.vehicleId
       ? { id: q.vehicleId }
@@ -63,7 +60,7 @@ export async function productWhere(
 
   if (q.stockLevel === "out") and.push({ stock: 0 });
   if (q.stockLevel === "low" || q.stockLevel === "ok") {
-    // compare stock with each product's own threshold
+    // нөөцийг бараа бүрийн өөрийн босготой харьцуулна
     const rows = await prisma.$queryRaw<{ id: number }[]>`
       SELECT id FROM "Product"
       WHERE ${q.stockLevel === "low" ? Prisma.sql`stock > 0 AND stock <= "lowStockThreshold"` : Prisma.sql`stock > "lowStockThreshold"`}`;

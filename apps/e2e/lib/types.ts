@@ -7,7 +7,7 @@ export interface Ctx {
   out: string;
 }
 
-/** ok = works, fixed = was broken and fixed in this round, todo = not wired (by design / needs UI), fail = broken now */
+/** ok = ажиллаж байна, fixed = энэ удаад зассан, todo = холбоогүй (санаатай / UI хэрэгтэй), fail = эвдэрсэн */
 export type Status = "ok" | "fixed" | "todo" | "fail";
 
 export interface Result {

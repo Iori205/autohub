@@ -15,7 +15,7 @@ export const PATCH = route<Ctx>(async (req, { params }) => {
   return ok<BrandDto>({ ...b, productCount: _count.products });
 });
 
-/** Products always need a brand, so brands in use can't be deleted. */
+/** Бараа заавал брэндтэй тул ашиглагдаж буй брэндийг устгахгүй. */
 export const DELETE = route<Ctx>(async (req, { params }) => {
   await requireStaff(req);
   const id = (await params).id;

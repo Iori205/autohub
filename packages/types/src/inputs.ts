@@ -1,7 +1,6 @@
 /*
- * Request bodies and query strings, validated with zod on the server
- * (apps/service) and reusable for form validation in the frontends.
- * Messages are in Mongolian because the UI shows them as-is.
+ * Хүсэлтийн body ба query string — сервер дээр (apps/service) zod-оор шалгаж, frontend-ийн маягтад ч ашиглана.
+ * UI мессежийг тэр чигт нь харуулдаг тул монголоор.
  */
 import { z } from "zod";
 import {
@@ -12,7 +11,7 @@ import {
   PRODUCT_TYPES,
 } from "./enums";
 
-/** 8-digit Mongolian number; spaces and dashes are ignored ("9911 2233" → "99112233"). */
+/** 8 оронтой Монгол дугаар; зай, зураасыг үл тооно («9911 2233» → «99112233»). */
 export const phone = z
   .string()
   .transform((s) => s.replace(/[\s-]/g, ""))
@@ -26,21 +25,21 @@ const money = z.coerce.number().int("Бүхэл тоо оруулна уу").min
 const qty = z.coerce.number().int().min(1).max(999);
 const id = z.string().min(1).max(64);
 const day = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Огноо YYYY-MM-DD хэлбэртэй байна");
-/** "1", "true" → true; anything else → false; missing → undefined */
+/** «1», «true» → true; бусад → false; байхгүй → undefined */
 const flag = z
   .union([z.boolean(), z.string()])
   .optional()
   .transform((v) => (v === undefined ? undefined : v === true || v === "1" || v === "true"));
-/** Comma separated or repeated query value → string[] */
+/** Таслалаар тусгаарласан эсвэл давтагдсан query утга → string[] */
 const list = z
   .union([z.string(), z.array(z.string())])
   .optional()
   .transform((v) => (v === undefined ? undefined : (Array.isArray(v) ? v : v.split(",")).map((s) => s.trim()).filter(Boolean)));
 
-/* ---------- catalog (public) ---------- */
+/* ---------- каталог (нийтийн) ---------- */
 
 export const productQuery = z.object({
-  /** name or OEM number (spaces/dashes ignored for OEM) */
+  /** нэр эсвэл OEM дугаар (OEM-д зай/зураасыг үл тооно) */
   q: trimmed(100).optional(),
   category: list,
   brand: list,
@@ -49,7 +48,7 @@ export const productQuery = z.object({
   sale: flag,
   priceMin: money.optional(),
   priceMax: money.optional(),
-  /** fitment: a vehicle row id, or make/model(/year/engine) */
+  /** тохирол: машины мөрийн id, эсвэл make/model(/year/engine) */
   vehicleId: id.optional(),
   make: trimmed(60).optional(),
   model: trimmed(80).optional(),
@@ -67,7 +66,7 @@ export const vehicleQuery = z.object({
   year: z.coerce.number().int().min(1950).max(2100).optional(),
 });
 
-/* ---------- cart & wishlist ---------- */
+/* ---------- сагс ба хүслийн жагсаалт ---------- */
 
 export const cartItemInput = z.object({ qty });
 export const cartReplaceInput = z.object({
@@ -90,9 +89,9 @@ export const createOrderInput = z
       address: trimmed(300).optional(),
     }),
     note: trimmed(500).optional(),
-    /** Customer's selected car, shown to staff ("Toyota Prius 2014 · 2ZR-FXE") */
+    /** Хэрэглэгчийн сонгосон машин, ажилтанд харагдана («Toyota Prius 2014 · 2ZR-FXE») */
     car: trimmed(150).optional(),
-    /** Omit to order the session cart */
+    /** Өгөхгүй бол сессийн сагсыг захиална */
     items: z.array(z.object({ productId: z.coerce.number().int().positive(), qty })).min(1).max(100).optional(),
   })
   .superRefine((v, ctx) => {
@@ -106,13 +105,13 @@ export const createOrderInput = z
   });
 export type CreateOrderInput = z.infer<typeof createOrderInput>;
 
-/** Guest order lookup: both the phone on the order and its number are required. */
+/** Зочны захиалгын хайлт: захиалгын утас ба дугаар хоёулаа шаардлагатай. */
 export const orderLookupInput = z.object({
   phone,
   number: z.string().trim().toUpperCase().regex(/^A\d+$/, "Захиалгын дугаар буруу байна"),
 });
 
-/* ---------- customer car ---------- */
+/* ---------- хэрэглэгчийн машин ---------- */
 
 export const savedCarInput = z.object({
   make: required("Үйлдвэрлэгч сонгоно уу", 60),
@@ -121,13 +120,13 @@ export const savedCarInput = z.object({
   engine: trimmed(80).default(""),
 });
 
-/* ---------- payments ---------- */
+/* ---------- төлбөр ---------- */
 
 export const paymentInput = z.object({
   number: z.string().trim().toUpperCase().regex(/^A\d+$/, "Захиалгын дугаар буруу байна"),
 });
 
-/* ---------- auth ---------- */
+/* ---------- нэвтрэлт ---------- */
 
 export const registerInput = z.object({
   name: required("Нэрээ оруулна уу", 100),
@@ -136,7 +135,7 @@ export const registerInput = z.object({
   password,
 });
 export const loginInput = z.object({
-  /** phone number or e-mail */
+  /** утасны дугаар эсвэл и-мэйл */
   login: required("Утас эсвэл и-мэйлээ оруулна уу", 120),
   password: z.string().min(1, "Нууц үгээ оруулна уу").max(200),
 });
@@ -146,7 +145,7 @@ export const adminLoginInput = z.object({
   remember: z.boolean().optional(),
 });
 
-/* ---------- admin: catalog ---------- */
+/* ---------- админ: каталог ---------- */
 
 export const specInput = z.object({ k: trimmed(80), v: trimmed(200) });
 export const fitmentInput = z.object({
@@ -236,7 +235,7 @@ export const brandInput = z.object({
   country: trimmed(60).default(""),
   kind: z.enum(PRODUCT_TYPES).default("AFTERMARKET"),
 });
-/** Field rules without the cross-field check (for partial updates). */
+/** Талбар хоорондын шалгалтгүй дүрэм (хэсэгчилсэн засварт). */
 export const vehicleFields = z.object({
   make: required("Үйлдвэрлэгч оруулна уу", 60),
   model: required("Загвар оруулна уу", 80),
@@ -250,7 +249,7 @@ export const vehicleInput = vehicleFields
   .refine((v) => v.yearTo >= v.yearFrom, { path: ["yearTo"], message: "Дуусах он эхлэх оноос хойш байх ёстой" });
 export const vehicleImportInput = z.object({ csv: z.string().min(1).max(10_000_000) });
 
-/* ---------- admin: inventory ---------- */
+/* ---------- админ: нөөц ---------- */
 
 export const stockAdjustInput = z.object({
   productId: z.number().int().positive(),
@@ -266,7 +265,7 @@ export const stockQuery = z.object({
   pageSize: z.coerce.number().int().min(1).max(200).default(50),
 });
 
-/* ---------- admin: orders ---------- */
+/* ---------- админ: захиалга ---------- */
 
 export const adminOrderQuery = z.object({
   stage: z.enum(["all", "pending", "paid", "preparing", "shipping", "delivered", "cancelled", "expired"]).default("all"),
@@ -281,7 +280,7 @@ export const adminOrderQuery = z.object({
   pageSize: z.coerce.number().int().min(1).max(500).default(20),
 });
 export const orderStatusInput = z.object({
-  /** Move along the flow: PAID (manual payment), PREPARING, SHIPPING, DELIVERED */
+  /** Урсгалын дагуу: PAID (гараар төлбөр), PREPARING, SHIPPING, DELIVERED */
   status: z.enum(["PAID", "PREPARING", "SHIPPING", "DELIVERED", "PENDING", "EXPIRED"]),
 });
 export const orderBulkStatusInput = orderStatusInput.extend({
@@ -293,7 +292,7 @@ export const orderCancelInput = z.object({
 });
 export const orderNoteInput = z.object({ text: required("Тэмдэглэл хоосон байна", 2000) });
 
-/* ---------- admin: marketing & settings ---------- */
+/* ---------- админ: маркетинг ба тохиргоо ---------- */
 
 export const bannerInput = z.object({
   eyebrow: trimmed(60).default(""),
@@ -347,7 +346,7 @@ export const deliverySettingsInput = z.object({
     .max(30),
   freeOver: money,
 });
-/** Non-secret QPay options; merchant credentials live in env. */
+/** QPay-ийн нууц бус тохиргоо; merchant мэдээлэл env-д байна. */
 export const qpaySettingsInput = z.object({
   invoiceCode: trimmed(80),
   env: z.enum(["sandbox", "production"]),
@@ -368,7 +367,7 @@ export const customerQuery = z.object({
 
 export const reportQuery = z.object({
   period: z.enum(["day", "week", "month"]).default("month"),
-  /** Reference "today" (defaults to the server's date) */
+  /** Лавлах «өнөөдөр» (анхдагч нь серверийн огноо) */
   today: day.optional(),
 });
 export const overviewQuery = z.object({

@@ -1,7 +1,7 @@
 import { fmtDateTime } from "./format";
 import type { Order, PayStatus } from "./types";
 
-/** Pending invoices past their expiry count as expired. */
+/** Хугацаа нь өнгөрсөн хүлээгдэж буй нэхэмжлэхийг хугацаа дууссанд тооцно. */
 export const effectivePayStatus = (o: Order, now: number): PayStatus =>
   o.payStatus === "pending" && o.invoice.expires && now > o.invoice.expires
     ? "expired"
@@ -26,7 +26,7 @@ export interface TimelineStep {
   label: string;
   sub: string;
   state: "done" | "current" | "failed" | "todo";
-  /** connector below this step is green */
+  /** энэ алхмын доорх холбогч ногоон */
   lineDone: boolean;
   last: boolean;
 }

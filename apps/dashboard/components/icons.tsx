@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import type { IconKey } from "../lib/types";
 
-/** Category icons — the storefront uses the same lucide icons per category. */
+/** Ангиллын дүрс — дэлгүүр ч ангилал бүрт ижил lucide дүрс хэрэглэдэг. */
 export const CATEGORY_ICONS: Record<IconKey, LucideIcon> = {
   cog: Cog,
   disc: Disc,

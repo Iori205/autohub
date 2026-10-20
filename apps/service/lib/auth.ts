@@ -8,13 +8,8 @@ import { env } from "./env";
 import { ApiError } from "./http";
 
 /*
- * Sessions are signed JWTs in httpOnly cookies.
- *   autohub_customer       storefront: guest or registered customer
- *   autohub_admin_session  dashboard staff (same name the dashboard's proxy checks)
- * The frontends proxy /api/* to this service (next.config rewrites), so the
- * browser receives these cookies from its own site: host-only, first-party,
- * Secure + HttpOnly + SameSite=Lax in production. COOKIE_DOMAIN stays unset
- * unless web and dashboard deliberately share a parent domain.
+ * Сесс нь httpOnly күүки дэх гарын үсэгтэй JWT: autohub_customer — дэлгүүр (зочин эсвэл бүртгэлтэй), autohub_admin_session — самбарын ажилтан.
+ * Frontend-үүд /api/*-ийг энэ сервис рүү прокси хийдэг тул күүки хөтчид өөрийн сайтаас host-only, first-party, Secure + HttpOnly + SameSite=Lax ирнэ.
  */
 export const CUSTOMER_COOKIE = "autohub_customer";
 export const ADMIN_COOKIE = "autohub_admin_session";
@@ -69,12 +64,12 @@ async function clearCookie(name: string) {
   });
 }
 
-/* ---------- passwords ---------- */
+/* ---------- нууц үг ---------- */
 
 export const hashPassword = (p: string) => bcrypt.hash(p, 10);
 export const checkPassword = (p: string, hash: string | null) => (hash ? bcrypt.compare(p, hash) : Promise.resolve(false));
 
-/* ---------- customers ---------- */
+/* ---------- хэрэглэгч ---------- */
 
 export async function currentCustomer(req: NextRequest): Promise<User | null> {
   const id = await verify(req.cookies.get(CUSTOMER_COOKIE)?.value, "customer");
@@ -83,7 +78,7 @@ export async function currentCustomer(req: NextRequest): Promise<User | null> {
   return user && user.role === "CUSTOMER" ? user : null;
 }
 
-/** The current customer, creating an anonymous guest session on first use (cart, wishlist, checkout). */
+/** Одоогийн хэрэглэгч; анх ашиглахад (сагс, хүслийн жагсаалт, checkout) нэргүй зочны сесс үүсгэнэ. */
 export async function customerOrGuest(req: NextRequest): Promise<User> {
   const user = await currentCustomer(req);
   if (user) return user;
@@ -99,7 +94,7 @@ export async function startCustomerSession(user: Pick<User, "id" | "isGuest">) {
 
 export const endCustomerSession = () => clearCookie(CUSTOMER_COOKIE);
 
-/* ---------- staff ---------- */
+/* ---------- ажилтан ---------- */
 
 export async function startStaffSession(user: Pick<User, "id">, remember: boolean) {
   const ttl = remember ? 30 * DAY : 12 * 60 * 60;
@@ -108,35 +103,35 @@ export async function startStaffSession(user: Pick<User, "id">, remember: boolea
 
 export const endStaffSession = () => clearCookie(ADMIN_COOKIE);
 
-/** Staff member behind the request, or 401/403. `admin` = only the ADMIN role. */
+/** Хүсэлтийн ард байгаа ажилтан, эсвэл 401/403. `admin` = зөвхөн ADMIN эрх. */
 export async function requireStaff(req: NextRequest, need: StaffRole = "OPERATOR"): Promise<User> {
   const id = await verify(req.cookies.get(ADMIN_COOKIE)?.value, "staff");
   const user = id ? await prisma.user.findUnique({ where: { id } }) : null;
   if (!user || user.role === "CUSTOMER") throw new ApiError("UNAUTHORIZED", "Нэвтэрнэ үү");
   if (need === "ADMIN" && user.role !== "ADMIN") throw new ApiError("FORBIDDEN", "Энэ үйлдэлд админ эрх шаардлагатай");
-  // keep "Сүүлд нэвтэрсэн" roughly current without a write on every request
+  // «Сүүлд нэвтэрсэн»-ийг хүсэлт бүрт бичихгүйгээр ойролцоо шинэ байлгана
   if (!user.lastSeenAt || Date.now() - user.lastSeenAt.getTime() > 5 * 60e3)
     void prisma.user.update({ where: { id: user.id }, data: { lastSeenAt: new Date() } }).catch(() => {});
   return user;
 }
 
-/* ---------- login throttling (in the database: shared by all serverless instances) ---------- */
+/* ---------- нэвтрэх оролдлогын хязгаар (өгөгдлийн санд: бүх serverless instance хуваалцана) ---------- */
 
 const WINDOW_MIN = 15;
 const MAX = 10;
 
-/** Client IP as Vercel reports it (the first x-forwarded-for hop), else a shared bucket. */
+/** Vercel-ийн мэдээлсэн клиент IP (x-forwarded-for-ийн эхний утга), байхгүй бол нийтийн сав. */
 const clientIp = (req: NextRequest) =>
   req.headers.get("x-real-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
 
-/** 10 failed attempts per IP + key within 15 minutes → 429 until the window ends. */
+/** IP + түлхүүр бүрт 15 минутад 10 амжилтгүй оролдлого → цонх дуустал 429. */
 export async function throttle(req: NextRequest, key: string): Promise<{ fail: () => Promise<void>; reset: () => Promise<void> }> {
   const k = `${clientIp(req)}|${key.toLowerCase()}`.slice(0, 300);
   const a = await prisma.loginThrottle.findUnique({ where: { key: k } });
   if (a && a.until.getTime() > Date.now() && a.count >= MAX)
     throw new ApiError("RATE_LIMITED", "Хэт олон оролдлого. 15 минутын дараа дахин оролдоно уу");
   return {
-    // one atomic upsert, so parallel failures on different instances all count
+    // нэг атомар upsert тул өөр instance дээрх зэрэгцээ алдаа бүгд тоологдоно
     fail: async () => {
       await prisma.$executeRaw`
         INSERT INTO "LoginThrottle" ("key", "count", "until")
@@ -152,7 +147,7 @@ export async function throttle(req: NextRequest, key: string): Promise<{ fail: (
   };
 }
 
-/** Drop finished windows (called from the periodic expiry sweep). */
+/** Дууссан цонхнуудыг устгана (хугацааны тогтмол цэвэрлэгээнээс дуудагдана). */
 export async function pruneThrottle(): Promise<void> {
   await prisma.loginThrottle.deleteMany({ where: { until: { lt: new Date() } } });
 }

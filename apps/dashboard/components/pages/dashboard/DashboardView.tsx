@@ -62,7 +62,7 @@ interface Kpi {
   icon: LucideIcon;
   value: string;
   delta?: number;
-  /** a rise is bad (pending, low stock) */
+  /** өсөх нь муу үзүүлэлт (хүлээгдэж буй, нөөц багассан) */
   bad?: boolean;
   note: string;
   sub: string;

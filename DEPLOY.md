@@ -1,87 +1,85 @@
-# Deploying AuToHub (Vercel + Supabase)
+# AuToHub-ийг байршуулах (Vercel + Supabase)
 
-Three Vercel projects from this one repo, one Supabase Postgres.
+Нэг repo-оос Vercel-ийн гурван төсөл, нэг Supabase Postgres.
 
 ```
-browser ──► web.vercel.app/api/*  ──rewrite──►  service.vercel.app/api/*  ──►  Supabase (pooler :6543)
-browser ──► admin.vercel.app/api/* ──rewrite──►  service.vercel.app/api/*
-QPay ─────────────────────────────────────────►  service.vercel.app/api/v1/payments/qpay/callback
+хөтөч ──► web.vercel.app/api/*   ──rewrite──►  service.vercel.app/api/*  ──►  Supabase (pooler :6543)
+хөтөч ──► admin.vercel.app/api/* ──rewrite──►  service.vercel.app/api/*
+QPay ──────────────────────────────────────►  service.vercel.app/api/v1/payments/qpay/callback
 ```
 
-Each frontend proxies `/api/*` to the service (`next.config.js` → `API_URL`). The browser only talks
-to the site it is on, so the session cookies are first-party there. Separate `*.vercel.app` domains
-can't share cookies (vercel.app is a public suffix), and browsers block third-party cookies, so a
-direct browser → service setup would lose every login, guest cart and admin session.
-Server-side fetches from the frontends go straight to `API_URL`.
+Frontend бүр `/api/*`-ийг сервис рүү прокси хийдэг (`next.config.js` → `API_URL`). Хөтөч зөвхөн өөрийн нээсэн
+сайттай ярьдаг тул сессийн күүки тэнд first-party байна. Тусдаа `*.vercel.app` домэйнууд күүки хуваалцаж чаддаггүй
+(vercel.app бол public suffix), хөтөч гуравдагч талын күүкиг хаадаг — хөтөч → сервис шууд холболттой бол бүх
+нэвтрэлт, зочны сагс, админы сесс алдагдана. Frontend-ийн сервер талын fetch нь `API_URL` руу шууд явна.
 
-## 1. Database (once, from your machine)
+## 1. Өгөгдлийн сан (нэг удаа, өөрийн компьютерээс)
 
 ```bash
-# .env: DIRECT_URL = Supabase direct or session-pooler string (port 5432)
-npm run db:migrate     # applies all migrations, incl. 20261020010000_login_throttle
-npm run db:seed        # only for a demo database; it wipes everything first
+# .env: DIRECT_URL = Supabase-ийн шууд эсвэл session pooler мөр (порт 5432)
+npm run db:migrate     # бүх migration, үүнд 20261020010000_login_throttle
+npm run db:seed        # зөвхөн демо өгөгдлийн санд; эхлээд бүгдийг устгана
 ```
 
-Migrations never run during a Vercel build.
+Vercel-ийн build үед migration хэзээ ч ажиллахгүй.
 
-## 2. Vercel projects
+## 2. Vercel-ийн төслүүд
 
-Create the service first; the frontends need its URL.
+Эхлээд сервисийг үүсгэнэ; frontend-үүдэд түүний URL хэрэгтэй.
 
 | | service | web | dashboard |
 | --- | --- | --- | --- |
 | Root Directory | `apps/service` | `apps/web` | `apps/dashboard` |
 | Framework | Next.js | Next.js | Next.js |
-| Build Command | default (`npm run build` = `prisma generate` + `next build`) | default | default |
-| Install Command | default (npm workspaces, run at the repo root) | default | default |
-| Node.js | 24.x (from `engines`) | 24.x | 24.x |
-| Function region | same region as Supabase (e.g. `sin1` for ap-southeast-1) | same | same |
+| Build Command | анхдагч (`npm run build` = `prisma generate` + `next build`) | анхдагч | анхдагч |
+| Install Command | анхдагч (npm workspaces, repo-ийн язгуурт) | анхдагч | анхдагч |
+| Node.js | 24.x (`engines`-ээс) | 24.x | 24.x |
+| Function region | Supabase-тэй ижил бүс (жишээ нь ap-southeast-1-д `sin1`) | ижил | ижил |
 
-Keep "Include files outside the root directory" on (the default); the apps import `packages/*`.
+«Include files outside the root directory»-г асаалттай үлдээнэ (анхдагч); апп-ууд `packages/*`-ийг импортолдог.
 
-### Environment variables (Production, and Preview if you use previews)
+### Орчны хувьсагчид (Production, preview ашиглавал Preview-д ч)
 
-None of these are `NEXT_PUBLIC_`; nothing is exposed to the browser.
+Аль нь ч `NEXT_PUBLIC_` биш; хөтөч рүү юу ч гарахгүй.
 
 **service**
 
-| Variable | Value |
+| Хувьсагч | Утга |
 | --- | --- |
-| `DATABASE_URL` | Supabase → Connect → "Transaction pooler" (port **6543**) |
+| `DATABASE_URL` | Supabase → Connect → «Transaction pooler» (порт **6543**) |
 | `AUTH_SECRET` | `openssl rand -base64 48` |
-| `PUBLIC_API_URL` | the service's own URL, e.g. `https://autohub-service.vercel.app` (https) |
-| `DEMO_MODE` | `false`; must be set explicitly (`true` = fake payments, demo only) |
+| `PUBLIC_API_URL` | сервисийн өөрийн URL, жишээ нь `https://autohub-service.vercel.app` (https) |
+| `DEMO_MODE` | `false`; заавал тодорхой заана (`true` = хуурамч төлбөр, зөвхөн демо) |
 | `QPAY_BASE_URL` | `https://merchant.qpay.mn/v2` (sandbox: `https://merchant-sandbox.qpay.mn/v2`) |
-| `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE` | from QPay (required when `DEMO_MODE=false`) |
-| `DATABASE_POOL_MAX` | optional, default 3 per instance on Vercel |
-| `CORS_ORIGINS`, `COOKIE_DOMAIN` | leave unset |
+| `QPAY_USERNAME`, `QPAY_PASSWORD`, `QPAY_INVOICE_CODE` | QPay-ээс (`DEMO_MODE=false` үед заавал) |
+| `DATABASE_POOL_MAX` | заавал биш, Vercel дээр instance бүрт анхдагч 3 |
+| `CORS_ORIGINS`, `COOKIE_DOMAIN` | тохируулахгүй |
 
-The service checks these when an instance starts (`instrumentation.ts`). If one is missing or unsafe,
-it refuses to serve and logs the list of problems.
+Сервис instance асах бүрт эдгээрийг шалгана (`instrumentation.ts`): дутуу эсвэл аюултай утга байвал үйлчлэхээс
+татгалзаж, асуудлуудын жагсаалтыг log-д бичнэ.
 
-**web** and **dashboard**
+**web** ба **dashboard**
 
-| Variable | Value |
+| Хувьсагч | Утга |
 | --- | --- |
-| `API_URL` | the service URL, e.g. `https://autohub-service.vercel.app` |
+| `API_URL` | сервисийн URL, жишээ нь `https://autohub-service.vercel.app` |
 
-`API_URL` is needed at build time (rewrites are fixed by `next build`). The build fails without it.
+`API_URL` build үед хэрэгтэй (rewrite-ууд `next build`-ээр тогтдог); байхгүй бол build унана.
 
-## 3. After the first deploy
+## 3. Анхны байршуулалтын дараа
 
-- Open the dashboard → Тохиргоо → QPay → "Холболт шалгах" (tests the QPay credentials).
-- Place a small real order and check that the QPay callback arrives (service logs:
+- Самбар → Тохиргоо → QPay → «Холболт шалгах» (QPay-ийн мэдээллийг шалгана).
+- Жижиг жинхэнэ захиалга өгч QPay callback ирж байгааг шалгана (сервисийн log:
   `/api/v1/payments/qpay/callback`).
-- Deployment Protection: production URLs must stay public, because QPay calls the service and
-  the frontends proxy to it. If you protect preview deployments, previews still work: they proxy to
-  `API_URL`.
-- Preview deployments use whatever `DATABASE_URL` you give the Preview environment. Use a
-  separate Supabase project/branch if previews shouldn't touch production data.
+- Deployment Protection: production URL нийтэд нээлттэй байх ёстой — QPay сервисийг дууддаг, frontend-үүд түүн рүү
+  прокси хийдэг. Preview-г хамгаалсан ч preview ажиллана: тэд `API_URL` руу прокси хийдэг.
+- Preview орчин Preview-д өгсөн `DATABASE_URL`-ийг ашиглана. Preview production өгөгдөлд хүрэхгүй байх ёстой бол
+  тусдаа Supabase төсөл/branch ашиглана.
 
-## Notes
+## Тэмдэглэл
 
-- Custom domains (e.g. `autohub.mn`, `admin.autohub.mn`) need no code change; keep `COOKIE_DOMAIN`
-  unset unless you want one cookie shared by both.
-- Product photos are stored inline (data URLs, shrunk to ≤1280 px JPEG in the dashboard). Vercel
-  limits request/response bodies to 4.5 MB, so with many photos the admin product list will hit
-  that limit. Move images to Supabase Storage before the catalogue grows.
+- Өөрийн домэйн (жишээ нь `autohub.mn`, `admin.autohub.mn`) кодын өөрчлөлт шаардахгүй; хоёуланд нэг күүки хуваалцуулах
+  гэхгүй бол `COOKIE_DOMAIN`-ийг хоосон үлдээнэ.
+- Барааны зураг data URL хэлбэрээр бараатай хамт хадгалагдана (самбарт ≤1280 px JPEG болгож багасгадаг). Vercel
+  хүсэлт/хариуг 4.5 MB-аар хязгаарладаг тул зураг олширвол админы барааны жагсаалт энэ хязгаарт хүрнэ.
+  Каталог томрохоос өмнө зургийг Supabase Storage руу шилжүүлнэ.

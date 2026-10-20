@@ -3,7 +3,7 @@ import { vehicleQuery, type VehicleDto } from "@repo/types";
 import { ok, query, route } from "@/lib/http";
 import { vehicleDto } from "@/lib/serialize";
 
-/** Vehicle variants (one row per engine). Filter by make/model and a year in range. */
+/** Машины хувилбарууд (хөдөлгүүр бүрт нэг мөр). make/model болон он хүрээнд байгаагаар шүүнэ. */
 export const GET = route(async (req) => {
   const q = query(req, vehicleQuery);
   const rows = await prisma.vehicle.findMany({

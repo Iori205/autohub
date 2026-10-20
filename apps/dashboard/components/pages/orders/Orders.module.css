@@ -21,8 +21,7 @@
 .tab:hover {
   color: var(--text);
 }
-/* Not enough room for all eight status tabs: wrap to a second row instead of
-   hiding the last ones behind a sideways scroll. */
+/* Төлөвийн найман таб багтахгүй бол сүүлчийнхийг гүйлгээнд нуухын оронд хоёр дахь мөрөнд оруулна. */
 @media (max-width: 1279px) {
   .tabs {
     flex-wrap: wrap;
@@ -66,7 +65,7 @@
 .cols {
   grid-template-columns: 36px 78px 90px minmax(150px, 1.3fr) 96px 112px 170px 104px 172px;
 }
-/* phone + delivery hidden (.hide-narrow) */
+/* утас, хүргэлтийн багана нуугдана (.hide-narrow) */
 @media (max-width: 1279px) {
   .table {
     min-width: 840px;
@@ -134,7 +133,6 @@
   opacity: 0.4;
 }
 
-/* detail */
 .itemCols {
   grid-template-columns: 52px minmax(0, 1fr) 130px 50px 100px 110px;
   gap: 12px;
@@ -249,7 +247,6 @@
   word-break: break-all;
 }
 
-/* packing slip */
 .slip {
   padding: 22px;
   background: #fff;

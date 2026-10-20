@@ -16,7 +16,7 @@ const STATUS: Record<ErrorCode, number> = {
   INTERNAL: 500,
 };
 
-/** Throw anywhere in a handler; `route()` turns it into `{ error: { code, message } }`. */
+/** Handler-ийн хаана ч шидэж болно; `route()` үүнийг `{ error: { code, message } }` болгоно. */
 export class ApiError extends Error {
   constructor(
     public code: ErrorCode,
@@ -42,7 +42,7 @@ export function errorResponse(e: unknown): NextResponse<ApiErrorBody> {
       { status: 422 },
     );
   }
-  // Prisma unique / FK violations surface as 409 instead of 500.
+  // Prisma-ийн unique / FK зөрчлийг 500 биш 409 болгоно.
   const code = (e as { code?: string })?.code;
   if (code === "P2002") return NextResponse.json({ error: { code: "CONFLICT", message: "Ийм бичлэг аль хэдийн байна" } }, { status: 409 });
   if (code === "P2003") return NextResponse.json({ error: { code: "CONFLICT", message: "Холбоотой бичлэг байгаа тул өөрчлөх боломжгүй" } }, { status: 409 });
@@ -53,7 +53,7 @@ export function errorResponse(e: unknown): NextResponse<ApiErrorBody> {
 
 type Handler<C> = (req: NextRequest, ctx: C) => Promise<Response> | Response;
 
-/** Wrap a route handler: consistent errors, never a raw 500 page. */
+/** Route handler-ийг ороох: алдаа нэг хэлбэртэй, хэзээ ч түүхий 500 хуудас биш. */
 export function route<C = unknown>(fn: Handler<C>): Handler<C> {
   return async (req, ctx) => {
     try {
@@ -68,7 +68,7 @@ export const ok = <T>(data: T, init?: ResponseInit) => NextResponse.json(data, i
 export const created = <T>(data: T) => NextResponse.json(data, { status: 201 });
 export const noContent = () => new NextResponse(null, { status: 204 });
 
-/** Parse a JSON body. Requiring application/json also blocks simple cross-site form posts. */
+/** JSON body задлах. application/json шаардах нь энгийн cross-site form илгээлтийг ч хаана. */
 export async function body<S extends z.ZodType>(req: NextRequest, schema: S): Promise<z.infer<S>> {
   if (!req.headers.get("content-type")?.includes("application/json"))
     throw new ApiError("BAD_REQUEST", "Content-Type: application/json шаардлагатай");
@@ -81,7 +81,7 @@ export async function body<S extends z.ZodType>(req: NextRequest, schema: S): Pr
   return schema.parse(json);
 }
 
-/** Parse the query string; repeated keys become arrays. */
+/** Query string задлах; давтагдсан түлхүүр массив болно. */
 export function query<S extends z.ZodType>(req: NextRequest, schema: S): z.infer<S> {
   const out: Record<string, string | string[]> = {};
   for (const [k, v] of req.nextUrl.searchParams) {

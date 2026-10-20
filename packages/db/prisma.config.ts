@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { config } from "dotenv";
 import { defineConfig } from "prisma/config";
 
-// One .env at the repo root is shared by Prisma, apps/service and the frontends.
+// Repo-ийн язгуур дахь нэг .env-ийг Prisma, apps/service, frontend-үүд хуваалцана.
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 config({ path: path.join(root, ".env"), quiet: true });
 
@@ -13,8 +13,8 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "tsx seed/index.ts",
   },
-  // Migrations need a direct (non-pooled) connection; the app runtime uses
-  // the pooled DATABASE_URL through the driver adapter (src/client.ts).
+  // Migration-д шууд (pool-гүй) холболт хэрэгтэй; апп ажиллахдаа
+  // pool-той DATABASE_URL-ийг driver adapter-аар ашиглана (src/client.ts).
   datasource: {
     url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? "",
   },

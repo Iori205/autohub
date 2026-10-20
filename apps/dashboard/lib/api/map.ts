@@ -33,7 +33,7 @@ import type {
   Vehicle,
 } from "../types";
 
-/* API DTOs (packages/types) → the dashboard's view shapes, and back. */
+/* API DTO (packages/types) ↔ самбарын харагдацын бүтэц. */
 
 export const FUEL: Record<FuelCode, Fuel> = { PETROL: "Бензин", DIESEL: "Дизель", HYBRID: "Хайбрид", ELECTRIC: "Цахилгаан" };
 export const FUEL_CODE = Object.fromEntries(Object.entries(FUEL).map(([k, v]) => [v, k])) as Record<Fuel, FuelCode>;

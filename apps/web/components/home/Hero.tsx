@@ -16,7 +16,7 @@ interface Slide {
   href: string;
 }
 
-/** Hero slides = the active home-page banners managed in the dashboard (Баннер & Хямдрал). */
+/** Баннерын слайд = самбарын (Баннер & Хямдрал) идэвхтэй нүүрний баннерууд. */
 export function Hero({ banners }: { banners: BannerDto[] }) {
   const SLIDES: Slide[] = banners.map((b) => ({ tag: b.eyebrow, t: b.title, s: b.subtitle, cta: b.ctaLabel || "Дэлгэрэнгүй", href: b.link }));
   const [i, setI] = useState(0);
@@ -27,7 +27,7 @@ export function Hero({ banners }: { banners: BannerDto[] }) {
     return () => clearInterval(t);
   }, [i, n]);
 
-  // no active banners: an empty slide keeps the layout
+  // идэвхтэй баннер байхгүй: хоосон слайд байрлалыг хадгална
   const slide = SLIDES[i % n] ?? { tag: "", t: "", s: "", cta: "Дэлгүүр үзэх", href: shopHref() };
 
   return (

@@ -19,7 +19,7 @@ export function toggleTheme() {
   try {
     localStorage.setItem(THEME_KEY, next);
   } catch {
-    /* ignore */
+    /* үл тооно */
   }
   listeners.forEach((l) => l());
 }

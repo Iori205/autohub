@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { ok, query, route } from "@/lib/http";
 import { customerDtos } from "@/lib/customers";
 
-/** Хэрэглэгчид (registered customers and guests who ordered), biggest spenders first. */
+/** Хэрэглэгчид (бүртгэлтэй болон захиалсан зочид), хамгийн их зарцуулсан нь эхэндээ. */
 export const GET = route(async (req) => {
   await requireStaff(req);
   const q = query(req, customerQuery);

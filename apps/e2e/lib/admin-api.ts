@@ -1,4 +1,4 @@
-/** Minimal staff API client for cross-app checks (what a dashboard user would do). */
+/** Cross-app шалгалтын хамгийн энгийн ажилтны API клиент (самбарын хэрэглэгчийн хийх үйлдэл). */
 export async function adminApi(api: string, password: string, email = "admin@autohub.mn") {
   const login = await fetch(`${api}/api/v1/admin/auth/login`, {
     method: "POST",

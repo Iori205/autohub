@@ -4,7 +4,7 @@ import { ok, route } from "@/lib/http";
 import { qpayInfo } from "@/lib/qpay-info";
 import { getSetting } from "@/lib/settings";
 
-/** All settings for Тохиргоо. QPay merchant credentials are never returned (they live in env). */
+/** Тохиргоо хуудасны бүх тохиргоо. QPay merchant мэдээлэл env-д байдаг тул хэзээ ч буцаахгүй. */
 export const GET = route(async (req) => {
   await requireStaff(req);
   const [store, delivery, qpay] = await Promise.all([getSetting("store"), getSetting("delivery"), getSetting("qpay")]);

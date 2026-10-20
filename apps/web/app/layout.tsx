@@ -20,8 +20,8 @@ const fira = Fira_Sans_Extra_Condensed({
 });
 const manrope = Manrope({
   subsets: ["latin", "cyrillic"],
-  // variable font (200–800): one file covers every weight the UI uses
-  // (a fixed 5-weight list trips a Turbopack production-build bug in next/font)
+  // хувьсах фонт (200–800): нэг файл UI-ийн бүх жинг хамарна
+  // (тогтмол 5 жингийн жагсаалт next/font дахь Turbopack production build-ийн алдааг үүсгэдэг)
   variable: "--font-manrope",
 });
 const jetbrains = JetBrains_Mono({
@@ -47,7 +47,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="mn"
-      // Browser translation (Google Translate) rewrites text nodes and breaks React updates
+      // Хөтчийн орчуулга (Google Translate) текстийн зангилааг сольж React-ын шинэчлэлтийг эвддэг
       translate="no"
       className={`${fira.variable} ${manrope.variable} ${jetbrains.variable}`}
       suppressHydrationWarning

@@ -3,7 +3,7 @@ import { ApiError, ok, route } from "@/lib/http";
 import { demoMode } from "@/lib/payments";
 import { qpayConfig, qpayConfigured, testConnection } from "@/lib/qpay";
 
-/** Тохиргоо → QPay → "Холболт шалгах" (ADMIN). Never returns credentials. */
+/** Тохиргоо → QPay → «Холболт шалгах» (ADMIN). Нэвтрэх мэдээллийг хэзээ ч буцаахгүй. */
 export const POST = route(async (req) => {
   await requireStaff(req, "ADMIN");
   const env = qpayConfig().baseUrl.includes("sandbox") ? "sandbox" : "production";

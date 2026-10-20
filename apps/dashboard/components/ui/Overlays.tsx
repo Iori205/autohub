@@ -19,7 +19,7 @@ export function Overlays() {
   const { form, confirm, toasts } = useUi();
   return (
     <>
-      {/* key remounts the form state for every new modal */}
+      {/* key нь шинэ цонх бүрт маягтын төлөвийг шинэчилнэ */}
       {form && <FormModal key={form.title + Object.keys(form.values).join()} cfg={form} />}
       {confirm && <ConfirmDialog cfg={confirm} />}
       <div className={styles.toasts} aria-live="polite">
@@ -63,7 +63,7 @@ function FormModal({ cfg }: { cfg: FormConfig }) {
       await cfg.onSubmit(values);
       closeForm();
     } catch (x) {
-      // API errors: field messages next to matching inputs, the rest as a toast
+      // API алдаа: талбарын мессеж харгалзах оролтын доор, бусад нь toast-аар
       const fields = (x as { fields?: Record<string, string> }).fields ?? {};
       const mine = Object.fromEntries(Object.entries(fields).filter(([k]) => cfg.fields.some((f) => f.key === k)));
       setErrors(mine);

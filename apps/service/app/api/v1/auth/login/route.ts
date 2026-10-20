@@ -4,7 +4,7 @@ import { checkPassword, currentCustomer, startCustomerSession, throttle } from "
 import { adoptGuest } from "@/lib/cart";
 import { ApiError, body, ok, route } from "@/lib/http";
 
-/** Customer login by phone or e-mail. A guest cart/wishlist/orders move into the account. */
+/** Утас эсвэл и-мэйлээр нэвтрэх. Зочны сагс, хүслийн жагсаалт, захиалга бүртгэл рүү шилжинэ. */
 export const POST = route(async (req) => {
   const { login, password } = await body(req, loginInput);
   const t = await throttle(req, `customer:${login}`);

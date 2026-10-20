@@ -16,7 +16,7 @@ const STAGE: Record<Exclude<OrderStage, never>, Prisma.OrderWhereInput> = {
   expired: { paymentStatus: "EXPIRED" },
 };
 
-/** Захиалгууд list. Also returns per-stage counts for the tabs (ignoring the stage filter). */
+/** Захиалгын жагсаалт; табуудад зориулж үе шат бүрийн тоог (шүүлтүүрээс үл хамааран) буцаана. */
 export const GET = route(async (req) => {
   await sweepExpired();
   await requireStaff(req);

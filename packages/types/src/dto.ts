@@ -1,7 +1,4 @@
-/*
- * JSON shapes returned by apps/service (/api/v1). Dates are ISO strings,
- * money is whole tögrög.
- */
+/* apps/service (/api/v1)-ийн буцаадаг JSON бүтэц. Огноо нь ISO тэмдэгт мөр, мөнгө бүхэл төгрөг. */
 import type {
   CampaignTarget,
   DeliveryMethod,
@@ -14,7 +11,7 @@ import type {
   StaffRole,
 } from "./enums";
 
-/* ---------- errors ---------- */
+/* ---------- алдаа ---------- */
 
 export type ErrorCode =
   | "BAD_REQUEST"
@@ -28,7 +25,7 @@ export type ErrorCode =
   | "UNAVAILABLE"
   | "INTERNAL";
 
-/** Every non-2xx response has this body. `fields` maps "delivery.address" → message. */
+/** 2xx бус хариу бүр ийм body-тай. `fields` нь «delivery.address» → мессеж. */
 export interface ApiErrorBody {
   error: { code: ErrorCode; message: string; fields?: Record<string, string> };
 }
@@ -40,7 +37,7 @@ export interface Page<T> {
   pageSize: number;
 }
 
-/* ---------- catalog ---------- */
+/* ---------- каталог ---------- */
 
 export interface CategoryDto {
   id: string;
@@ -81,7 +78,7 @@ export interface FitmentDto {
   make: string;
   model: string;
   engine: string;
-  /** effective range: the fitment's own years or the vehicle's */
+  /** бодит хүрээ: тохирлын өөрийн он эсвэл машиных */
   yearFrom: number;
   yearTo: number;
 }
@@ -91,7 +88,7 @@ export interface ProductSummaryDto {
   name: string;
   brand: { id: string; name: string };
   category: { id: string; slug: string; name: string };
-  /** first = primary OEM, rest = cross-references */
+  /** эхнийх = үндсэн OEM, бусад = хөндлөн лавлагаа */
   oemNumbers: string[];
   price: number;
   oldPrice: number | null;
@@ -101,9 +98,9 @@ export interface ProductSummaryDto {
   images: string[];
   fitmentUnknown: boolean;
   active: boolean;
-  /** position in "Санал болгох" */
+  /** «Санал болгох» дахь байрлал */
   sortOrder: number;
-  /** distinct model names this part fits ("Prius", "Land Cruiser 200") */
+  /** энэ сэлбэг тохирох загварын нэрс («Prius», «Land Cruiser 200») */
   fitsModels: string[];
 }
 
@@ -115,7 +112,7 @@ export interface ProductDetailDto extends ProductSummaryDto {
   updatedAt: string;
 }
 
-/* ---------- cart & wishlist ---------- */
+/* ---------- сагс ба хүслийн жагсаалт ---------- */
 
 export interface CartLineDto {
   product: ProductSummaryDto;
@@ -129,7 +126,7 @@ export interface CartDto {
   subtotal: number;
 }
 
-/* ---------- orders ---------- */
+/* ---------- захиалга ---------- */
 
 export interface OrderItemDto {
   productId: number | null;
@@ -151,7 +148,7 @@ export interface OrderDto {
   stage: OrderStage;
   paymentStatus: PaymentStatus;
   deliveryStatus: DeliveryStatus;
-  /** money was received and then refunded */
+  /** мөнгө орж ирээд буцаагдсан */
   refunded: boolean;
   customer: { name: string; phone: string; email: string | null };
   deliveryMethod: DeliveryMethod;
@@ -166,7 +163,7 @@ export interface OrderDto {
   total: number;
   qpayInvoiceId: string | null;
   qpayPaymentId: string | null;
-  /** status of the current QPay invoice — CANCELLED = the customer cancelled the payment */
+  /** одоогийн QPay нэхэмжлэхийн төлөв — CANCELLED = хэрэглэгч төлбөрөө цуцалсан */
   invoiceStatus: "OPEN" | "PAID" | "CANCELLED" | "EXPIRED" | null;
   invoiceExpiresAt: string | null;
   createdAt: string;
@@ -179,20 +176,20 @@ export interface OrderDto {
   expiredAt: string | null;
 }
 
-/** Admin view adds the customer account and internal notes. */
+/** Админ харагдац хэрэглэгчийн бүртгэл, дотоод тэмдэглэлийг нэмнэ. */
 export interface AdminOrderDto extends OrderDto {
   customerId: string | null;
   notes: OrderNoteDto[];
 }
 
-/* ---------- payments (QPay) ---------- */
+/* ---------- төлбөр (QPay) ---------- */
 
 export interface BankLinkDto {
   name: string;
   description: string;
-  /** logo image URL from QPay (empty in DEMO_MODE) */
+  /** QPay-ийн лого зургийн URL (DEMO_MODE-д хоосон) */
   logo: string;
-  /** deep link that opens the bank / wallet app with the invoice */
+  /** нэхэмжлэхтэйгээ банк / хэтэвчний аппыг нээх холбоос */
   link: string;
 }
 
@@ -200,17 +197,17 @@ export interface QPayInvoiceDto {
   orderNumber: string;
   invoiceId: string;
   amount: number;
-  /** data URL — show as <img src> */
+  /** data URL — <img src>-д харуулна */
   qrImage: string;
   qrText: string;
   shortUrl: string | null;
   urls: BankLinkDto[];
   expiresAt: string;
-  /** created by DEMO_MODE, not by QPay */
+  /** QPay биш DEMO_MODE үүсгэсэн */
   demo: boolean;
 }
 
-/** Result of polling / the callback / demo actions. */
+/** Polling / callback / демо үйлдлийн үр дүн. */
 export interface PaymentStateDto {
   orderNumber: string;
   paymentStatus: PaymentStatus;
@@ -218,11 +215,11 @@ export interface PaymentStateDto {
   paidAt: string | null;
   paymentId: string | null;
   invoiceExpiresAt: string | null;
-  /** seconds until the invoice expires (0 when expired or paid) */
+  /** нэхэмжлэхийн хугацаа дуусах хүртэлх секунд (дууссан эсвэл төлөгдсөн бол 0) */
   secondsLeft: number;
 }
 
-/* ---------- users ---------- */
+/* ---------- хэрэглэгч ---------- */
 
 export interface CustomerSessionDto {
   id: string;
@@ -257,12 +254,12 @@ export interface CustomerDto {
   createdAt: string;
   cars: SavedCarDto[];
   orderCount: number;
-  /** sum of paid, not refunded orders */
+  /** төлөгдсөн, буцаагдаагүй захиалгын нийлбэр */
   spent: number;
   lastOrderAt: string | null;
 }
 
-/* ---------- inventory & marketing ---------- */
+/* ---------- нөөц ба маркетинг ---------- */
 
 export interface StockMovementDto {
   id: string;
@@ -295,14 +292,14 @@ export interface CampaignDto {
   target: CampaignTarget;
   categoryId: string | null;
   brandId: string | null;
-  /** "Бүх бараа" / "Ангилал: Батарей" / "Брэнд: Brembo" */
+  /** «Бүх бараа» / «Ангилал: Батарей» / «Брэнд: Brembo» */
   targetLabel: string;
   startsAt: string; // YYYY-MM-DD
   endsAt: string;
   active: boolean;
 }
 
-/* ---------- settings ---------- */
+/* ---------- тохиргоо ---------- */
 
 export interface StoreSettings {
   name: string;
@@ -325,7 +322,7 @@ export interface DeliverySettings {
 export interface QPaySettingsDto {
   invoiceCode: string;
   env: "sandbox" | "production";
-  /** from env — read-only in the dashboard */
+  /** env-ээс — самбарт зөвхөн уншигдана */
   demoMode: boolean;
   callbackUrl: string;
   merchantConfigured: boolean;
@@ -333,11 +330,11 @@ export interface QPaySettingsDto {
 export interface PublicSettingsDto {
   store: StoreSettings;
   delivery: DeliverySettings;
-  /** what checkout charges per method for a given subtotal is in /checkout/quote */
+  /** checkout-ын бодит хүргэлтийн төлбөрийг сервис захиалга үүсгэхдээ тооцно */
   fees: Record<DeliveryMethod, number>;
 }
 
-/* ---------- reports ---------- */
+/* ---------- тайлан ---------- */
 
 export interface OverviewDto {
   today: string;
@@ -349,10 +346,10 @@ export interface OverviewDto {
   pending: { count: number; today: number; amount: number };
   lowStock: { count: number; out: number; yesterday: number };
   toProcess: number;
-  /** daily revenue for the chart (oldest first) and the previous period's total */
+  /** графикийн өдрийн орлого (хуучин нь эхэнд) ба өмнөх үеийн нийт дүн */
   series: { day: string; revenue: number }[];
   previousTotal: number;
-  /** last 7 days */
+  /** сүүлийн 7 хоног */
   stageCounts: Record<OrderStage, number>;
   topCategories: { name: string; revenue: number }[];
   topProducts: { productId: number; name: string; brand: string; oem: string | null; qty: number; revenue: number }[];

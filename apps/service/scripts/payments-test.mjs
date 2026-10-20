@@ -1,12 +1,7 @@
 /*
- * QPay flow checks against a running service on a seeded dev DB.
- *   MODE=demo (default)  server runs with DEMO_MODE=true
- *   MODE=off             server runs with DEMO_MODE=false and no QPay credentials
- *                        (`next dev` only: a production server refuses to start that way)
- *   MODE=sandbox         server runs with DEMO_MODE=false and QPay sandbox credentials
- * AUTH_SECRET (same as the server's) enables the signed-callback checks.
- *
- *   npm run test:payments -w service
+ * Seed хийсэн dev DB дээрх ажиллаж буй сервисийн QPay урсгалын шалгалт. MODE=demo (анхдагч): DEMO_MODE=true;
+ * MODE=off: DEMO_MODE=false, QPay мэдээлэлгүй (зөвхөн `next dev` — production сервер ингэж асахаас татгалзана); MODE=sandbox: QPay sandbox.
+ * AUTH_SECRET (сервертэй ижил) өгвөл гарын үсэгтэй callback-ийг шалгана. npm run test:payments -w service
  */
 import { createHmac } from "node:crypto";
 import process from "node:process";
@@ -46,7 +41,7 @@ function client() {
 }
 
 const shopper = client();
-// Checkout needs a registered customer; a fresh phone per run keeps re-runs on the same DB working
+// Checkout-д бүртгэлтэй хэрэглэгч хэрэгтэй; ажиллуулах бүрт шинэ утас өгвөл нэг DB дээр давтан ажиллана
 const reg = await shopper("POST", "/auth/register", { name: "Төлбөр Тест", phone: `8${String(Date.now()).slice(-7)}`, password: "secret12" });
 check("shopper registered", reg.status === 201, `${reg.status}`);
 const placeOrder = async (productId = 3, qty = 1) =>
@@ -69,7 +64,7 @@ if (MODE === "off") {
   const cancel = await shopper("POST", "/payments/qpay/cancel", { number: o.number });
   check("sandbox invoice cancelled", cancel.json?.paymentStatus === "EXPIRED", JSON.stringify(cancel.json));
 } else {
-  // ---------- invoice ----------
+  // ---------- нэхэмжлэх ----------
   const o = await placeOrder(3, 2);
   check("other session can't open the invoice", (await client()("POST", "/payments/qpay/invoice", { number: o.number })).status === 404);
   const inv = await shopper("POST", "/payments/qpay/invoice", { number: o.number });
@@ -90,7 +85,7 @@ if (MODE === "off") {
   st = await shopper("POST", "/payments/qpay/check", { number: o.number });
   check("…and the one after works again", st.status === 200 && st.json?.paymentStatus === "PENDING");
 
-  // ---------- paid ----------
+  // ---------- төлөгдсөн ----------
   const admin = client();
   await admin("POST", "/admin/auth/login", { email: "admin@autohub.mn", password: STAFF_PW });
   const stockBefore = (await admin("GET", "/admin/products/3")).json.stock;
@@ -103,7 +98,7 @@ if (MODE === "off") {
   check("customer sees paid order", (await shopper("GET", `/orders/${o.number}`)).json?.paymentStatus === "PAID");
   check("dashboard sees paid order", (await admin("GET", `/admin/orders/${o.number}`)).json?.stage === "paid");
 
-  // ---------- expiry → new invoice → cancel ----------
+  // ---------- хугацаа дуусах → шинэ нэхэмжлэх → цуцлах ----------
   const e = await placeOrder();
   const inv1 = await shopper("POST", "/payments/qpay/invoice", { number: e.number });
   st = await shopper("POST", "/payments/demo/expired", { number: e.number });
@@ -116,7 +111,7 @@ if (MODE === "off") {
   check("cancel payment → invoice closed, order kept", st.json?.paymentStatus === "EXPIRED" && (await shopper("GET", `/orders/${e.number}`)).status === 200);
   check("can pay again after cancelling", (await shopper("POST", "/payments/qpay/invoice", { number: e.number })).status === 200);
 
-  // ---------- admin cancel closes the invoice ----------
+  // ---------- админ цуцлахад нэхэмжлэх хаагдана ----------
   await admin("POST", `/admin/orders/${e.number}/cancel`, { reason: "Тест", comment: "Тест" });
   check("no invoice after staff cancel", (await shopper("POST", "/payments/qpay/invoice", { number: e.number })).status === 409);
 
@@ -133,7 +128,7 @@ if (MODE === "off") {
     check("callback alone doesn't mark paid (QPay must confirm)", (await shopper("GET", `/orders/${p.number}`)).json?.paymentStatus === "PENDING");
   }
 
-  // ---------- 15-minute sweep ----------
+  // ---------- 15 минутын цэвэрлэгээ ----------
   const a1023 = await admin("GET", "/admin/orders/A1023");
   check("sweep expired the seeded stale pending order", a1023.json?.stage === "expired" && a1023.json?.expiredAt, a1023.json?.stage);
 }

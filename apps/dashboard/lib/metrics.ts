@@ -2,9 +2,8 @@ import { stockLevel, isLive } from "./status";
 import type { Customer, Order, Product } from "./types";
 
 /*
- * Figures derived from the loaded admin data. Dashboard and report totals
- * come from the service (/admin/stats/*); these helpers cover lists and
- * badges. "Revenue" = paid, not refunded orders (items + delivery).
+ * Ачаалсан админ өгөгдлөөс гаргасан тоо. Самбар, тайлангийн нийлбэр сервисээс (/admin/stats/*) ирнэ;
+ * эдгээр нь жагсаалт, тэмдэгт зориулагдсан. «Орлого» = төлөгдсөн, буцаагдаагүй захиалга (бараа + хүргэлт).
  */
 
 export interface CustomerStats {
@@ -34,7 +33,7 @@ export const customerById = (customers: Customer[]) => new Map(customers.map((c)
 export const lowStock = (products: Product[]) =>
   products.filter((p) => stockLevel(p) !== "ok").sort((a, b) => a.stock / (a.threshold || 1) - b.stock / (b.threshold || 1));
 
-/** Orders that were paid and wait for someone to start preparing them. */
+/** Төлөгдөөд бэлтгэл эхлэхийг хүлээж буй захиалгууд. */
 export const toProcess = (orders: Order[]) => orders.filter((o) => o.status === "paid");
 
 export type Period = "day" | "week" | "month";

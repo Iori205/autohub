@@ -24,7 +24,7 @@
 .vehCols {
   grid-template-columns: 100px minmax(170px, 1.3fr) 110px 110px minmax(170px, 1fr) 96px 70px 64px;
 }
-/* generation column hidden (.hide-narrow) */
+/* үеийн багана нуугдана (.hide-narrow) */
 @media (max-width: 1279px) {
   .vehTable {
     min-width: 780px;

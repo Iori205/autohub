@@ -3,7 +3,7 @@ import { requireStaff } from "@/lib/auth";
 import { body, noContent, route } from "@/lib/http";
 import { z } from "zod";
 
-/** { ids: [...] } in the new display order. */
+/** { ids: [...] } шинэ дэлгэцийн дарааллаар. */
 export const POST = route(async (req) => {
   await requireStaff(req);
   const { ids } = await body(req, z.object({ ids: z.array(z.string()).min(1).max(100) }));

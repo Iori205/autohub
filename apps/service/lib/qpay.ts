@@ -2,10 +2,8 @@ import "./load-env";
 import { ApiError } from "./http";
 
 /*
- * QPay merchant API v2 client.
- *   sandbox    https://merchant-sandbox.qpay.mn/v2   (default)
- *   production https://merchant.qpay.mn/v2            (QPAY_BASE_URL)
- * Docs: https://developer.qpay.mn — auth/token, invoice, payment/check.
+ * QPay merchant API v2 клиент. sandbox: https://merchant-sandbox.qpay.mn/v2 (анхдагч), production: https://merchant.qpay.mn/v2 (QPAY_BASE_URL).
+ * Баримт бичиг: https://developer.qpay.mn — auth/token, invoice, payment/check.
  */
 
 const TIMEOUT_MS = 10_000;
@@ -32,7 +30,7 @@ export interface QPayUrl {
 export interface QPayInvoice {
   invoice_id: string;
   qr_text: string;
-  /** base64 PNG (no data: prefix) */
+  /** base64 PNG (data: угтваргүй) */
   qr_image: string;
   qPay_shortUrl?: string;
   urls?: QPayUrl[];
@@ -51,11 +49,11 @@ export interface QPayCheck {
   rows: QPayPaymentRow[];
 }
 
-/* ---------- token cache ---------- */
+/* ---------- токены кэш ---------- */
 
 let token: { access: string; refresh: string; expiresAt: number; refreshExpiresAt: number } | null = null;
 
-/** QPay returns expiry as a unix timestamp (seconds); accept a duration too, just in case. */
+/** QPay хугацааг unix timestamp (секунд)-ээр буцаадаг; хугацааны урт ирсэн ч хүлээн авна. */
 const toMs = (v: unknown) => {
   const n = Number(v) || 0;
   return n > 1e9 ? n * 1000 : Date.now() + n * 1000;
@@ -135,7 +133,7 @@ export async function cancelInvoice(invoiceId: string): Promise<void> {
   await call(`/invoice/${encodeURIComponent(invoiceId)}`, { method: "DELETE", auth });
 }
 
-/** Тохиргоо → "Холболт шалгах": request a fresh token with the env credentials. */
+/** Тохиргоо → «Холболт шалгах»: env-ийн мэдээллээр шинэ токен авна. */
 export async function testConnection(): Promise<void> {
   token = null;
   await accessToken();

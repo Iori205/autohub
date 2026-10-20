@@ -8,7 +8,7 @@
   border-bottom: 1px solid var(--line);
 }
 
-/* top bar */
+/* дээд мөр */
 .topbar {
   border-bottom: 1px solid var(--line);
   font-size: 12px;
@@ -39,7 +39,7 @@
   align-items: center;
 }
 
-/* main row */
+/* үндсэн мөр */
 .main {
   height: 76px;
   display: flex;
@@ -139,7 +139,7 @@
   font-size: 14px;
 }
 
-/* nav row */
+/* цэсний мөр */
 .navRow {
   border-top: 1px solid var(--line);
 }
@@ -225,7 +225,7 @@
   white-space: nowrap;
 }
 
-/* mobile */
+/* гар утас */
 .mobile {
   padding: 10px 14px;
   display: flex;

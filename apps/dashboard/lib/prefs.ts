@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { SIDEBAR_KEY, THEME_KEY } from "./site";
 
-/* Per-browser UI preferences: theme and sidebar collapse. */
+/* Хөтөч бүрийн UI тохиргоо: горим, хажуугийн цэс хураасан эсэх. */
 
 type Theme = "dark" | "light";
 const listeners = new Set<() => void>();
@@ -25,7 +25,7 @@ export function toggleTheme() {
   try {
     localStorage.setItem(THEME_KEY, next);
   } catch {
-    /* ignore */
+    /* үл тооно */
   }
   notify();
 }
@@ -42,7 +42,7 @@ const readCollapsed = () => {
   return collapsed;
 };
 
-/** Desktop sidebar: expanded by default, remembered once collapsed. */
+/** Desktop-ийн хажуугийн цэс: анхандаа дэлгэгдсэн, хураавал санана. */
 export const useSidebarCollapsed = () => useSyncExternalStore(subscribe, readCollapsed, () => false);
 
 export function setSidebarCollapsed(v: boolean) {
@@ -50,7 +50,7 @@ export function setSidebarCollapsed(v: boolean) {
   try {
     localStorage.setItem(SIDEBAR_KEY, v ? "collapsed" : "expanded");
   } catch {
-    /* ignore */
+    /* үл тооно */
   }
   notify();
 }

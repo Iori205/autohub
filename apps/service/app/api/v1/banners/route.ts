@@ -2,7 +2,7 @@ import { prisma } from "@repo/db";
 import type { BannerDto } from "@repo/types";
 import { ok, route } from "@/lib/http";
 
-/** Active home-page banners in display order. */
+/** Нүүрний идэвхтэй баннерууд, дэлгэцийн дарааллаар. */
 export const GET = route(async () => {
   const rows = await prisma.banner.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } });
   return ok<BannerDto[]>(

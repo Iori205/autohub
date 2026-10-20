@@ -5,9 +5,9 @@ import { reload } from "../db";
 import type { AdminRole, Settings } from "../types";
 import { api } from "./client";
 
-/* Store settings and staff → /admin/settings/:key, /admin/staff, /admin/qpay-test (ADMIN only). */
+/* Дэлгүүрийн тохиргоо ба ажилтан → /admin/settings/:key, /admin/staff, /admin/qpay-test (зөвхөн ADMIN). */
 
-/** QPay is configured in the service's .env, so only the store and delivery sections are saved. */
+/** QPay-г сервисийн .env-д тохируулдаг тул зөвхөн дэлгүүр, хүргэлтийн хэсгийг хадгална. */
 export async function saveSettings(s: Settings) {
   await Promise.all([
     api("/admin/settings/store", { method: "PUT", body: s.store }),
@@ -16,12 +16,12 @@ export async function saveSettings(s: Settings) {
   await reload("settings");
 }
 
-/** Request a QPay token with the env credentials. */
+/** env-ийн нэвтрэх мэдээллээр QPay токен авч шалгана. */
 export const testQPay = () => api<{ ok: boolean; message: string }>("/admin/qpay-test", { method: "POST" });
 
 const ROLE = { admin: "ADMIN", operator: "OPERATOR" } as const;
 
-/** Creates the account; returns a one-time temporary password (e-mail invites aren't wired yet). */
+/** Бүртгэл үүсгээд нэг удаагийн түр нууц үг буцаана (и-мэйл урилга хараахан холбогдоогүй). */
 export async function inviteAdmin(name: string, email: string, role: AdminRole): Promise<string> {
   const r = await api<StaffDto & { tempPassword: string }>("/admin/staff", { method: "POST", body: { name, email, role: ROLE[role] } });
   await reload("admins");

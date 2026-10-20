@@ -1,6 +1,5 @@
-# Optional local PostgreSQL instead of Supabase.
-#   docker compose up -d
-# then point DATABASE_URL and DIRECT_URL in .env at it (see .env.example).
+# Supabase-ийн оронд заавал биш локал PostgreSQL: `docker compose up -d`,
+# дараа нь .env-ийн DATABASE_URL, DIRECT_URL-ийг үүн рүү чиглүүлнэ (.env.example-ийг үз).
 services:
   db:
     image: postgres:17-alpine

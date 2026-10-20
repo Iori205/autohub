@@ -51,16 +51,15 @@ function validate(tab: Tab, v: Values) {
   return e;
 }
 
-/** API field names → this form's inputs */
+/** API-ийн талбарын нэр → энэ маягтын оролт */
 const SERVER_FIELDS: Record<Tab, Record<string, Key>> = {
   login: { login: "id", password: "pw" },
   register: { name: "rName", phone: "rPhone", email: "rEmail", password: "rPw" },
 };
 
 /**
- * /login — split screen: the form on the left, the brand panel (or, on the
- * way to checkout, the cart summary) on the right. `?next=` is where to go
- * afterwards; `?tab=register` opens the registration form.
+ * /login — зүүн талд маягт, баруун талд брэндийн самбар (checkout руу явж байхад сагсны хураангуй).
+ * `?next=` дараа нь очих хаяг; `?tab=register` бүртгэлийн маягтыг нээнэ.
  */
 export function LoginView() {
   const router = useRouter();
@@ -83,7 +82,7 @@ export function LoginView() {
   const [problem, setProblem] = useState<"" | "wrong" | "exists">("");
   const [serverErr, setServerErr] = useState<Partial<Record<Key, string>>>({});
 
-  // Already signed in (or just did) → on to where they were going
+  // Нэвтэрсэн (эсвэл сая нэвтэрсэн) бол очих гэж байсан хуудас руу
   useEffect(() => {
     if (me) router.replace(next);
   }, [me, next, router]);
@@ -123,7 +122,7 @@ export function LoginView() {
           email: v.rEmail.trim() || undefined,
           password: v.rPw,
         });
-      // the effect above follows `next` once the session is set
+      // сесс тогтмогц дээрх effect `next` руу шилжүүлнэ
     } catch (x) {
       setBusy(false);
       if (!(x instanceof ApiError)) return showToast("Алдаа гарлаа. Дахин оролдоно уу");

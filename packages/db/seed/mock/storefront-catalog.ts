@@ -1,13 +1,11 @@
-// Copied from apps/dashboard (mock data the seed is built from). Not imported by any app.
+// Seed-ийн mock өгөгдөл (ямар ч апп импортлохгүй).
 import type {
   StoreCategory as Category,
   StoreProduct as Product,
   VehicleModel,
 } from "./types";
 
-// Storefront catalog — copied verbatim from apps/web/lib/data/mock-catalog.ts so the
-// admin shows the same products, prices, categories and vehicles as the shop.
-// Keep in sync by hand until it moves into a shared package; apps/service replaces both.
+// Seed-ийн дэлгүүрийн каталог: бараа, үнэ, ангилал, машин.
 
 export const VEHICLES: VehicleModel[] = [
   {

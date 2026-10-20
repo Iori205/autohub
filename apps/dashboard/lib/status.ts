@@ -1,8 +1,8 @@
 import type { DeliveryKind, Order, OrderStatus } from "./types";
 
 /**
- * Badge tones. Each maps to a CSS class in globals.css (`tone-*`) so light/dark
- * lightness is handled there. Red is reserved for errors / cancelled.
+ * Тэмдгийн өнгө: тус бүр globals.css-ийн `tone-*` класс тул цайвар/харанхуйн гэрэлтэлтийг тэнд зохицуулна.
+ * Улаан өнгө зөвхөн алдаа / цуцлалтад.
  */
 export type Tone = "amber" | "blue" | "violet" | "cyan" | "green" | "red" | "pink" | "neutral";
 
@@ -23,10 +23,10 @@ export const STATUS: Record<OrderStatus, BadgeSpec> = {
 
 export const STATUS_KEYS = Object.keys(STATUS) as OrderStatus[];
 
-/** The normal forward flow (cancel/expire are terminal side exits). */
+/** Хэвийн урсгал (цуцлах/хугацаа дуусах нь эцсийн гарц). */
 export const FLOW: OrderStatus[] = ["pending", "paid", "preparing", "shipping", "delivered"];
 
-/** Revenue counts only orders whose money was received and kept. */
+/** Орлогод зөвхөн мөнгө нь орж, буцаагдаагүй захиалгыг тооцно. */
 export const isLive = (o: Pick<Order, "status">) =>
   o.status !== "pending" && o.status !== "cancelled" && o.status !== "expired";
 
@@ -60,7 +60,7 @@ export const STOCK_BADGE: Record<StockLevel, BadgeSpec> = {
   out: { label: "Дууссан", tone: "red" },
 };
 
-/** Text colour for a stock number */
+/** Нөөцийн тооны текстийн өнгө */
 export const STOCK_COLOR: Record<StockLevel, string> = {
   ok: "var(--text)",
   low: "var(--tone-amber)",

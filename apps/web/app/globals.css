@@ -1,25 +1,22 @@
-/* Brand tokens live in @repo/ui/theme.css (imported in layout.tsx). */
+/* Брэндийн токенууд @repo/ui/theme.css-д байна (layout.tsx-д импортолсон). */
 
 /*
- * Layout tokens for the storefront — the only place these values are set.
- * --header-h matches the sticky header (Header.tsx also writes the measured
- * height at runtime, e.g. when a car chip makes it taller), so anything that
- * scrolls or sticks below it (anchors, Next.js scroll-to-top, sticky
- * summaries) clears it.
+ * Дэлгүүрийн байрлалын токенууд — зөвхөн энд тодорхойлно. --header-h нь наалттай толгойн өндөр (Header.tsx бодит өндрийг ажиллах үед бичдэг),
+ * түүний доор гүйлгэх/наалдах бүх зүйл (anchor, Next.js scroll-to-top, наалттай хураангуй) толгойд дарагдахгүй.
  */
 :root {
   --header-h: 161px;
-  /* below the header → first content on every page */
+  /* толгойн доор → хуудас бүрийн эхний контент */
   --space-page-top: 32px;
-  /* between major page sections (product tabs, trust strip, footer) */
+  /* үндсэн хэсгүүдийн хооронд (барааны таб, итгэлийн мөр, хөл) */
   --space-section: 56px;
-  /* gap between cards/columns in a layout grid */
+  /* байрлалын grid дахь карт/багана хоорондын зай */
   --space-gap: 24px;
-  /* gap between stacked cards in one column */
+  /* нэг баганад давхарласан картуудын зай */
   --space-stack: 20px;
-  /* inner padding of panels/cards */
+  /* самбар/картын дотор зай */
   --space-card: 22px;
-  /* room kept free at the bottom so the floating chat button never covers the last content */
+  /* хөвөгч чатын товч сүүлийн контентыг дарахгүйн тулд доод талд үлдээх зай */
   --fab-clearance: 0px;
 }
 @media (max-width: 819px) {
@@ -131,7 +128,7 @@ svg.lucide {
   }
 }
 
-/* ---------- shared primitives ---------- */
+/* ---------- нийтлэг суурь элементүүд ---------- */
 
 .container {
   max-width: var(--container);
@@ -364,7 +361,7 @@ textarea.input {
   border: 1px solid color-mix(in oklab, var(--ok) 40%, transparent);
 }
 
-/* Visibility helpers — they only ever hide, so elements keep their own display. */
+/* Харагдах туслахууд — зөвхөн нууна, тиймээс элемент өөрийн display-ийг хадгална. */
 @media (min-width: 820px) {
   .only-mobile {
     display: none !important;

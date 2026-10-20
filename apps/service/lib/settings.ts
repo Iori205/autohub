@@ -1,7 +1,7 @@
 import { prisma, type Prisma } from "@repo/db";
 import type { DeliveryMethod, DeliverySettings, SettingKey, StoreSettings } from "@repo/types";
 
-/** Used when a key hasn't been saved yet (same values as the seed). */
+/** Түлхүүр хараахан хадгалагдаагүй үед хэрэглэнэ (seed-тэй ижил утга). */
 export const DEFAULTS = {
   store: {
     name: "AuToHub",
@@ -37,11 +37,11 @@ export async function putSetting(key: SettingKey, value: object) {
   });
 }
 
-/** Which delivery zone prices each checkout method. */
+/** Checkout-ын арга бүрийн үнийг аль хүргэлтийн бүсээс авах. */
 const ZONE_FOR: Record<DeliveryMethod, string> = { UB: "z1", COUNTRY: "z3", PICKUP: "z4" };
 const FALLBACK: Record<DeliveryMethod, number> = { UB: 5000, COUNTRY: 15000, PICKUP: 0 };
 
-/** Shipping fee for a checkout: UB courier is free from `freeOver`; pickup is free. */
+/** Checkout-ын хүргэлтийн төлбөр: УБ хүргэлт `freeOver`-оос дээш үнэгүй; очиж авах үнэгүй. */
 export function deliveryFee(method: DeliveryMethod, subtotal: number, d: DeliverySettings) {
   if (method === "PICKUP") return 0;
   const zone = d.zones.find((z) => z.id === ZONE_FOR[method]);

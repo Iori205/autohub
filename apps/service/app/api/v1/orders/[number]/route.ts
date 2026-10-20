@@ -5,7 +5,7 @@ import { notFound, ok, route } from "@/lib/http";
 import { orderDto, orderInclude } from "@/lib/serialize";
 import { sweepExpired } from "@/lib/payments";
 
-/** One of the session's own orders (payment page, success page, order detail). */
+/** Сессийн өөрийн захиалга (төлбөр, амжилттай, дэлгэрэнгүй хуудас). */
 export const GET = route<RouteContext<"/api/v1/orders/[number]">>(async (req, { params }) => {
   await sweepExpired();
   const number = (await params).number.toUpperCase();

@@ -2,9 +2,8 @@ import { unstable_rethrow } from "next/navigation";
 import type { ApiErrorBody } from "@repo/types";
 
 /**
- * Where /api/v1 lives: in the browser this site itself (next.config rewrites
- * /api/* to apps/service, so the session cookie is first-party); on the
- * Next.js server apps/service directly (API_URL, server-only).
+ * /api/v1 хаана байх: хөтөчид энэ сайт өөрөө (next.config /api/*-ийг apps/service руу дамжуулдаг тул сессийн күүки first-party),
+ * Next.js сервер дээр apps/service шууд (API_URL, зөвхөн серверт).
  */
 function base() {
   if (typeof window !== "undefined") return "";
@@ -24,10 +23,7 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Call /api/v1. Sends the session cookie (guest/customer) and never caches,
- * so prices, stock and order status are always current.
- */
+/** /api/v1 дуудах. Сессийн күүкиг (зочин/хэрэглэгч) илгээж, хэзээ ч кэшлэхгүй тул үнэ, нөөц, захиалгын төлөв үргэлж шинэ. */
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   let res: Response;
   try {
@@ -39,7 +35,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
       cache: "no-store",
     });
   } catch (e) {
-    // Next.js signals "dynamic page" / redirects by throwing from fetch — let those through
+    // Next.js «динамик хуудас» / redirect-ийг fetch-ээс шидэж дохиолдог — тэдгээрийг дамжуулна
     unstable_rethrow(e);
     throw new ApiError(0, "NETWORK", "Сервертэй холбогдож чадсангүй. Интернэт холболтоо шалгана уу");
   }

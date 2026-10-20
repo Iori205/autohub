@@ -2,7 +2,7 @@ import type { Product } from "../../lib/types";
 import { ProductCard } from "./ProductCard";
 import styles from "./ProductGrid.module.css";
 
-/** 2 columns on mobile, auto-fill above. `min` = min card width on desktop. */
+/** Гар утсанд 2 багана, түүнээс дээш auto-fill. `min` = desktop дээрх картын хамгийн бага өргөн. */
 export function ProductGrid({
   products,
   min = 260,

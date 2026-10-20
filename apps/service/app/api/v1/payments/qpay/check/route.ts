@@ -3,7 +3,7 @@ import { body, ok, route } from "@/lib/http";
 import { ownOrder } from "@/lib/own-order";
 import { checkPayment } from "@/lib/payments";
 
-/** Polling from the payment screen (every few seconds). Asks QPay; marks paid / expired. */
+/** Төлбөрийн дэлгэцийн polling (хэдэн секунд тутам). QPay-ээс асууж төлөгдсөн / хугацаа дууссан гэж тэмдэглэнэ. */
 export const POST = route(async (req) => {
   const { number } = await body(req, paymentInput);
   return ok<PaymentStateDto>(await checkPayment(await ownOrder(req, number)));

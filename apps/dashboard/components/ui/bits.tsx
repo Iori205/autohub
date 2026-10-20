@@ -89,7 +89,7 @@ export function SearchInput({
   );
 }
 
-/** Product image, or the striped placeholder with a faint category icon. */
+/** Барааны зураг, эсвэл ангиллын бүдэг дүрстэй зураасан орлуулга. */
 export function Thumb({
   product,
   categories,

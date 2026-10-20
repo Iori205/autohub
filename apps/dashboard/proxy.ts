@@ -2,10 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { LOGIN_PATH, SESSION_COOKIE } from "./lib/session";
 
 /**
- * Auth guard (optimistic check). Every admin route needs the session cookie;
- * without it the request is redirected to /login?next=…. Signed-in users who
- * open /login go to the dashboard. The cookie is issued (httpOnly) by apps/service;
- * the service verifies it on every API call and the client signs out on a 401.
+ * Нэвтрэлтийн урьдчилсан хамгаалалт: күүкигүй хүсэлтийг /login?next=… руу, нэвтэрсэн хэрэглэгчийн /login-ийг самбар руу шилжүүлнэ.
+ * Жинхэнэ шалгалтыг сервис API дуудлага бүрт хийж, 401 ирэхэд клиент гаргана.
  */
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -22,6 +20,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // /api/* is the proxied apps/service (it answers 401 itself), not a page
+  // /api/* бол хуудас биш, прокси хийсэн apps/service (401-ийг өөрөө буцаана)
   matcher: ["/((?!api/|_next/|favicon.ico|.*\\.[\\w]+$).*)"],
 };

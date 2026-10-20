@@ -5,7 +5,7 @@ import { reload } from "../db";
 import type { OrderStatus } from "../types";
 import { api } from "./client";
 
-/* Orders → /admin/orders/:number/{status,cancel,notes,check}, /admin/orders/bulk-status. */
+/* Захиалга → /admin/orders/:number/{status,cancel,notes,check}, /admin/orders/bulk-status. */
 
 const STATUS_CODE: Record<Exclude<OrderStatus, "cancelled">, string> = {
   pending: "PENDING",
@@ -18,7 +18,7 @@ const STATUS_CODE: Record<Exclude<OrderStatus, "cancelled">, string> = {
 
 const BULK_CANCEL = { reason: "Бусад", comment: "Захиалгын жагсаалтаас бөөнөөр цуцалсан" };
 
-/** Returns the orders that couldn't be changed, with the server's reason. */
+/** Өөрчилж чадаагүй захиалгуудыг серверийн шалтгаантай нь буцаана. */
 export async function setOrderStatus(ids: string | string[], status: OrderStatus): Promise<Record<string, string>> {
   const list = Array.isArray(ids) ? ids : [ids];
   let failed: Record<string, string> = {};
@@ -52,7 +52,7 @@ export async function addOrderNote(id: string, text: string) {
   await reload("orders");
 }
 
-/** Ask QPay (or the demo state) whether a pending order has been paid. */
+/** Хүлээгдэж буй захиалга төлөгдсөн эсэхийг QPay-ээс (эсвэл демо төлөвөөс) асууна. */
 export async function checkPayment(id: string): Promise<{ paid: boolean }> {
   const o = await api<AdminOrderDto>(`/admin/orders/${id}/check`, { method: "POST" });
   await reload("orders", "products", "stockLog");

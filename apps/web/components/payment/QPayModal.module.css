@@ -80,7 +80,7 @@
   place-items: center;
 }
 
-/* wide (>=1024) two-column waiting layout */
+/* өргөн (>=1024) хоёр баганатай хүлээлтийн байрлал */
 .wide {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -390,7 +390,7 @@
   text-underline-offset: 2px;
 }
 
-/* bank deep links (mobile) */
+/* банкны апп руу шууд холбоос (гар утас) */
 .banks {
   display: flex;
   flex-direction: column;
@@ -444,7 +444,7 @@
   background: var(--line);
 }
 
-/* result notices */
+/* үр дүнгийн мэдэгдэл */
 .notice {
   width: 100%;
   max-width: 420px;

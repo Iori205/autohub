@@ -4,13 +4,13 @@ import { customerOrGuest } from "@/lib/auth";
 import { cartDto, ensureCart } from "@/lib/cart";
 import { body, ok, route } from "@/lib/http";
 
-/** The session cart (a guest session is created on first use). */
+/** Сессийн сагс (анх ашиглахад зочны сесс үүснэ). */
 export const GET = route(async (req) => {
   const user = await customerOrGuest(req);
   return ok(await cartDto(user.id));
 });
 
-/** Replace the whole cart, e.g. to import a cart kept in the browser. */
+/** Сагсыг бүхэлд нь солино (жишээ нь хөтөчид хадгалсан сагсыг оруулах). */
 export const PUT = route(async (req) => {
   const { items } = await body(req, cartReplaceInput);
   const user = await customerOrGuest(req);

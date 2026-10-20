@@ -4,7 +4,7 @@ import { ok, route } from "@/lib/http";
 import { campaignDto } from "@/lib/serialize";
 import { ubDay } from "@/lib/time";
 
-/** Campaigns running today. */
+/** Өнөөдөр явагдаж буй хямдралын аянууд. */
 export const GET = route(async () => {
   const today = new Date(`${ubDay()}T00:00:00Z`);
   const rows = await prisma.campaign.findMany({

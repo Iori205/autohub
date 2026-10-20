@@ -1,4 +1,4 @@
-/* ---------- layout ---------- */
+/* ---------- байрлал ---------- */
 
 .shell {
   --sw: var(--side-w);
@@ -22,7 +22,7 @@
   padding: var(--space-page-top) var(--space-page-x) var(--space-page-bottom);
 }
 
-/* ---------- sidebar ---------- */
+/* ---------- хажуугийн цэс ---------- */
 
 .side {
   position: sticky;
@@ -148,7 +148,7 @@
   font-size: 12.5px;
 }
 
-/* Narrow rail: icons only. Desktop = user preference; tablet = default. */
+/* Нарийн цэс: зөвхөн дүрс. Desktop дээр хэрэглэгчийн сонголтоор, таблет дээр анхнаасаа. */
 .shell[data-collapsed="true"] :global(.side-label) {
   display: none;
 }
@@ -226,7 +226,7 @@
   display: none;
 }
 
-/* Mobile: off-canvas drawer opened from the header burger. */
+/* Гар утас: толгойн цэсний товчоор нээгддэг гулсдаг цэс. */
 @media (max-width: 819px) {
   .side {
     position: fixed;
@@ -257,7 +257,7 @@
   }
 }
 
-/* ---------- logo ---------- */
+/* ---------- лого ---------- */
 
 .logo {
   display: flex;
@@ -299,7 +299,7 @@
   font-size: 20px;
 }
 
-/* ---------- header ---------- */
+/* ---------- толгой ---------- */
 
 .header {
   position: sticky;
@@ -597,7 +597,7 @@
   }
 }
 
-/* ---------- page header ---------- */
+/* ---------- хуудасны толгой ---------- */
 
 .pageHead {
   display: flex;

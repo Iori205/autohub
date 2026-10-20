@@ -3,7 +3,7 @@ import { DELIVERY, payBadge } from "../../../lib/status";
 import type { Order, Product, Settings } from "../../../lib/types";
 import styles from "./Orders.module.css";
 
-/** Packing slip — printed on white paper regardless of theme. */
+/** Баглаа боодлын хуудас — горимоос үл хамааран цагаан цаасан дээр хэвлэгдэнэ. */
 export function Slip({
   order: o,
   products,

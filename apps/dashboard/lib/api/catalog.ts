@@ -5,7 +5,7 @@ import type { Brand, Category, Vehicle } from "../types";
 import { api } from "./client";
 import { FUEL_CODE } from "./map";
 
-/* Categories, brands and the vehicle database → /admin/categories, /admin/brands, /admin/vehicles. */
+/* Ангилал, брэнд, машины сан → /admin/categories, /admin/brands, /admin/vehicles. */
 
 export async function saveCategory(input: Omit<Category, "id">, id?: string) {
   const body = { name: input.name, slug: input.key, icon: input.icon };
@@ -13,7 +13,7 @@ export async function saveCategory(input: Omit<Category, "id">, id?: string) {
   await reload("categories", "products");
 }
 
-/** Only empty categories can be deleted (409 otherwise). */
+/** Зөвхөн хоосон ангиллыг устгаж болно (үгүй бол 409). */
 export async function deleteCategory(id: string) {
   await api(`/admin/categories/${id}`, { method: "DELETE" });
   await reload("categories");
@@ -25,7 +25,7 @@ export async function saveBrand(input: Omit<Brand, "id">, id?: string) {
   await reload("brands", "products");
 }
 
-/** Brands with products can't be deleted (409 with the product count). */
+/** Бараатай брэндийг устгах боломжгүй (барааны тоотой 409). */
 export async function deleteBrand(id: string) {
   await api(`/admin/brands/${id}`, { method: "DELETE" });
   await reload("brands");
@@ -45,13 +45,13 @@ export async function saveVehicle(input: Omit<Vehicle, "id" | "productCount">, i
   await reload("vehicles", "products");
 }
 
-/** Also removes the vehicle's product fitments. */
+/** Машинтай холбоотой барааны тохирлуудыг мөн устгана. */
 export async function deleteVehicle(id: string) {
   await api(`/admin/vehicles/${id}`, { method: "DELETE" });
   await reload("vehicles", "products");
 }
 
-/** CSV make,model,gen,year_from,year_to,engine,fuel — parsed by the service; existing rows are skipped. */
+/** CSV: make,model,gen,year_from,year_to,engine,fuel — сервис задлана; байгаа мөрүүдийг алгасна. */
 export async function importVehicles(csv: string): Promise<{ added: number; skipped: number; errors: number }> {
   const r = await api<{ added: number; skipped: number; errors: unknown[] }>("/admin/vehicles/import", { method: "POST", body: { csv } });
   await reload("vehicles");

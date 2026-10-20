@@ -1,6 +1,6 @@
 import "./load-env";
 
-/** Server configuration from the root .env (see .env.example). Read lazily so builds don't need secrets. */
+/** Repo-ийн язгуур .env-ийн серверийн тохиргоо (.env.example-ийг үз). Build нууц мэдээлэлгүй ажиллахын тулд хэрэгтэй үедээ уншина. */
 
 const isProd = () => process.env.NODE_ENV === "production";
 const DEV_ORIGINS = "http://localhost:3000,http://localhost:3001";
@@ -18,9 +18,8 @@ export const env = {
     return new TextEncoder().encode(s);
   },
   /**
-   * Browser origins allowed to call the API directly with cookies. The
-   * frontends proxy /api/* (same origin), so production usually needs none;
-   * "*" is never honoured because responses carry credentials.
+   * API-г күүкитэй шууд дуудаж болох хөтчийн origin-ууд. Frontend /api/*-ийг прокси хийдэг тул production-д ихэвчлэн хэрэггүй;
+   * хариу credentials агуулдаг тул «*»-г хэзээ ч зөвшөөрөхгүй.
    */
   get corsOrigins() {
     return (process.env.CORS_ORIGINS ?? (isProd() ? "" : DEV_ORIGINS))
@@ -28,14 +27,14 @@ export const env = {
       .map((s) => s.trim().replace(/\/$/, ""))
       .filter((s) => s && s !== "*");
   },
-  /** Only when web + dashboard deliberately share a parent domain (e.g. ".autohub.mn"); unset otherwise */
+  /** Зөвхөн web, dashboard санаатайгаар нэг эх домэйн хуваалцах үед (жишээ нь «.autohub.mn»); бусад үед хоосон */
   get cookieDomain() {
     return process.env.COOKIE_DOMAIN || undefined;
   },
   get secureCookies() {
     return isProd();
   },
-  /** This service's own public URL — QPay calls the payment callback on it directly (not via a frontend). */
+  /** Энэ сервисийн нийтийн URL — QPay төлбөрийн callback-ийг frontend-ээр биш шууд энд дуудна. */
   get publicApiUrl() {
     const v = process.env.PUBLIC_API_URL || (isProd() ? "" : "http://localhost:4000");
     if (!v) throw new Error("PUBLIC_API_URL is not set — the QPay callback URL is built from it");
@@ -44,9 +43,8 @@ export const env = {
 };
 
 /**
- * Called once at server start (instrumentation.ts). In production a missing or
- * unsafe setting stops the server with a clear message instead of failing on
- * the first request that needs it.
+ * Сервер асахад нэг удаа дуудагдана (instrumentation.ts). Production-д дутуу эсвэл аюултай тохиргоо байвал
+ * хэрэгтэй анхны хүсэлт дээр унахын оронд серверийг тодорхой мессежтэйгээр зогсооно.
  */
 export function validateEnv() {
   if (!isProd()) return;

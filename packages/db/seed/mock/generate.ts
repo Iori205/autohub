@@ -1,4 +1,4 @@
-// Copied from apps/dashboard (mock data the seed is built from). Not imported by any app.
+// Seed-ийн mock өгөгдөл (ямар ч апп импортлохгүй).
 import { addMinutes, toDay } from "./format";
 import type {
   AdminUser,
@@ -24,17 +24,13 @@ import type {
 import { BRANDS, CATEGORIES, PRODUCTS, VEHICLES } from "./storefront-catalog";
 
 /*
- * Mock database seed. Deterministic (seeded PRNG, fixed dates) so the server
- * and client render the same thing. Every number in the admin — revenue, KPIs,
- * reports, "sold" counts, customer totals, stock history — is derived from the
- * orders generated here, so the pages always agree with each other.
- *
- * The mock "today" is the design's date. apps/service replaces all of this.
+ * Mock өгөгдөл. Тогтвортой (seed-тэй PRNG, тогтмол огноо). Админы бүх тоо — орлого, KPI, тайлан, зарагдсан тоо,
+ * хэрэглэгчийн нийлбэр, нөөцийн түүх — энд үүсгэсэн захиалгаас гардаг тул хуудсууд хоорондоо таарна. Mock «өнөөдөр» нь дизайны огноо.
  */
 export const MOCK_TODAY = "2026-10-11";
 const HISTORY_DAYS = 180;
 
-/* ---------- storefront rules (same as apps/web/lib/catalog.ts) ---------- */
+/* ---------- дэлгүүрийн дүрэм (apps/web/lib/catalog.ts-тэй ижил) ---------- */
 
 export const FREE_SHIPPING_FROM = 200000;
 export const SHIPPING_FEE = 5000;
@@ -50,7 +46,7 @@ export const shippingFor = (subtotal: number, delivery: DeliveryKind) =>
         ? 0
         : SHIPPING_FEE;
 
-/* ---------- deterministic helpers ---------- */
+/* ---------- тогтвортой туслахууд ---------- */
 
 function mulberry32(seed: number) {
   let a = seed >>> 0;
@@ -90,7 +86,7 @@ const hash = (s: string) => {
   return h >>> 0;
 };
 
-/* ---------- catalog ---------- */
+/* ---------- каталог ---------- */
 
 const CATEGORY_ICON: Record<CategoryKey, IconKey> = {
   engine: "cog",
@@ -134,7 +130,7 @@ const brands: Brand[] = BRANDS.map((name, i) => ({
 
 const CONSUMABLE = new Set<CategoryKey>(["oil", "filter"]);
 
-/** Same description the storefront renders on the product page. */
+/** Дэлгүүрийн барааны хуудсанд харагддагтай ижил тайлбар. */
 const describe = (p: (typeof PRODUCTS)[number]) =>
   [
     `${p.brand} брэндийн ${p.name.toLowerCase()}.`,
@@ -208,7 +204,7 @@ const vehicles: Vehicle[] = VEHICLES.flatMap((v) =>
   })),
 );
 
-/* ---------- customers ---------- */
+/* ---------- хэрэглэгч ---------- */
 
 const car = (model: string, year: number, engineIdx = 0): CustomerCar => {
   const v = VEHICLES.find((x) => x.model === model)!;
@@ -293,10 +289,10 @@ const generated: Customer[] = Array.from({ length: 54 }, (_, i) => {
 });
 
 const customers = [...core, ...generated];
-/** Addresses outside the Ulaanbaatar districts ship as "Орон нутаг". */
+/** Улаанбаатарын дүүргээс гадуурх хаягийг «Орон нутаг»-аар илгээнэ. */
 const isCountry = (c: Customer) => !/^(БЗД|СБД|ХУД|ЧД|БГД|СХД|НД|БНД),/.test(c.address);
 
-/* ---------- orders ---------- */
+/* ---------- захиалга ---------- */
 
 const productById = new Map(products.map((p) => [p.id, p]));
 const line = (productId: number, qty: number): OrderItem => {
@@ -335,8 +331,8 @@ function makeOrder(
   };
 }
 
-// The 22 most recent orders are the design's hand-made ones (A1003–A1024),
-// mapped onto storefront products that fit each customer's car.
+// Хамгийн сүүлийн 22 захиалга нь дизайны гараар хийсэн захиалгууд (A1003–A1024),
+// хэрэглэгч бүрийн машинд тохирох дэлгүүрийн бараанд буулгасан.
 type CoreRow = [string, string, number, [number, number][], DeliveryKind, OrderStatus, boolean?];
 const CORE: CoreRow[] = [
   ["A1024", "2026-10-11 14:32", 0, [[2, 1], [17, 1], [16, 1]], "ub", "paid"],
@@ -380,7 +376,7 @@ coreOrders[0]!.notes.push({
   at: "2026-10-11 14:34",
 });
 
-// Older history: ~3 orders a day for the past six months.
+// Өмнөх түүх: сүүлийн зургаан сард өдөрт ~3 захиалга.
 const WEEKDAY_FACTOR = [1.18, 0.86, 0.9, 1, 1.04, 1.14, 1.32];
 const fitsCar = (p: Product, c: Customer) =>
   !c.cars.length || !p.fits.length || p.fits.some((f) => c.cars.some((x) => x.model === f.model));
@@ -434,10 +430,10 @@ const historyOrders: Order[] = history.map((o, k) => {
   );
 });
 
-/** Newest first, like every list in the admin. */
+/** Админы бүх жагсаалт шиг шинэ нь эхэнд. */
 const orders: Order[] = [...coreOrders, ...historyOrders.reverse()];
 
-/** Minutes after creation at which each status is reached by default. */
+/** Үүссэнээс хойш төлөв бүрт анхдагчаар хүрэх минут. */
 export const STATUS_OFFSET: Record<OrderStatus, number> = {
   pending: 0,
   paid: 3,
@@ -448,11 +444,11 @@ export const STATUS_OFFSET: Record<OrderStatus, number> = {
   expired: 30,
 };
 
-/** When `status` was reached: an explicit time if one was recorded, else the default offset. */
+/** `status`-д хүрсэн цаг: бүртгэсэн тодорхой цаг байвал түүнийг, үгүй бол анхдагч зөрүүг. */
 export const statusTime = (o: Order, s: OrderStatus) =>
   o.times[s] ?? addMinutes(o.createdAt, STATUS_OFFSET[s]);
 
-/* ---------- stock history (derived from the orders above) ---------- */
+/* ---------- нөөцийн түүх (дээрх захиалгаас гаргана) ---------- */
 
 const MANUAL: [string, number, number, string, string][] = [
   ["2026-10-10 11:02", 3, 24, "Шинэ орлого · Toyota Mongolia", "Ганболд Батбаяр"],
@@ -477,7 +473,7 @@ function buildStockLog(): StockMove[] {
   }
   for (const [at, productId, delta, reason, by] of MANUAL) moves.push({ at, productId, delta, reason, by });
   moves.sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
-  // Walk back from today's stock so every "after" matches the product list.
+  // «after» бүр барааны жагсаалттай таарахын тулд өнөөдрийн нөөцөөс ухрааж тооцно.
   const level = new Map(products.map((p) => [p.id, p.stock]));
   return moves.map((m, i) => {
     const after = level.get(m.productId)!;
@@ -486,7 +482,7 @@ function buildStockLog(): StockMove[] {
   });
 }
 
-/* ---------- marketing & settings ---------- */
+/* ---------- маркетинг ба тохиргоо ---------- */
 
 const lc200Count = products.filter((p) => p.fits.some((f) => f.model === "Land Cruiser 200")).length;
 
@@ -503,7 +499,7 @@ const campaigns: Campaign[] = [
   { id: "cp4", name: "Шинэ жилийн урамшуулал", pct: 12, target: "Бүх бараа", from: "2026-12-20", to: "2027-01-05", active: true },
 ];
 
-// Store details match apps/web/lib/site.ts.
+// Дэлгүүрийн мэдээлэл apps/web/lib/site.ts-тэй таарна.
 const settings: Settings = {
   store: {
     name: "AuToHub",
@@ -528,7 +524,7 @@ const admins: AdminUser[] = [
   { id: "u3", name: "Уянга Ганхуяг", email: "operator2@autohub.mn", role: "operator", lastSeen: "10.10 18:02" },
 ];
 
-/** A fresh copy every call — the store mutates its own copy. */
+/** Дуудах бүрт шинэ хуулбар — store өөрийн хуулбарыг өөрчилдөг. */
 export function createSeed(): Db {
   return structuredClone({
     products,

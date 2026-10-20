@@ -1,6 +1,6 @@
-// Server-safe auth constants (used by proxy.ts and the client).
+// Сервер талд ч ашиглаж болох нэвтрэлтийн тогтмолууд (proxy.ts болон клиент).
 
-/** httpOnly staff session cookie issued by apps/service (POST /admin/auth/login). */
+/** apps/service-ийн олгодог httpOnly ажилтны сесс күүки (POST /admin/auth/login). */
 export const SESSION_COOKIE = "autohub_admin_session";
 
 export const LOGIN_PATH = "/login";

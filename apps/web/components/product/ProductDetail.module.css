@@ -25,7 +25,7 @@
   height: 100%;
 }
 
-/* desktop gallery */
+/* desktop галерей */
 .gallery {
   display: flex;
   flex-direction: column;
@@ -67,7 +67,7 @@
   border-color: var(--accent);
 }
 
-/* mobile gallery */
+/* гар утасны галерей */
 .mGallery {
   position: relative;
   margin: 0 calc(-1 * var(--gutter));
@@ -118,7 +118,7 @@
   background: var(--accent);
 }
 
-/* info */
+/* мэдээлэл */
 .info {
   display: flex;
   flex-direction: column;
@@ -311,7 +311,7 @@
   color: var(--fg);
 }
 
-/* tabs */
+/* таб */
 .tabsSection {
   margin-top: var(--space-section);
 }
@@ -411,7 +411,7 @@
   color: var(--mut);
 }
 
-/* mobile buy bar */
+/* гар утасны худалдан авах мөр */
 .bar {
   position: fixed;
   left: 0;

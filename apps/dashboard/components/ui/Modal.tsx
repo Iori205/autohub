@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { useEffect, type ReactNode } from "react";
 import styles from "./Overlays.module.css";
 
-/** Centered dialog with backdrop; Esc and backdrop click close it. */
+/** Дэвсгэртэй голлосон цонх; Esc эсвэл дэвсгэр дээр дарахад хаагдана. */
 export function Modal({
   title,
   desc,

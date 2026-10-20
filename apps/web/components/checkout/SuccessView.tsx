@@ -32,7 +32,7 @@ export function SuccessView({ orderNo }: { orderNo: string }) {
   const now = useNow(5000);
   const unpaid = !!order && order.payStatus !== "paid";
 
-  // Only paid orders belong here; anything else goes back to the payment step.
+  // Зөвхөн төлөгдсөн захиалга энд харагдана; бусад нь төлбөрийн алхам руу буцна.
   useEffect(() => {
     if (unpaid) router.replace(`/checkout/payment?order=${orderNo}`);
   }, [unpaid, orderNo, router]);

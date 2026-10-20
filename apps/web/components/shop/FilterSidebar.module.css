@@ -155,7 +155,7 @@
   font-size: 13px;
 }
 
-/* ---------- mobile bottom sheet ---------- */
+/* ---------- гар утасны доод хуудас ---------- */
 @media (max-width: 819px) {
   .overlay {
     position: fixed;

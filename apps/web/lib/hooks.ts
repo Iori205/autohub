@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 
-/** Current time, re-rendered every `ms`. Only use under client-only UI. */
+/** Одоогийн цаг, `ms` тутамд дахин зурагдана. Зөвхөн клиент талын UI-д хэрэглэнэ. */
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
@@ -14,6 +14,6 @@ export function useNow(ms = 1000) {
 
 const noopSubscribe = () => () => {};
 
-/** false during SSR and the hydration pass, true afterwards. */
+/** SSR болон hydration-ийн үед false, дараа нь true. */
 export const useHydrated = () =>
   useSyncExternalStore(noopSubscribe, () => true, () => false);

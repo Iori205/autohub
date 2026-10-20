@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { body, ok, route } from "@/lib/http";
 import { moveStock } from "@/lib/orders";
 
-/** Bulk actions from the Бараа list: activate / hide / delete / price / stock. */
+/** Бараа жагсаалтын бөөн үйлдэл: идэвхжүүлэх / нуух / устгах / үнэ / нөөц. */
 export const POST = route(async (req) => {
   const staff = await requireStaff(req);
   const input = await body(req, productBulkInput);

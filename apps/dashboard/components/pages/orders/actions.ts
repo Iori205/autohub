@@ -60,7 +60,7 @@ export function exportOrders(list: Order[]) {
   ]);
 }
 
-/** Next step in the normal flow, shown as the primary action on the detail page. */
+/** Хэвийн урсгалын дараагийн алхам — дэлгэрэнгүй хуудсанд үндсэн товч болж харагдана. */
 export const NEXT_STEP: Partial<Record<OrderStatus, [label: string, to: OrderStatus | "check"]>> = {
   pending: ["Төлбөр шалгах", "check"],
   paid: ["Бэлтгэж эхлэх", "preparing"],

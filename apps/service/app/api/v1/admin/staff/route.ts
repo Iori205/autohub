@@ -12,8 +12,8 @@ export const GET = route(async (req) => {
 });
 
 /**
- * Invite a staff member (ADMIN only). Sending the invite e-mail isn't wired
- * yet, so the response includes a one-time temporary password to hand over.
+ * Ажилтан урих (зөвхөн ADMIN). Урилгын и-мэйл хараахан холбогдоогүй тул
+ * хариунд нэг удаагийн түр нууц үг ирнэ — түүнийг ажилтанд дамжуулна.
  */
 export const POST = route(async (req) => {
   await requireStaff(req, "ADMIN");

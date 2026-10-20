@@ -4,7 +4,7 @@ import { getDb, reload } from "../db";
 import type { Banner, Campaign } from "../types";
 import { api } from "./client";
 
-/* Home-page banners and discount campaigns → /admin/banners, /admin/campaigns. */
+/* Нүүрний баннер, хямдралын аян → /admin/banners, /admin/campaigns. */
 
 export async function saveBanner(input: Omit<Banner, "id">, id?: string) {
   const body = {
@@ -32,7 +32,7 @@ export async function toggleBanner(id: string) {
   await reload("banners");
 }
 
-/** Swap display order with the neighbour above (-1) or below (+1). */
+/** Дэлгэцийн дарааллыг дээрх (-1) эсвэл доорх (+1) хөрштэй солино. */
 export async function moveBanner(id: string, dir: -1 | 1) {
   const sorted = [...(getDb()?.banners ?? [])].sort((a, b) => a.order - b.order);
   const i = sorted.findIndex((b) => b.id === id);
@@ -43,7 +43,7 @@ export async function moveBanner(id: string, dir: -1 | 1) {
   await reload("banners");
 }
 
-/** "Бүх бараа" / "Ангилал: …" / "Брэнд: …" → the API's target + id. */
+/** «Бүх бараа» / «Ангилал: …» / «Брэнд: …» → API-ийн target + id. */
 function target(label: string) {
   const db = getDb();
   const [kind, name] = label.split(/:\s*/) as [string, string | undefined];

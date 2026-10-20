@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { body, created, ok, query, route } from "@/lib/http";
 import { vehicleDto } from "@/lib/serialize";
 
-/** Машины сан with the number of linked products per row. */
+/** Машины сан, мөр бүрт холбогдсон барааны тоотой. */
 export const GET = route(async (req) => {
   await requireStaff(req);
   const q = query(req, vehicleQuery);

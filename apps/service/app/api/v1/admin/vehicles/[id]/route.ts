@@ -19,7 +19,7 @@ export const PATCH = route<Ctx>(async (req, { params }) => {
   return ok<VehicleDto>(vehicleDto(row));
 });
 
-/** Removes the vehicle and its product fitments. */
+/** Машин болон түүний барааны тохирлуудыг устгана. */
 export const DELETE = route<Ctx>(async (req, { params }) => {
   await requireStaff(req);
   await prisma.vehicle.delete({ where: { id: (await params).id } });

@@ -10,10 +10,7 @@ import { FINDER_HREF } from "../../lib/site";
 import { showToast, useShop } from "../../lib/store/shop";
 import styles from "./AccountMenu.module.css";
 
-/**
- * Header account button: logged out → /login; logged in → a menu with the
- * customer's name, orders, saved car and "Гарах".
- */
+/** Толгойн бүртгэлийн товч: нэвтрээгүй → /login; нэвтэрсэн → нэр, захиалга, хадгалсан машин, «Гарах» бүхий цэс. */
 export function AccountMenu({ className = "" }: { className?: string }) {
   const router = useRouter();
   const me = useCustomer();
@@ -98,7 +95,7 @@ export function AccountMenu({ className = "" }: { className?: string }) {
   );
 }
 
-/** Loaded only while the menu is open, so closed menus cost no request. */
+/** Цэс нээлттэй үед л ачаална, тиймээс хаалттай цэс хүсэлт илгээхгүй. */
 function OrderCount() {
   const orders = useOrders();
   return <span className={styles.meta}>{orders?.length ? orders.length : ""}</span>;

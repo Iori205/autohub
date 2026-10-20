@@ -21,7 +21,7 @@ export function Sidebar({
   const pathname = usePathname();
   const db = useDb();
   const paid = db ? toProcess(db.orders).length : 0;
-  // Whether the rail is narrow is decided by CSS (breakpoint + state); this only picks the icon.
+  // Цэс нарийн эсэхийг CSS (breakpoint + төлөв) шийднэ; энд зөвхөн дүрсийг сонгоно.
   const ToggleIcon = collapsed && !open ? PanelLeftOpen : PanelLeftClose;
 
   return (

@@ -6,7 +6,7 @@ import { findOrder } from "@/lib/orders";
 import { checkPayment } from "@/lib/payments";
 import { adminOrderDto } from "@/lib/serialize";
 
-/** "QPay төлөв шалгах" on the order page: asks QPay (or the demo state) and returns the fresh order. */
+/** Захиалгын хуудасны «QPay төлөв шалгах»: QPay-ээс (эсвэл демо төлөвөөс) асууж шинэчилсэн захиалгыг буцаана. */
 export const POST = route<RouteContext<"/api/v1/admin/orders/[number]/check">>(async (req, { params }) => {
   await requireStaff(req);
   const number = (await params).number.toUpperCase();

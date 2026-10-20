@@ -6,7 +6,7 @@
   padding-top: 7px;
   padding-bottom: 7px;
 }
-/* category + type columns hidden (.hide-narrow) */
+/* ангилал, төрлийн багана нуугдана (.hide-narrow) */
 @media (max-width: 1279px) {
   .table {
     min-width: 820px;
@@ -50,7 +50,6 @@
   text-decoration: line-through;
 }
 
-/* edit */
 .drop {
   display: flex;
   flex-direction: column;

@@ -16,8 +16,7 @@
   :global(body:has([data-detail-bar])) .dock {
     bottom: 84px;
   }
-  /* cart → checkout → payment keep their main button near the bottom of the
-     screen; the chat button would sit on top of it */
+  /* сагс → checkout → төлбөрийн үндсэн товч дэлгэцийн доод талд байдаг тул чатын товч түүнийг дарна */
   :global(body:has([data-checkout-flow])) .dock {
     display: none;
   }

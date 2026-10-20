@@ -8,9 +8,8 @@ import { ApiError, api, setUnauthorizedHandler } from "./client";
 import { toSession } from "./map";
 
 /*
- * Staff auth against apps/service. POST /admin/auth/login sets the httpOnly
- * `autohub_admin_session` cookie (proxy.ts checks it on every request);
- * GET /admin/auth/me tells the client who is signed in.
+ * apps/service-ээр ажилтны нэвтрэлт. POST /admin/auth/login нь httpOnly `autohub_admin_session` күүки тавина
+ * (proxy.ts хүсэлт бүрт шалгана); GET /admin/auth/me хэн нэвтэрснийг хэлнэ.
  */
 
 let session: Session | null | undefined;
@@ -23,7 +22,7 @@ function set(s: Session | null) {
   notify();
 }
 
-/** Session expired / revoked: drop the cookie so proxy.ts stops treating us as signed in. */
+/** Сесс дууссан / цуцлагдсан: proxy.ts нэвтэрсэн гэж үзэхээ болихын тулд күүкиг устгана. */
 async function signedOut() {
   if (session === null) return;
   await api("/admin/auth/logout", { method: "POST" }).catch(() => undefined);
@@ -37,7 +36,7 @@ function check() {
     .then((s) => set(toSession(s)))
     .catch((e) => {
       if (e instanceof ApiError && e.status === 401) return signedOut();
-      // network trouble: retry on the next mount instead of signing out
+      // сүлжээний алдаа: гаргахын оронд дараагийн удаа дахин оролдоно
       checking = null;
     });
 }
@@ -61,7 +60,7 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-/** `undefined` while unknown (server render / first check), `null` when signed out. */
+/** Тодорхойгүй үед `undefined` (серверийн рендер / анхны шалгалт), гарсан үед `null`. */
 export function useSession() {
   const s = useSyncExternalStore<Session | null | undefined>(subscribe, () => session, () => undefined);
   useEffect(check, []);

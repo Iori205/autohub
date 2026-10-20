@@ -4,10 +4,8 @@ import { ownOrder } from "@/lib/own-order";
 import { demoExpire, demoFailNextChecks, demoMode, demoPaid, paymentState } from "@/lib/payments";
 
 /**
- * DEMO_MODE only (404 otherwise) — the storefront's test buttons:
- *   POST /payments/demo/paid     mark the order paid (stock is deducted like a real payment)
- *   POST /payments/demo/expired  end the 15-minute window now
- *   POST /payments/demo/error    the next payment check fails like a QPay outage
+ * Зөвхөн DEMO_MODE (бусад үед 404) — дэлгүүрийн туршилтын товчнууд:
+ * paid: төлөгдсөн болгоно (жинхэнэ төлбөр шиг нөөц хасагдана) · expired: 15 минутыг одоо дуусгана · error: дараагийн шалгалт QPay тасалдсан мэт унана
  */
 export const POST = route<RouteContext<"/api/v1/payments/demo/[action]">>(async (req, { params }) => {
   if (!demoMode()) throw notFound();

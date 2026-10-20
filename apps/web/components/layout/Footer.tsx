@@ -73,7 +73,7 @@ export function Footer() {
 
   return (
     <footer className={styles.footer}>
-      {/* mobile: accordion */}
+      {/* гар утас: accordion */}
       <div className={`only-mobile ${styles.mobile}`}>
         <div className={styles.brandCol}>
           <Logo size="sm" />
@@ -112,7 +112,7 @@ export function Footer() {
         </div>
       </div>
 
-      {/* desktop: columns */}
+      {/* desktop: баганууд */}
       <div className={`not-mobile container ${styles.cols}`}>
         <div className={styles.brandCol}>
           <Logo size="md" />

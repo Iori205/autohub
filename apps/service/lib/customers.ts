@@ -1,7 +1,7 @@
 import { prisma, type SavedCar, type User } from "@repo/db";
 import type { CustomerDto } from "@repo/types";
 
-/** Customer rows with order count, money spent (paid orders) and last order date. */
+/** Хэрэглэгчийн мөр: захиалгын тоо, зарцуулсан мөнгө (төлөгдсөн захиалга), сүүлийн захиалгын огноо. */
 export async function customerDtos(users: (User & { cars: SavedCar[] })[]): Promise<CustomerDto[]> {
   const ids = users.map((u) => u.id);
   const [counts, spent] = await Promise.all([

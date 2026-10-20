@@ -16,7 +16,7 @@ export const PATCH = route<Ctx>(async (req, { params }) => {
   return ok<StaffDto>(staffDto(await prisma.user.update({ where: { id }, data: { role } })));
 });
 
-/** Removes admin access (the account becomes unusable for the dashboard). */
+/** Админ эрхийг хасна (бүртгэлээр самбарт нэвтрэх боломжгүй болно). */
 export const DELETE = route<Ctx>(async (req, { params }) => {
   const me = await requireStaff(req, "ADMIN");
   const id = (await params).id;

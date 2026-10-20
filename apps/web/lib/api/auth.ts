@@ -7,13 +7,11 @@ import { api } from "./client";
 import { refreshOrders } from "./orders";
 
 /*
- * Customer account session (httpOnly cookie on apps/service). A guest is
- * reported as logged out; registering upgrades the guest in place and logging
- * in moves the guest's cart/wishlist/orders into the account, so after either
- * one the cart and orders are simply reloaded.
+ * Хэрэглэгчийн сесс (apps/service-ийн httpOnly күүки). Зочныг нэвтрээгүй гэж үзнэ; бүртгүүлэхэд зочин тэр чигтээ бүртгэл болж,
+ * нэвтрэхэд зочны сагс/хүслийн жагсаалт/захиалга бүртгэл рүү шилждэг тул аль алиных нь дараа сагс, захиалгыг дахин ачаална.
  */
 
-/** `undefined` while loading, `null` when logged out (or only a guest). */
+/** Ачаалж байхад `undefined`, нэвтрээгүй (эсвэл зөвхөн зочин) үед `null`. */
 type Me = CustomerSessionDto | null | undefined;
 
 let me: Me = undefined;
@@ -67,6 +65,6 @@ export async function logout() {
   await afterChange(null);
 }
 
-/** Only same-site paths are followed after login (no open redirects). */
+/** Нэвтэрсний дараа зөвхөн ижил сайтын зам руу шилжинэ (open redirect-гүй). */
 export const safeNext = (next: string | null | undefined) =>
   next && next.startsWith("/") && !next.startsWith("//") ? next : "/account/orders";

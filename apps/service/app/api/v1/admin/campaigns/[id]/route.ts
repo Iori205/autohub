@@ -6,7 +6,7 @@ import { campaignDto } from "@/lib/serialize";
 
 type Ctx = RouteContext<"/api/v1/admin/campaigns/[id]">;
 
-/** Send the full campaign (same body as create); simple toggles send { …, active }. */
+/** Аяныг бүтнээр нь илгээнэ (үүсгэхтэй ижил body); энгийн асаах/унтраахад { …, active }. */
 export const PUT = route<Ctx>(async (req, { params }) => {
   await requireStaff(req);
   const c = await body(req, campaignInput);

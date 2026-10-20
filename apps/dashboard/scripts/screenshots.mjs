@@ -1,20 +1,14 @@
 /*
- * Layout audit for the admin: full-page screenshots of every route/state at
- * 1440px (expanded sidebar) and 1024px (tablet, collapsed sidebar) in dark and
- * light, plus automated layout and data-consistency checks.
- *
- *   npm run screenshots:install -w dashboard   (once: Chromium into node_modules)
- *   npm run dash                               (in another terminal)
- *   npm run screenshots -w dashboard           → apps/dashboard/screenshots/
- *
- * BASE_URL overrides http://localhost:3001.
+ * Админы байрлалын аудит: route/төлөв бүрийн бүтэн хуудасны зураг (1440/1024px, харанхуй/цайвар) ба автомат шалгалт.
+ * npm run screenshots:install -w dashboard (нэг удаа) · npm run dash · npm run screenshots -w dashboard → apps/dashboard/screenshots/
+ * BASE_URL нь http://localhost:3001-ийг сольно.
  */
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-// Browsers live in node_modules (installed with PLAYWRIGHT_BROWSERS_PATH=0).
+// Хөтчүүд node_modules-д байна (PLAYWRIGHT_BROWSERS_PATH=0).
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- audit script only, not a build input
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= "0";
 const { chromium } = await import("playwright");
@@ -31,7 +25,7 @@ const VIEWPORTS = {
 };
 const THEMES = ["dark", "light"];
 
-/** Runs in the page; returns human-readable problems. */
+/** Хуудсанд ажиллаж, хүнд ойлгомжтой асуудлын жагсаалт буцаана. */
 function checks(opts) {
   const out = [];
   const vw = document.documentElement.clientWidth;
@@ -48,11 +42,11 @@ function checks(opts) {
   };
   const all = [...document.body.querySelectorAll("*")].filter((el) => !el.closest("script,style,svg,nextjs-portal") && vis(el));
 
-  // page-level horizontal scroll
+  // хуудасны хэвтээ гүйлгээ
   if (document.documentElement.scrollWidth > vw + 1)
     out.push(`horizontal page scroll: ${document.documentElement.scrollWidth}px in ${vw}px`);
 
-  // horizontal scroll inside cards (tables wider than their card)
+  // карт доторх хэвтээ гүйлгээ (картаасаа өргөн хүснэгт)
   for (const s of document.querySelectorAll(".tbl-scroll")) {
     if (!vis(s) || s.scrollWidth <= s.clientWidth + 1) continue;
     const card = s.closest(".panel");
@@ -60,7 +54,7 @@ function checks(opts) {
     out.push(`card scrolls sideways: "${title}" content ${s.scrollWidth}px in ${s.clientWidth}px`);
   }
 
-  // any other strip that scrolls sideways (tabs, segmented controls…) hides items
+  // хажуу тийш гүйдэг бусад мөр (таб, сегментэн сонголт…) зүйлсийг нууж байна
   for (const el of document.querySelectorAll("main *")) {
     if (el.closest(".tbl-scroll") || !vis(el)) continue;
     const o = getComputedStyle(el).overflowX;
@@ -68,7 +62,7 @@ function checks(opts) {
       out.push(`strip scrolls sideways (items hidden): ${name(el)} ${el.scrollWidth}px in ${el.clientWidth}px`);
   }
 
-  // text clipped with an ellipsis but no tooltip
+  // tooltip-гүйгээр «…»-ээр тасалсан текст
   for (const el of all) {
     const s = getComputedStyle(el);
     if (s.textOverflow !== "ellipsis" || el.scrollWidth <= el.clientWidth + 1) continue;
@@ -76,7 +70,7 @@ function checks(opts) {
     out.push(`truncated without tooltip: ${name(el)}`);
   }
 
-  // table header vs first row columns
+  // хүснэгтийн толгой ба эхний мөрийн баганууд
   for (const th of document.querySelectorAll(".tr.th")) {
     if (!vis(th)) continue;
     const row = [...th.parentElement.children].find((r) => r !== th && r.classList.contains("tr") && vis(r));
@@ -98,7 +92,7 @@ function checks(opts) {
     });
   }
 
-  // controls in one toolbar row: same vertical centre and height
+  // нэг хэрэгслийн мөрийн удирдлагууд: ижил босоо төв, өндөр
   const ROWS = ".toolbar, .bulkbar, .panel-head, [class*=pageActions], [class*=picker], [class*=qRow], [class*=free]";
   for (const row of document.querySelectorAll(ROWS)) {
     if (!vis(row)) continue;
@@ -124,7 +118,7 @@ function checks(opts) {
     }
   }
 
-  // anything floating (menus, dialogs, drawers, tooltips) must be on screen
+  // хөвөгч бүх зүйл (цэс, цонх, шургуулга, tooltip) дэлгэц дотор байх ёстой
   for (const el of document.querySelectorAll("[role=dialog],[role=alertdialog],[class*=dropdown],[class*=tip],[class*=drawer],[class*=toast]")) {
     if (!vis(el)) continue;
     const r = el.getBoundingClientRect();
@@ -132,7 +126,6 @@ function checks(opts) {
       out.push(`off screen: ${name(el)} (${Math.round(r.left)}..${Math.round(r.right)} of ${vw})`);
   }
 
-  // sidebar
   const side = document.querySelector("aside[aria-label]");
   if (side && opts.app) {
     const active = side.querySelectorAll("[aria-current=page]");
@@ -149,7 +142,7 @@ function checks(opts) {
     if (collapsed && shown) out.push(`sidebar: group label text visible while collapsed`);
   }
 
-  // spacing: page header position relative to the app header
+  // зай: апп толгойтой харьцуулсан хуудасны толгойн байрлал
   const head = document.querySelector("header");
   const ph = document.querySelector("main h1")?.closest("div")?.parentElement;
   if (head && ph && opts.app) {
@@ -167,8 +160,8 @@ const facts = {};
 
 async function audit(page, label, { full = true, app = true } = {}) {
   await page.waitForTimeout(400);
-  // Check first: a full-page capture briefly resizes the viewport, which would
-  // otherwise be measured (and photographed) mid-transition.
+  // Эхлээд шалгана: бүтэн хуудасны зураг авахад viewport түр өөрчлөгдөж,
+  // шилжилтийн дунд хэмжигдэх (зурагдах) аюултай.
   const res = await page.evaluate(checks, { app });
   await page.screenshot({ path: join(OUT, `${label}.png`), fullPage: full });
   const issues = res.filter((x) => !x.startsWith("@"));
@@ -197,10 +190,10 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
           localStorage.setItem("autohub:theme", t);
         }
       } catch {
-        /* storage blocked */
+        /* хадгалах сан хаалттай */
       }
     }, theme);
-    // No animations while auditing, so nothing is captured half-way.
+    // Аудитын үед анимацигүй, хагас шилжилт зурагдахгүй.
     await ctx.addInitScript(() => {
       const css = "*,*::before,*::after{transition:none!important;animation:none!important}";
       document.addEventListener("DOMContentLoaded", () => {
@@ -221,7 +214,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       }
     };
 
-    // ---------- login ----------
+    // ---------- нэвтрэх ----------
     await go(page, "/login");
     await page.fill("input[type=password]", "12");
     await page.fill("input[type=email]", "admin@");
@@ -233,7 +226,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
     await page.waitForURL(BASE + "/");
     await page.waitForLoadState("networkidle");
 
-    // ---------- dashboard ----------
+    // ---------- хянах самбар ----------
     await step("01-dashboard", async () => {
       await audit(page, L("01-dashboard"));
       facts.kpiToday ??= num(await text(page, "main .kpis > div:nth-child(1) [class*=kpiValue]"));
@@ -241,7 +234,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       facts.kpiPending ??= num(await text(page, "main .kpis > div:nth-child(3) [class*=kpiValue]"));
       facts.kpiLow ??= num(await text(page, "main .kpis > div:nth-child(4) [class*=kpiValue]"));
       facts.navBadge ??= num(await text(page, "aside [class*=navBadge], aside [class*=navDot]").catch(() => "0"));
-      // chart tooltip at both edges
+      // графикийн tooltip хоёр захад
       const chart = page.locator("div[class*='__chart']:not([class*='chartPad'])").first();
       const b = await chart.boundingBox();
       await chart.scrollIntoViewIfNeeded();
@@ -273,7 +266,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       await page.keyboard.press("Escape");
     });
 
-    // ---------- orders ----------
+    // ---------- захиалга ----------
     await step("02-orders", async () => {
       await go(page, "/orders");
       await audit(page, L("02-orders-all"));
@@ -307,7 +300,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       await audit(page, L("03d-order-expired"));
     });
 
-    // ---------- products ----------
+    // ---------- бараа ----------
     await step("04-products", async () => {
       await go(page, "/products");
       await audit(page, L("04-products"));
@@ -328,7 +321,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       await audit(page, L("05c-product-fitment"), { full: false });
     });
 
-    // ---------- catalog ----------
+    // ---------- каталог ----------
     await step("06-catalog", async () => {
       await go(page, "/catalog");
       await audit(page, L("06-catalog"));
@@ -377,7 +370,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
       await audit(page, L("11b-reports-week"));
       await page.getByRole("button", { name: "Өдрөөр" }).click();
       await audit(page, L("11c-reports-day"));
-      // newest row first; columns: period, orders, revenue, average
+      // хамгийн шинэ мөр эхэнд; баганууд: хугацаа, захиалга, орлого, дундаж
       const today = page.locator("main .panel", { hasText: "Борлуулалт хугацаагаар" }).locator(".tr:not(.th)").first();
       facts.reportToday ??= num((await today.innerText()).split("\n")[2] ?? "0");
     });
@@ -394,7 +387,7 @@ for (const [vpName, viewport] of Object.entries(VIEWPORTS)) {
 }
 await browser.close();
 
-// ---------- cross-page numbers ----------
+// ---------- хуудас хоорондын тоо ----------
 const consistency = [];
 const eq = (what, a, b) => a === b || consistency.push(`${what}: ${a} ≠ ${b}`);
 eq("sidebar Захиалгууд badge vs Төлөгдсөн tab", facts.navBadge, facts.paidTab);
@@ -403,7 +396,7 @@ eq("dashboard 'Дуусах дөхсөн бараа' vs Нөөц (бага + д�
 eq("dashboard today's revenue vs Тайлан → Өдрөөр (today)", facts.kpiToday, facts.reportToday);
 if (consistency.length) report.push({ label: "numbers across pages", issues: consistency });
 
-// spacing summary: every page should use the same top gap / header→content gap
+// зайн хураангуй: хуудас бүр ижил дээд зай / толгой→контент зайтай байх ёстой
 const gaps = {};
 for (const { label, m } of metrics) for (const x of m) (gaps[x] ??= []).push(label.replace(/^\w+-\w+-/, ""));
 const spacing = Object.entries(gaps).map(([k, v]) => `${k}: ${[...new Set(v)].length} states (e.g. ${[...new Set(v)].slice(0, 4).join(", ")})`);

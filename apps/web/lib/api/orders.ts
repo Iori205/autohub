@@ -7,9 +7,8 @@ import { ApiError, api } from "./client";
 import { toOrder } from "./map";
 
 /*
- * Orders from apps/service, for the session's guest/customer. A small cache
- * keeps the views in sync: the payment modal updates an order and the
- * payment, success and "Миний захиалгууд" pages re-render with it.
+ * Сессийн зочин/хэрэглэгчийн apps/service дахь захиалгууд. Жижиг кэш харагдацуудыг уялдуулна:
+ * төлбөрийн цонх захиалгыг шинэчлэхэд төлбөр, амжилттай, «Миний захиалгууд» хуудас дахин зурагдана.
  */
 
 interface State {
@@ -25,7 +24,7 @@ const subscribe = (l: () => void) => {
 };
 const SERVER: State = { list: null, byNo: {} };
 
-/** Put a fresh copy of an order into the cache. */
+/** Захиалгын шинэ хуулбарыг кэшид хийнэ. */
 export function storeOrder(dto: OrderDto): Order {
   const o = toOrder(dto);
   state = {
@@ -53,7 +52,7 @@ export async function refreshOrder(no: string): Promise<Order | null> {
   }
 }
 
-/** "Миний захиалгууд" — `null` while loading. */
+/** «Миний захиалгууд» — ачаалж байхад `null`. */
 export function useOrders() {
   const s = useSyncExternalStore(subscribe, () => state, () => SERVER);
   useEffect(() => {
@@ -65,7 +64,7 @@ export function useOrders() {
   return s.list;
 }
 
-/** One order: `undefined` while loading, `null` when it doesn't exist / isn't ours. */
+/** Нэг захиалга: ачаалж байхад `undefined`, байхгүй / бусдынх бол `null`. */
 export function useOrder(no: string | null | undefined) {
   const s = useSyncExternalStore(subscribe, () => state, () => SERVER);
   useEffect(() => {
@@ -77,10 +76,7 @@ export function useOrder(no: string | null | undefined) {
 
 const DELIVERY = { ship: "UB", pickup: "PICKUP" } as const;
 
-/**
- * Checkout: the server orders the session cart (the same lines the cart page
- * shows), prices it, creates a PENDING order and empties the cart.
- */
+/** Checkout: сервер сессийн сагсыг (сагсны хуудсан дээрх мөрүүдийг) үнэлж PENDING захиалга үүсгээд сагсыг хоосолно. */
 export async function createOrder(input: {
   form: CheckoutForm;
   delivery: DeliveryMethod;

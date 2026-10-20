@@ -1,4 +1,4 @@
-/** Shown while data loads (SSR / first paint, and later while the API responds). */
+/** Өгөгдөл ачаалж байх үед харагдана (SSR / анхны зураглал, дараа нь API хариулах хүртэл). */
 export function PageSkeleton({ kpis = true }: { kpis?: boolean }) {
   return (
     <div className="stack" aria-busy="true" aria-label="Ачаалж байна">

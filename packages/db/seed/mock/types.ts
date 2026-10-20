@@ -1,5 +1,5 @@
-// Copied from apps/dashboard (mock data the seed is built from). Not imported by any app.
-/* ---------- Storefront shapes (same as apps/web/lib/types.ts) ---------- */
+// Seed-ийн mock өгөгдөл (ямар ч апп импортлохгүй).
+/* ---------- Дэлгүүрийн бүтэц (apps/web/lib/types.ts-тэй ижил) ---------- */
 
 export type CategoryKey =
   | "engine"
@@ -45,7 +45,7 @@ export interface StoreProduct {
   images?: string[];
 }
 
-/* ---------- Admin domain ---------- */
+/* ---------- Админ домэйн ---------- */
 
 export type IconKey =
   | "cog"
@@ -64,7 +64,7 @@ export type IconKey =
   | "zap";
 
 export interface Category {
-  /** Also the storefront URL slug: /shop/{key} */
+  /** Дэлгүүрийн URL slug ч мөн: /shop/{key} */
   key: string;
   name: string;
   icon: IconKey;
@@ -87,9 +87,9 @@ export interface Spec {
 export interface Fitment {
   make: string;
   model: string;
-  /** "2015" or a range "2008–2021" */
+  /** «2015» эсвэл «2008–2021» хүрээ */
   years: string;
-  /** "" = every engine of that model */
+  /** "" = тухайн загварын бүх хөдөлгүүр */
   engine: string;
 }
 
@@ -98,12 +98,12 @@ export interface Product {
   name: string;
   brand: string;
   category: string;
-  /** First is the primary OEM number, the rest are cross-references */
+  /** Эхнийх нь үндсэн OEM дугаар, бусад нь хөндлөн лавлагаа */
   oem: string[];
   price: number;
   oldPrice: number | null;
   stock: number;
-  /** Low-stock threshold */
+  /** Нөөц багассаны босго */
   threshold: number;
   genuine: boolean;
   active: boolean;
@@ -157,7 +157,7 @@ export type DeliveryKind = "ub" | "pickup" | "country";
 
 export interface OrderItem {
   productId: number;
-  /** Snapshot at order time */
+  /** Захиалгын үеийн хуулбар */
   name: string;
   price: number;
   qty: number;
@@ -172,7 +172,7 @@ export interface OrderNote {
 
 export interface Order {
   id: string;
-  /** YYYY-MM-DD HH:mm (Ulaanbaatar local time) */
+  /** YYYY-MM-DD HH:mm (Улаанбаатарын цаг) */
   createdAt: string;
   customerId: string;
   items: OrderItem[];
@@ -182,11 +182,11 @@ export interface Order {
   delivery: DeliveryKind;
   address: string;
   status: OrderStatus;
-  /** Money was received (stays true after a refund-cancel) */
+  /** Мөнгө орсон (буцаалттай цуцлалтын дараа ч true хэвээр) */
   paid: boolean;
   invoiceId: string;
   paymentId: string | null;
-  /** When each status was reached, YYYY-MM-DD HH:mm */
+  /** Төлөв бүрт хүрсэн цаг, YYYY-MM-DD HH:mm */
   times: Partial<Record<OrderStatus, string>>;
   notes: OrderNote[];
 }
@@ -215,7 +215,7 @@ export interface Campaign {
   id: string;
   name: string;
   pct: number;
-  /** "Бүх бараа" | "Ангилал: …" | "Брэнд: …" */
+  /** «Бүх бараа» | «Ангилал: …» | «Брэнд: …» */
   target: string;
   from: string;
   to: string;

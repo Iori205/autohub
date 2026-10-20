@@ -7,8 +7,8 @@ import { moveStock } from "@/lib/orders";
 import { productDetail, productDetailInclude } from "@/lib/serialize";
 
 /**
- * Бараа list incl. hidden products; ?stockLevel=ok|low|out &active=0|1 plus the catalog filters.
- * Items are full details (description, specs, fitments) so the dashboard needs no second request.
+ * Нуусан бараатай жагсаалт; ?stockLevel=ok|low|out &active=0|1 болон каталогийн шүүлтүүр.
+ * Мөр бүр бүрэн мэдээлэлтэй (тайлбар, үзүүлэлт, тохирол) тул самбар дахин хүсэлт илгээх шаардлагагүй.
  */
 export const GET = route(async (req) => {
   await requireStaff(req);

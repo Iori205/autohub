@@ -5,7 +5,7 @@ import "./globals.css";
 import { Overlays } from "../components/ui/Overlays";
 import { APP_NAME, themeInitScript } from "../lib/site";
 
-// Same fonts as apps/web.
+// apps/web-тэй ижил фонт.
 const fira = Fira_Sans_Extra_Condensed({
   subsets: ["latin", "cyrillic"],
   weight: ["600", "700", "800"],
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="mn"
-      // Browser translation (Google Translate) rewrites text nodes and breaks React updates
+      // Хөтчийн орчуулга (Google Translate) текстийн зангилааг сольж React-ын шинэчлэлтийг эвддэг
       translate="no"
       className={`${fira.variable} ${manrope.variable} ${jetbrains.variable}`}
       suppressHydrationWarning

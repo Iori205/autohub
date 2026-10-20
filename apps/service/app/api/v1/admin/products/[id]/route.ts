@@ -14,7 +14,7 @@ export const GET = route<Ctx>(async (req, { params }) => {
   return ok<ProductDetailDto>(productDetail(p));
 });
 
-/** Partial update. `stock` is logged as a stock movement; `fitments` replaces the whole list. */
+/** Хэсэгчилсэн засвар. `stock` нөөцийн хөдөлгөөнд бүртгэгдэж, `fitments` жагсаалтыг бүхэлд нь солино. */
 export const PATCH = route<Ctx>(async (req, { params }) => {
   const staff = await requireStaff(req);
   const id = intParam((await params).id);
@@ -48,7 +48,7 @@ export const PATCH = route<Ctx>(async (req, { params }) => {
   return ok<ProductDetailDto>(productDetail(product));
 });
 
-/** Ordered products keep their order lines (productId becomes null). */
+/** Захиалагдсан барааны захиалгын мөр хадгалагдана (productId нь null болно). */
 export const DELETE = route<Ctx>(async (req, { params }) => {
   await requireStaff(req);
   await prisma.product.delete({ where: { id: intParam((await params).id) } });

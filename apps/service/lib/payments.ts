@@ -9,15 +9,14 @@ import { INVOICE_TTL_MS, markPaid } from "./orders";
 import { cancelInvoice, checkInvoice, createInvoice, type QPayUrl } from "./qpay";
 
 /*
- * Payments: one QPay invoice per payment attempt, valid for 15 minutes.
- * The order is marked paid only after QPay confirms it (payment/check) —
- * the callback is a hint to check, never trusted on its own.
+ * Төлбөр: оролдлого бүрт 15 минут хүчинтэй нэг QPay нэхэмжлэх. Захиалгыг зөвхөн QPay баталгаажуулсны (payment/check) дараа
+ * төлөгдсөн гэж тэмдэглэнэ — callback бол шалгах дохио төдий, дангаараа итгэхгүй.
  */
 
 export const demoMode = () => process.env.DEMO_MODE === "true";
-const GRACE_MS = 2 * 60e3; // late payments are still caught by the check
+const GRACE_MS = 2 * 60e3; // хоцорсон төлбөрийг шалгалт барьсаар байна
 
-/* ---------- callback URL signing ---------- */
+/* ---------- callback URL-ийн гарын үсэг ---------- */
 
 export function callbackSig(number: string) {
   return createHmac("sha256", env.authSecret).update(`qpay:${number}`).digest("hex").slice(0, 32);
@@ -34,7 +33,7 @@ export function callbackUrl(number: string) {
   return `${env.publicApiUrl}/api/v1/payments/qpay/callback?order=${encodeURIComponent(number)}&sig=${callbackSig(number)}`;
 }
 
-/* ---------- DTOs ---------- */
+/* ---------- DTO ---------- */
 
 export function paymentState(o: Order): PaymentStateDto {
   const left = o.paymentStatus === "PENDING" && o.invoiceExpiresAt ? Math.max(0, Math.round((o.invoiceExpiresAt.getTime() - Date.now()) / 1000)) : 0;
@@ -61,7 +60,7 @@ const invoiceDto = (inv: PaymentInvoice, number: string): QPayInvoiceDto => ({
   demo: inv.demo,
 });
 
-/* ---------- DEMO_MODE invoice (no QPay call) ---------- */
+/* ---------- DEMO_MODE нэхэмжлэх (QPay дуудахгүй) ---------- */
 
 const DEMO_BANKS: [string, string][] = [
   ["Хаан банк", "khanbank"],
@@ -97,18 +96,17 @@ function demoInvoice(o: Order) {
   return { id, qrText, qrImage: qrDataUrl(qrText), shortUrl: null, urls };
 }
 
-/** DEMO_MODE: the next N checks for an order fail like a QPay outage. */
+/** DEMO_MODE: захиалгын дараагийн N шалгалт QPay тасалдсан мэт унана. */
 const demoFailures = new Map<string, number>();
 export function demoFailNextChecks(number: string, n = 1) {
   demoFailures.set(number, n);
 }
 
-/* ---------- invoices ---------- */
+/* ---------- нэхэмжлэх ---------- */
 
 /**
- * Invoice for the payment screen: the current one while it's still valid,
- * otherwise a fresh 15-minute invoice (this also reopens an EXPIRED order —
- * "Шинэ нэхэмжлэх").
+ * Төлбөрийн дэлгэцийн нэхэмжлэх: хүчинтэй бол одоогийнх, үгүй бол шинэ 15 минутынх
+ * (энэ нь EXPIRED захиалгыг ч дахин нээнэ — «Шинэ нэхэмжлэх»).
  */
 export async function openInvoice(o: Order): Promise<QPayInvoiceDto> {
   if (o.paymentStatus === "PAID") throw conflict("Захиалга аль хэдийн төлөгдсөн байна");
@@ -120,7 +118,7 @@ export async function openInvoice(o: Order): Promise<QPayInvoiceDto> {
     if (current?.status === "OPEN" && current.expiresAt.getTime() - 30_000 > now) return invoiceDto(current, o.number);
   }
 
-  // retire the old invoice before issuing a new one
+  // шинийг үүсгэхээс өмнө хуучин нэхэмжлэхийг хаана
   if (o.qpayInvoiceId) await retireInvoice(o.qpayInvoiceId, "EXPIRED");
 
   const created = demoMode()
@@ -162,7 +160,7 @@ export async function openInvoice(o: Order): Promise<QPayInvoiceDto> {
   return invoiceDto(inv, o.number);
 }
 
-/** Close an invoice locally and (best effort) at QPay. */
+/** Нэхэмжлэхийг локалд болон (боломжоороо) QPay дээр хаана. */
 export async function retireInvoice(invoiceId: string, status: "EXPIRED" | "CANCELLED") {
   const inv = await prisma.paymentInvoice.findUnique({ where: { id: invoiceId } });
   if (!inv || inv.status !== "OPEN") return;
@@ -174,7 +172,7 @@ async function reload(o: Order) {
   return prisma.order.findUniqueOrThrow({ where: { id: o.id } });
 }
 
-/** PENDING → EXPIRED once the invoice window has passed (no-op otherwise). */
+/** Нэхэмжлэхийн хугацаа өнгөрсөн бол PENDING → EXPIRED (бусад үед юу ч хийхгүй). */
 async function expire(o: Order) {
   const res = await prisma.order.updateMany({
     where: { id: o.id, paymentStatus: "PENDING" },
@@ -184,9 +182,8 @@ async function expire(o: Order) {
 }
 
 /**
- * Ask QPay whether the current invoice is paid. Marks the order PAID (and
- * deducts stock) when the paid amount covers the total; expires it when the
- * 15 minutes are over. Used by polling, the callback and the sweep.
+ * Одоогийн нэхэмжлэх төлөгдсөн эсэхийг QPay-ээс асууна. Төлсөн дүн нийт дүнг хангавал PAID (нөөц хасагдана), 15 минут өнгөрсөн бол EXPIRED.
+ * Polling, callback, цэвэрлэгээ гурвуулаа ашиглана.
  */
 export async function checkPayment(o: Order, { grace = 0 } = {}): Promise<PaymentStateDto> {
   if (o.paymentStatus === "PAID" || o.paymentStatus === "CANCELLED") return paymentState(o);
@@ -214,10 +211,10 @@ export async function checkPayment(o: Order, { grace = 0 } = {}): Promise<Paymen
   return paymentState(await reload(o));
 }
 
-/** Customer pressed "Төлбөрийг цуцлах": the invoice is cancelled, the order stays and can be paid later. */
+/** Хэрэглэгч «Төлбөрийг цуцлах» дарсан: нэхэмжлэх цуцлагдаж, захиалга үлдэн дараа төлж болно. */
 export async function cancelPayment(o: Order): Promise<PaymentStateDto> {
   if (o.paymentStatus !== "PENDING") return paymentState(o);
-  // a payment that went through just before cancelling still counts
+  // цуцлахын өмнөхөн орсон төлбөр тооцогдсоор байна
   const state = await checkPayment(o).catch(() => null);
   if (state?.paymentStatus === "PAID") return state;
   await prisma.order.updateMany({ where: { id: o.id, paymentStatus: "PENDING" }, data: { paymentStatus: "EXPIRED", expiredAt: new Date() } });
@@ -225,7 +222,7 @@ export async function cancelPayment(o: Order): Promise<PaymentStateDto> {
   return paymentState(await reload(o));
 }
 
-/* ---------- DEMO_MODE actions ---------- */
+/* ---------- DEMO_MODE үйлдлүүд ---------- */
 
 export async function demoPaid(o: Order) {
   if (o.paymentStatus === "PAID") return paymentState(o);
@@ -243,17 +240,13 @@ export async function demoExpire(o: Order) {
   return paymentState(await reload(o));
 }
 
-/* ---------- 15-minute expiry sweep ---------- */
+/* ---------- 15 минутын хугацааны цэвэрлэгээ ---------- */
 
 let lastSweep = 0;
 
 /**
- * Expires PENDING orders whose invoice ran out (plus a short grace for late
- * QPay confirmations). Called from order reads, so no cron is needed. The
- * 30 s throttle is per server instance — on serverless several instances may
- * sweep at once, which is harmless (expiring is conditional on PENDING). A
- * small batch checked in parallel keeps the request well inside function
- * time limits (QPay calls time out after 10 s); the rest go next time.
+ * Нэхэмжлэхийн хугацаа дууссан PENDING захиалгыг (хоцорсон QPay баталгаажуулалтад бага зэрэг хүлээлттэй) EXPIRED болгоно; захиалга уншихад дуудагддаг тул cron хэрэггүй.
+ * 30 сек-ийн хязгаар instance бүрт тусдаа (давхар цэвэрлэгээ хоргүй); жижиг багцыг зэрэг шалгадаг тул функцийн хугацааны хязгаарт багтана.
  */
 export async function sweepExpired(force = false) {
   const now = Date.now();
@@ -265,7 +258,7 @@ export async function sweepExpired(force = false) {
     orderBy: { invoiceExpiresAt: "asc" },
     take: 10,
   });
-  // real invoices get one last check, so a late payment isn't lost
+  // жинхэнэ нэхэмжлэхийг сүүлчийн удаа шалгадаг тул хоцорсон төлбөр алдагдахгүй
   await Promise.allSettled(stale.map((o) => checkPayment(o, { grace: GRACE_MS }).catch(() => expire(o))));
   void pruneThrottle().catch(() => {});
 }

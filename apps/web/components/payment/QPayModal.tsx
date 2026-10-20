@@ -28,8 +28,8 @@ const POLL_MS = 5000;
 const TTL_MS = 15 * 60e3;
 
 /**
- * QPay invoice modal. Opens (or reuses) an invoice for `orderNo`, shows the QR
- * + bank deep links, polls for payment, and reports success via `onPaid`.
+ * QPay нэхэмжлэхийн цонх: `orderNo`-д нэхэмжлэх нээж (эсвэл дахин ашиглаж) QR, банкны холбоос харуулж,
+ * төлбөрийг polling-оор хүлээгээд амжилтыг `onPaid`-ээр мэдэгдэнэ.
  */
 export function QPayModal({
   orderNo,
@@ -47,13 +47,13 @@ export function QPayModal({
   const [invoice, setInvoice] = useState<QPayInvoiceDto | null>(null);
   const opened = useRef(false);
 
-  /** A failed QPay/network call shows the "Сүлжээний алдаа" screen. */
+  /** QPay/сүлжээний дуудлага амжилтгүй бол «Сүлжээний алдаа» дэлгэц гарна. */
   const failed = useCallback((e: unknown) => {
     if (e instanceof ApiError && e.status >= 400 && e.status < 500 && e.code !== "NOT_FOUND") showToast(e.message);
     else setPhase("neterr");
   }, []);
 
-  // Issue / reuse the invoice once on open.
+  // Нээгдэхэд нэхэмжлэхийг нэг удаа үүсгэнэ / дахин ашиглана.
   useEffect(() => {
     if (opened.current) return;
     opened.current = true;
@@ -65,14 +65,14 @@ export function QPayModal({
       .catch(failed);
   }, [orderNo, failed]);
 
-  // Paid (by poll, manual check or demo) → hand over to the success screen.
+  // Төлөгдсөн (polling, гараар шалгах, демо) → амжилтын дэлгэц рүү.
   useEffect(() => {
     if (order && order.payStatus === "paid") onPaid(order.no);
   }, [order, onPaid]);
 
   const waiting = phase === "waiting" || phase === "checking";
 
-  // Background polling while waiting (the server / QPay callback flips the status).
+  // Хүлээх зуур арын polling (төлөвийг сервер / QPay callback өөрчилнө).
   useEffect(() => {
     if (!waiting || !order) return;
     const t = setInterval(() => {
@@ -83,12 +83,12 @@ export function QPayModal({
     return () => clearInterval(t);
   }, [waiting, orderNo, order, failed]);
 
-  // The server expires the invoice after 15 minutes; show it as soon as it does.
+  // Сервер 15 минутын дараа нэхэмжлэхийг дуусгадаг; дуусмагц харуулна.
   useEffect(() => {
     if (waiting && order?.payStatus === "expired") setPhase("expired");
   }, [waiting, order?.payStatus]);
 
-  // Countdown reached zero: ask the server (it confirms a last-second payment or expires the invoice).
+  // Тоолуур тэг болсон: серверээс асууна (сүүлийн секундийн төлбөрийг баталгаажуулах эсвэл нэхэмжлэхийг дуусгана).
   const expiryChecked = useRef<string | null>(null);
   useEffect(() => {
     if (!waiting || !order || order.payStatus !== "pending" || now <= order.invoice.expires) return;
@@ -97,7 +97,7 @@ export function QPayModal({
     void checkPayment(order.no).catch(failed);
   }, [now, waiting, order, failed]);
 
-  // Esc closes; lock page scroll.
+  // Esc хаана; хуудасны гүйлгээг түгжинэ.
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -159,7 +159,7 @@ export function QPayModal({
         .then(() => setPhase("expired"))
         .catch(failed);
     },
-    // the next server check fails like a QPay outage
+    // дараагийн серверийн шалгалт QPay тасалдсан мэт унана
     onDemoNet: () => {
       demoAction(order.no, "error")
         .then(() => checkPayment(order.no))
@@ -273,9 +273,9 @@ export function QPayModal({
 interface WaitProps {
   order: Order;
   qrSrc: string;
-  /** bank / wallet deep links from the QPay invoice */
+  /** QPay нэхэмжлэхийн банк / хэтэвчний холбоосууд */
   banks: QPayInvoiceDto["urls"];
-  /** DEMO_MODE invoice → show the test buttons */
+  /** DEMO_MODE нэхэмжлэх → туршилтын товчнуудыг харуулна */
   demo: boolean;
   checking: boolean;
   remaining: number;
@@ -389,7 +389,7 @@ function Actions({ onCheck, onCancel }: Pick<WaitProps, "onCheck" | "onCancel">)
   );
 }
 
-/** Prototype-only test controls; remove once the real QPay callback is wired. */
+/** DEMO_MODE-ийн туршилтын товчнууд (жинхэнэ QPay нэхэмжлэхэд харагдахгүй). */
 function DemoBox({ onDemoPaid, onDemoExpire, onDemoNet }: Pick<WaitProps, "onDemoPaid" | "onDemoExpire" | "onDemoNet">) {
   return (
     <div className={styles.demo}>

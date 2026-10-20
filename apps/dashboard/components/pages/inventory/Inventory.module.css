@@ -6,7 +6,7 @@
   padding-top: 7px;
   padding-bottom: 7px;
 }
-/* stock value column hidden (.hide-narrow); the total is in the stat tiles */
+/* нөөцийн үнийн дүнгийн багана нуугдана (.hide-narrow); нийт дүн статистик хавтанд бий */
 @media (max-width: 1279px) {
   .table {
     min-width: 780px;

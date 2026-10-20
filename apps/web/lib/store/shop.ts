@@ -7,10 +7,8 @@ import type { Car, CartLine, DeliveryMethod, Product } from "../types";
 import { createStore } from "./create-store";
 
 /*
- * Storefront session state. Cart, wishlist and the selected car live in the
- * database (apps/service, per guest/customer session); updates are applied
- * optimistically and then replaced by the server's answer. Only the compare
- * list and the delivery choice are browser preferences.
+ * Дэлгүүрийн сессийн төлөв. Сагс, хүслийн жагсаалт, сонгосон машин өгөгдлийн санд (apps/service, зочин/хэрэглэгчийн сесс бүрт);
+ * өөрчлөлтийг урьдчилан харуулаад серверийн хариугаар солино. Зөвхөн харьцуулах жагсаалт, хүргэлтийн сонголт хөтөчид хадгалагдана.
  */
 
 interface ShopState {
@@ -19,10 +17,10 @@ interface ShopState {
   compare: number[];
   car: Car | null;
   delivery: DeliveryMethod;
-  /** product id that was just added — drives the "Сагсанд нэмэгдлээ" label */
+  /** дөнгөж нэмсэн барааны id — «Сагсанд нэмэгдлээ» шошгыг удирдана */
   added: number | null;
   toast: string | null;
-  /** server state has been loaded */
+  /** серверийн төлөв ачаалагдсан */
   synced: boolean;
 }
 
@@ -31,14 +29,14 @@ const store = createStore<ShopState>(
   { key: "autohub:prefs:v1", persist: ({ compare, delivery }) => ({ compare, delivery }) },
 );
 
-const LEGACY_KEY = "autohub:shop:v1"; // cart/wish/car from before the API
+const LEGACY_KEY = "autohub:shop:v1"; // хөтөчид хадгалсан хуучин сагс/хүсэл/машин
 
 const fromCarDto = (c: SavedCarDto | null): Car | null =>
   c ? { make: c.make, model: c.model, year: String(c.year), engine: c.engine } : null;
 
 let loading: Promise<void> | null = null;
 
-/** Load cart, wishlist and car from the API (once per page load). */
+/** Сагс, хүслийн жагсаалт, машиныг API-аас ачаална (хуудас ачаалах бүрт нэг удаа). */
 export function syncShop(force = false) {
   if (typeof window === "undefined") return Promise.resolve();
   if (loading && !force) return loading;
@@ -59,13 +57,13 @@ export function syncShop(force = false) {
   return loading;
 }
 
-/** One-time move of a cart/wishlist/car kept in this browser before the API existed. */
+/** Хөтөчид хадгалсан хуучин сагс/хүслийн жагсаалт/машиныг API руу нэг удаа шилжүүлнэ. */
 async function importLegacy(cart: CartDto, wish: ProductSummaryDto[], car: SavedCarDto | null) {
   let raw: string | null = null;
   try {
     raw = localStorage.getItem(LEGACY_KEY);
   } catch {
-    /* storage blocked */
+    /* хадгалах сан хаалттай */
   }
   if (!raw) return { cart, wish, car };
   try {
@@ -90,7 +88,7 @@ export function useShop() {
   return s;
 }
 
-/** Run an API call; on failure show the message and reload the server state. */
+/** API дуудна; амжилтгүй бол мессеж харуулж серверийн төлөвийг дахин ачаална. */
 async function mutate(run: () => Promise<void>) {
   try {
     await run();
@@ -135,7 +133,7 @@ export function removeLine(id: number) {
   });
 }
 
-/** After checkout the server has already emptied the cart; this updates the view. */
+/** Checkout-ын дараа сервер сагсыг аль хэдийн хоосолсон; энэ нь зөвхөн харагдацыг шинэчилнэ. */
 export const clearCart = () => store.set({ cart: [] });
 
 export function toggleWish(id: number) {

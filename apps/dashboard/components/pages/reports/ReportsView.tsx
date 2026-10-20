@@ -21,7 +21,7 @@ const RANGE_TEXT: Record<Period, string> = {
 export function ReportsView() {
   const [period, setPeriod] = useState<Period>("month");
   const report = useReport(period);
-  // the previous period's figures stay up until the new ones arrive
+  // шинэ үзүүлэлт иртэл өмнөх үеийн тоо харагдсаар байна
   if (!report) return <PageSkeleton />;
   return <Reports report={report} period={period} setPeriod={setPeriod} />;
 }

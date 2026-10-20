@@ -2,9 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { env } from "./lib/env";
 
 /**
- * CORS for browsers that call the API directly (local dev without the proxy).
- * In production the frontends proxy /api/* from their own origin, so no CORS
- * is involved; only exact origins in CORS_ORIGINS ever get credentialed access.
+ * API-г шууд дуудах хөтчид зориулсан CORS (проксигүй локал хөгжүүлэлт). Production-д frontend /api/*-ийг өөрийн origin-оос прокси хийдэг тул
+ * CORS оролцохгүй; зөвхөн CORS_ORIGINS-д яг заасан origin credentials-тэй хандана.
  */
 const origins = () => env.corsOrigins;
 

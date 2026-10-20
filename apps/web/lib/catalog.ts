@@ -6,7 +6,7 @@ import type {
   SortKey,
 } from "./types";
 
-/** Pure catalog helpers — usable on server (API) and client alike. */
+/** Цэвэр каталогийн туслахууд — сервер (API) ба клиент хоёуланд ашиглаж болно. */
 
 export function fitStatus(p: Product, car: Car | null): FitStatus | null {
   if (!car) return null;
@@ -25,7 +25,7 @@ export function matchesFilter(
   if (f.q) {
     const q = f.q.toLowerCase();
     const hay = [p.name, p.oem, p.brand, ...p.crossRefs, ...p.fits];
-    // OEM numbers match with spaces/dashes/dots ignored, like the API's search
+    // OEM дугаарыг API-ийн хайлт шиг зай/зураас/цэгийг үл тоон тааруулна
     const oq = normOem(f.q);
     const oemHit = oq.length >= 3 && [p.oem, ...p.crossRefs].some((o) => normOem(o).includes(oq));
     if (!oemHit && !hay.some((t) => t.toLowerCase().includes(q))) return false;

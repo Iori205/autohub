@@ -1,14 +1,10 @@
 /*
- * AuToHub design tokens — shared across apps (web, dashboard).
- * Dark is the default theme; light is opt-in via <html data-theme="light">.
- *
- * Breakpoints (CSS can't use variables in media queries, keep these in sync):
- *   mobile  < 820px
- *   wide   >= 1100px
+ * AuToHub дизайн токенууд — web, dashboard хуваалцана. Анхдагч нь харанхуй; цайвар нь <html data-theme="light">.
+ * Breakpoint (media query-д хувьсагч ашиглаж болдоггүй тул гараар уялдуулна): гар утас < 820px, өргөн >= 1100px
  */
 
 :root {
-  /* Brand — orange accent (design option #FF8A00). Text on accent is dark. */
+  /* Брэнд — улбар шар (дизайны хувилбар #FF8A00). Улбар шар дээрх текст бараан. */
   --accent: #ff8a00;
   --accent-hover: #ff9d2b;
   --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
@@ -16,7 +12,7 @@
   --accent-ring: color-mix(in oklab, var(--accent) 45%, transparent);
   --on-accent: #0b0b0d;
 
-  /* Surfaces & text — dark (default) */
+  /* Гадаргуу ба текст — харанхуй (анхдагч) */
   --bg: #050505;
   --bg2: #0b0b0d;
   --card: #111114;
@@ -29,17 +25,17 @@
   --ph2: #16161b;
   --hdr: rgba(5, 5, 5, 0.86);
 
-  /* Status — red is reserved for errors / "тохирохгүй", never the brand */
+  /* Төлөв — улаан нь зөвхөн алдаа / «тохирохгүй»-д, брэндэд хэзээ ч биш */
   --ok: oklch(0.74 0.17 150);
   --warn: oklch(0.78 0.15 70);
   --danger: oklch(0.68 0.2 28);
 
-  /* Typography — the --font-* vars come from next/font in each app */
+  /* Үсгийн хэлбэр — --font-* хувьсагчууд апп бүрийн next/font-оос ирнэ */
   --font-display: var(--font-fira), "Fira Sans Extra Condensed", sans-serif;
   --font-body: var(--font-manrope), Manrope, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
 
-  /* Radius */
+  /* Радиус */
   --r-xs: 6px;
   --r-sm: 8px;
   --r-md: 10px;
@@ -47,7 +43,7 @@
   --r-xl: 16px;
   --r-2xl: 18px;
 
-  /* Layout */
+  /* Байрлал */
   --container: 1320px;
   --gutter: clamp(14px, 3vw, 28px);
 

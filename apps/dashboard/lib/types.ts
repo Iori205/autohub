@@ -1,4 +1,4 @@
-/* ---------- Admin domain ---------- */
+/* ---------- Админ домэйн ---------- */
 
 export type IconKey =
   | "cog"
@@ -18,7 +18,7 @@ export type IconKey =
 
 export interface Category {
   id: string;
-  /** Also the storefront URL slug: /shop/{key} */
+  /** Дэлгүүрийн URL slug ч мөн: /shop/{key} */
   key: string;
   name: string;
   icon: IconKey;
@@ -41,11 +41,11 @@ export interface Spec {
 export interface Fitment {
   make: string;
   model: string;
-  /** "2015" or a range "2008–2021" */
+  /** «2015» эсвэл «2008–2021» хүрээ */
   years: string;
-  /** "" = every engine of that model */
+  /** "" = тухайн загварын бүх хөдөлгүүр */
   engine: string;
-  /** set for fitments loaded from the API (picker rows get it on save) */
+  /** API-аас ачаалсан тохирлуудад байна (сонгогчийн мөрд хадгалахад олгогдоно) */
   vehicleId?: string;
   yearFrom?: number;
   yearTo?: number;
@@ -56,12 +56,12 @@ export interface Product {
   name: string;
   brand: string;
   category: string;
-  /** First is the primary OEM number, the rest are cross-references */
+  /** Эхнийх нь үндсэн OEM дугаар, бусад нь хөндлөн лавлагаа */
   oem: string[];
   price: number;
   oldPrice: number | null;
   stock: number;
-  /** Low-stock threshold */
+  /** Нөөц багассаны босго */
   threshold: number;
   genuine: boolean;
   active: boolean;
@@ -82,7 +82,7 @@ export interface Vehicle {
   yearTo: number;
   engine: string;
   fuel: Fuel;
-  /** products that list this vehicle as a fitment */
+  /** энэ машиныг тохирол болгон заасан бараанууд */
   productCount: number;
 }
 
@@ -95,7 +95,7 @@ export interface CustomerCar {
 
 export interface Customer {
   id: string;
-  /** checked out without an account */
+  /** бүртгэлгүйгээр захиалсан */
   isGuest: boolean;
   name: string;
   phone: string;
@@ -118,9 +118,9 @@ export type OrderStatus =
 export type DeliveryKind = "ub" | "pickup" | "country";
 
 export interface OrderItem {
-  /** 0 when the product was deleted later */
+  /** дараа нь бараа устгагдсан бол 0 */
   productId: number;
-  /** Snapshot at order time */
+  /** Захиалгын үеийн хуулбар */
   name: string;
   oem: string | null;
   price: number;
@@ -136,14 +136,14 @@ export interface OrderNote {
 
 export interface Order {
   id: string;
-  /** YYYY-MM-DD HH:mm (Ulaanbaatar local time) */
+  /** YYYY-MM-DD HH:mm (Улаанбаатарын цаг) */
   createdAt: string;
   customerId: string;
-  /** contact details as entered at checkout */
+  /** захиалгад бичсэн холбоо барих мэдээлэл */
   customer: { name: string; phone: string; email: string | null };
-  /** car chosen on the storefront ("Toyota Prius 2014 · 2ZR-FXE") */
+  /** дэлгүүрт сонгосон машин («Toyota Prius 2014 · 2ZR-FXE») */
   car: string | null;
-  /** customer's note at checkout */
+  /** захиалга өгөхдөө бичсэн тэмдэглэл */
   note: string | null;
   items: OrderItem[];
   subtotal: number;
@@ -152,12 +152,12 @@ export interface Order {
   delivery: DeliveryKind;
   address: string;
   status: OrderStatus;
-  /** Money was received (stays true after a refund-cancel) */
+  /** Мөнгө орсон (буцаалттай цуцлалтын дараа ч true хэвээр) */
   paid: boolean;
   invoiceId: string | null;
   paymentId: string | null;
   cancelReason: string | null;
-  /** When each status was reached, YYYY-MM-DD HH:mm */
+  /** Төлөв бүрт хүрсэн цаг, YYYY-MM-DD HH:mm */
   times: Partial<Record<OrderStatus, string>>;
   notes: OrderNote[];
 }
@@ -176,11 +176,11 @@ export interface StockMove {
 
 export interface Banner {
   id: string;
-  /** small label above the title on the home hero ("Хямдрал −20%") */
+  /** нүүрний баннерын гарчгийн дээрх жижиг шошго («Хямдрал −20%») */
   eyebrow: string;
   title: string;
   sub: string;
-  /** button text on the hero */
+  /** баннерын товчны текст */
   cta: string;
   link: string;
   order: number;
@@ -191,7 +191,7 @@ export interface Campaign {
   id: string;
   name: string;
   pct: number;
-  /** "Бүх бараа" | "Ангилал: …" | "Брэнд: …" */
+  /** «Бүх бараа» | «Ангилал: …» | «Брэнд: …» */
   target: string;
   categoryId: string | null;
   brandId: string | null;
@@ -216,7 +216,7 @@ export interface StoreSettings {
   hours: string;
 }
 
-/** Read-only: merchant credentials, environment and DEMO_MODE come from the service's .env */
+/** Зөвхөн унших: merchant мэдээлэл, орчин, DEMO_MODE сервисийн .env-ээс ирнэ */
 export interface QPaySettings {
   invoiceCode: string;
   env: "sandbox" | "production";

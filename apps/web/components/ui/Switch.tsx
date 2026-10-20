@@ -1,6 +1,6 @@
 import styles from "./Switch.module.css";
 
-/** Visual toggle track; the clickable row around it owns the handler. */
+/** Зөвхөн харагдах сэлгүүр; дарах үйлдлийг эргэн тойрны мөр хариуцна. */
 export function Switch({
   on,
   tone = "accent",

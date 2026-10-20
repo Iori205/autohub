@@ -4,8 +4,8 @@ import { ApiError, api } from "./client";
 import { toCategory, toProduct, toVehicleModels } from "./map";
 
 /*
- * Catalog data access (server components). Everything comes from apps/service;
- * nothing is cached, so price/stock edits in the dashboard show immediately.
+ * Каталогийн өгөгдөл (server component). Бүгд apps/service-ээс ирж, кэшлэгддэггүй тул
+ * самбар дахь үнэ/нөөцийн өөрчлөлт шууд харагдана.
  */
 
 export async function getCategories(): Promise<Category[]> {
@@ -24,7 +24,7 @@ export async function getVehicles(): Promise<VehicleModel[]> {
   return toVehicleModels(await api<VehicleDto[]>("/vehicles"));
 }
 
-/** All active products in "Санал болгох" order (the shop filters them in the browser). */
+/** Бүх идэвхтэй бараа «Санал болгох» дарааллаар (дэлгүүр хөтөч дээр шүүнэ). */
 export async function getProducts(): Promise<Product[]> {
   const page = await api<Page<ProductSummaryDto>>("/catalog/products?pageSize=100");
   return page.items.map(toProduct);
@@ -40,13 +40,13 @@ export async function getProduct(id: number): Promise<Product | null> {
   }
 }
 
-/** "Онцлох бараа": the first eight in recommended order. */
+/** «Онцлох бараа»: санал болгох дарааллын эхний найм. */
 export async function getFeaturedProducts(): Promise<Product[]> {
   const page = await api<Page<ProductSummaryDto>>("/catalog/products?pageSize=8");
   return page.items.map(toProduct);
 }
 
-/** "Хамт авдаг бараа" — parts sharing a vehicle first, then anything else. */
+/** «Хамт авдаг бараа» — ижил машинд тохирох сэлбэг эхэнд, дараа нь бусад. */
 export async function getRelatedProducts(id: number, limit = 4): Promise<Product[]> {
   const all = await getProducts();
   const base = all.find((p) => p.id === id);

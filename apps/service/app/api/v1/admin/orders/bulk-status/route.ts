@@ -3,7 +3,7 @@ import { requireStaff } from "@/lib/auth";
 import { ApiError, body, ok, route } from "@/lib/http";
 import { findOrder, setStatus } from "@/lib/orders";
 
-/** Apply one status to many orders; returns which ones failed and why. */
+/** Олон захиалгад нэг төлөв оноож, амжилтгүйг нь шалтгаантай буцаана. */
 export const POST = route(async (req) => {
   const staff = await requireStaff(req);
   const { numbers, status } = await body(req, orderBulkStatusInput);

@@ -1,13 +1,7 @@
 /*
- * Seeds the database from the existing mock data (apps/web catalog + the
- * dashboard's order history), so both apps show the same items after the
- * switch to the API. Safe to re-run: it clears every table first.
- *
- *   npm run db:seed            (from the repo root) — history as of the mock "today"
- *   npm run db:demo            same data moved to the present: the newest order is
- *                              "now", today's KPIs and charts are filled, and the
- *                              pending orders are a few minutes old (their 15-minute
- *                              QPay invoices are still open). Run it right before a demo.
+ * Mock өгөгдлөөс (дэлгүүрийн каталог + захиалгын түүх) өгөгдлийн санг дүүргэнэ; эхлээд бүх хүснэгтийг цэвэрлэдэг тул дахин ажиллуулж болно.
+ * npm run db:seed — mock «өнөөдөр»-ийн байдлаар. npm run db:demo — ижил өгөгдлийг одоо руу шилжүүлнэ:
+ * хамгийн шинэ захиалга «одоо», өнөөдрийн KPI дүүрэн, хүлээгдэж буй захиалгын QPay нэхэмжлэх нээлттэй. Демогийн өмнөхөн ажиллуулна.
  */
 import { randomUUID } from "node:crypto";
 import path from "node:path";
@@ -32,10 +26,10 @@ import type {
 } from "../src/generated/prisma/client";
 import type { Order as MockOrder } from "./mock/types";
 
-/** db:demo — every mock timestamp moves by this much (whole days for date-only values). */
+/** db:demo — mock цаг бүр ийм хэмжээгээр шилжинэ (зөвхөн огноотой утга бүтэн өдрөөр). */
 let shiftMs = 0;
 let shiftDays = 0;
-/** Mock timestamps are Ulaanbaatar local time ("2026-10-11 14:32"). */
+/** Mock цаг нь Улаанбаатарын цаг («2026-10-11 14:32»). */
 const mockTime = (ts: string) => new Date(`${ts.length === 10 ? ts + " 00:00" : ts}`.replace(" ", "T") + ":00+08:00");
 const ub = (ts: string) => new Date(mockTime(ts).getTime() + shiftMs);
 const date = (day: string) => new Date(Date.parse(`${day}T00:00:00Z`) + shiftDays * 86_400_000);
@@ -67,7 +61,7 @@ async function main() {
   const m = createSeed();
   const t0 = Date.now();
   if (process.env.SEED_NOW === "1") {
-    // the newest mock event (order, payment, delivery step, note, stock move) lands a minute ago
+    // хамгийн шинэ mock үйл явдал (захиалга, төлбөр, хүргэлтийн алхам, тэмдэглэл, нөөцийн хөдөлгөөн) нэг минутын өмнө болно
     const stamps = [
       ...m.orders.flatMap((o) => [o.createdAt, ...REACHED[o.status].map((st) => statusTime(o, st)), ...o.notes.map((n) => n.at)]),
       ...m.orders.filter((o) => o.status === "cancelled").map((o) => statusTime(o, "cancelled")),
@@ -77,7 +71,7 @@ async function main() {
     shiftMs = Math.floor((t0 - 60_000 - mockTime(latest).getTime()) / 60_000) * 60_000;
     shiftDays = Math.round(shiftMs / 86_400_000);
   }
-  // db:demo: pending orders placed 1½, 3, 4½… minutes ago, newest first
+  // db:demo: хүлээгдэж буй захиалгууд 1½, 3, 4½… минутын өмнө, шинэ нь эхэнд
   const pendingAge = new Map(
     m.orders
       .filter((o) => o.status === "pending")
@@ -88,7 +82,7 @@ async function main() {
 
   console.log("Seeding AuToHub database…");
 
-  // ---------- wipe (children first) ----------
+  // ---------- цэвэрлэх (хүүхэд хүснэгт эхэлж) ----------
   await prisma.$transaction([
     prisma.stockMovement.deleteMany(),
     prisma.paymentInvoice.deleteMany(),
@@ -111,7 +105,7 @@ async function main() {
   ]);
   log("cleared tables");
 
-  // ---------- catalog ----------
+  // ---------- каталог ----------
   const countLabel = new Map(CATEGORIES.map((c) => [c.key, c.countLabel]));
   const categories = m.categories.map((c, i) => ({
     id: randomUUID(),
@@ -148,7 +142,7 @@ async function main() {
   log(`${categories.length} categories, ${brands.length} brands, ${vehicles.length} vehicles`);
 
   const fitUnknown = new Set(PRODUCTS.filter((p) => p.fitUnknown).map((p) => p.id));
-  // "Санал болгох" = the order the storefront lists products in today
+  // «Санал болгох» = дэлгүүрийн одоо бараа жагсаадаг дараалал
   const position = new Map(PRODUCTS.map((p, i) => [p.id, i + 1]));
   await prisma.product.createMany({
     data: m.products.map((p) => ({
@@ -171,8 +165,8 @@ async function main() {
       active: p.active,
     })),
   });
-  // A model-level fit ("Land Cruiser 200, 2008–2021, every engine") becomes one
-  // row per engine variant; year columns stay null when they match the vehicle.
+  // Загварын түвшний тохирол («Land Cruiser 200, 2008–2021, бүх хөдөлгүүр») хөдөлгүүрийн хувилбар бүрт нэг мөр болно;
+  // оны баганууд машиных нь хүрээтэй таарвал null үлдэнэ.
   const fitments = m.products.flatMap((p) =>
     p.fits.flatMap((f) => {
       const [y1, y2] = f.years.split("–").map(Number);
@@ -189,7 +183,7 @@ async function main() {
   await prisma.productFitment.createMany({ data: fitments });
   log(`${m.products.length} products, ${fitments.length} fitments`);
 
-  // ---------- users ----------
+  // ---------- хэрэглэгч ----------
   const password = process.env.SEED_ADMIN_PASSWORD || "autohub123";
   const hash = await bcrypt.hash(password, 10);
   const staff = m.admins.map((a) => ({
@@ -204,7 +198,7 @@ async function main() {
   const seenPhone = new Set<string>();
   const customers = m.customers.map((c) => {
     let phone = digits(c.phone);
-    while (seenPhone.has(phone)) phone = String(Number(phone) + 1); // mock phones are random
+    while (seenPhone.has(phone)) phone = String(Number(phone) + 1); // mock утаснууд санамсаргүй
     seenPhone.add(phone);
     return {
       id: randomUUID(),
@@ -238,7 +232,7 @@ async function main() {
   const customerByMock = new Map(customers.map((c) => [c.mockId, c]));
   log(`${staff.length} staff, ${customers.length} customers`);
 
-  // ---------- orders ----------
+  // ---------- захиалга ----------
   const oem = new Map(m.products.map((p) => [p.id, p.oem[0] ?? null]));
   const orderId = new Map<string, string>();
   const orders = m.orders.map((o) => {
@@ -302,7 +296,7 @@ async function main() {
   });
   log(`${orders.length} orders, ${items.length} items`);
 
-  // ---------- stock history ----------
+  // ---------- нөөцийн түүх ----------
   await prisma.stockMovement.createMany({
     data: m.stockLog.map((s) => {
       const no = s.reason.match(/#(A\d+)/)?.[1];
@@ -320,8 +314,8 @@ async function main() {
   });
   log(`${m.stockLog.length} stock movements`);
 
-  // ---------- marketing ----------
-  // The storefront hero slides (apps/web Hero) are the active banners, in order.
+  // ---------- маркетинг ----------
+  // Дэлгүүрийн нүүрний слайд (apps/web Hero) = идэвхтэй баннерууд, дарааллаар.
   const lc200 = m.banners.find((b) => b.title.startsWith("Land Cruiser 200"));
   await prisma.banner.createMany({
     data: [
@@ -347,7 +341,7 @@ async function main() {
     }),
   });
 
-  // ---------- settings (QPay secrets stay in env) ----------
+  // ---------- тохиргоо (QPay-ийн нууц утга env-д) ----------
   const s = m.settings;
   await prisma.setting.createMany({
     data: [
@@ -358,7 +352,7 @@ async function main() {
   });
   log(`4 banners, ${m.campaigns.length} campaigns, settings`);
 
-  // ---------- sequences ----------
+  // ---------- sequence ----------
   await prisma.$executeRawUnsafe(`SELECT setval(pg_get_serial_sequence('"Product"', 'id'), (SELECT MAX(id) FROM "Product"))`);
   const maxNo = Math.max(...m.orders.map((o) => Number(o.id.slice(1))));
   await prisma.$executeRawUnsafe(`SELECT setval('order_number_seq', ${maxNo})`);

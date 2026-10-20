@@ -2,7 +2,7 @@
 
 import { toast } from "./ui";
 
-/** Download rows as a UTF-8 CSV (with BOM so Excel reads Cyrillic correctly). */
+/** Мөрүүдийг UTF-8 CSV-ээр татах (Excel кирилл зөв уншихын тулд BOM-той). */
 export function downloadCsv(name: string, rows: (string | number | null | undefined)[][]) {
   const csv =
     "﻿" +

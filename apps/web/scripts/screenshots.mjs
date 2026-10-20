@@ -1,20 +1,14 @@
 /*
- * Layout audit: full-page screenshots of every route/state at 1440px and
- * 390px in dark and light themes, plus automated checks for common layout
- * bugs. Run against a running dev server:
- *
- *   npm run screenshots:install -w web   (once: Chromium into node_modules)
- *   npm run web                          (in another terminal)
- *   npm run screenshots -w web           → apps/web/screenshots/
- *
- * BASE_URL overrides http://localhost:3000.
+ * Байрлалын аудит: route/төлөв бүрийн бүтэн хуудасны зураг (1440/390px, харанхуй/цайвар) ба түгээмэл алдааны автомат шалгалт.
+ * npm run screenshots:install -w web (нэг удаа) · npm run web · npm run screenshots -w web → apps/web/screenshots/
+ * BASE_URL нь http://localhost:3000-ийг сольно.
  */
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import process from "node:process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-// Browsers live in node_modules (installed with PLAYWRIGHT_BROWSERS_PATH=0),
-// never in a global cache: npm run screenshots:install
+// Хөтчүүд глобал кэшид биш node_modules-д байна (PLAYWRIGHT_BROWSERS_PATH=0):
+// npm run screenshots:install
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- audit script only, not a build input
 process.env.PLAYWRIGHT_BROWSERS_PATH ??= "0";
 const { chromium } = await import("playwright");
@@ -31,7 +25,7 @@ const VIEWPORTS = {
 };
 const THEMES = ["dark", "light"];
 
-/** Runs in the page: returns a list of human-readable problems. */
+/** Хуудсанд ажиллаж, хүнд ойлгомжтой асуудлын жагсаалт буцаана. */
 function checks() {
   const out = [];
   const vw = document.documentElement.clientWidth;
@@ -60,7 +54,7 @@ function checks() {
     return false;
   };
 
-  // 1. horizontal scroll
+  // 1. хэвтээ гүйлгээ
   if (document.documentElement.scrollWidth > vw + 1)
     out.push(`horizontal scroll: page is ${document.documentElement.scrollWidth}px wide in a ${vw}px viewport`);
 
@@ -68,7 +62,7 @@ function checks() {
     (el) => !el.closest("script,style,svg,nextjs-portal") && visible(el),
   );
 
-  // 2. content sticking out to the right / text touching the screen edge
+  // 2. баруун тийш цухуйсан контент / дэлгэцийн захад наалдсан текст
   for (const el of all) {
     const r = el.getBoundingClientRect();
     if (r.right > vw + 1 && !inScroller(el)) out.push(`overflows viewport: ${name(el)} right=${Math.round(r.right)}`);
@@ -77,7 +71,7 @@ function checks() {
       out.push(`text touches edge: ${name(el)} (${Math.round(r.left)}–${Math.round(r.right)})`);
   }
 
-  // 3. sticky elements that slide under the sticky header
+  // 3. наалттай толгойн доогуур орох наалттай элементүүд
   const header = document.querySelector("header");
   const hh = header ? header.getBoundingClientRect().height : 0;
   for (const el of all) {
@@ -87,7 +81,7 @@ function checks() {
         out.push(`sticky under header: ${name(el)} top=${s.top} but header is ${Math.round(hh)}px`);
   }
 
-  // 4. form controls / cards in one row that don't line up
+  // 4. нэг мөрийн оролт / картууд тэгш биш
   const groups = new Map();
   for (const el of all.filter((e) => e.matches("input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea"))) {
     const grid = el.closest("[class*=grid],[class*=row],[class*=Grid],[class*=Row]") ?? el.parentElement?.parentElement;
@@ -110,10 +104,8 @@ function checks() {
 }
 
 /**
- * Does the floating chat button cover something clickable that the user can't
- * scroll out from under it? A fixed button always passes over content while
- * scrolling, so only the two resting positions count: the first screen and
- * the very end of the page (where nothing can scroll further).
+ * Хөвөгч чатын товч дарж болох зүйлийг дарж, хэрэглэгч гүйлгээд гаргаж чадахгүй байна уу?
+ * Тогтмол товч гүйлгэхэд үргэлж контент дээгүүр өнгөрдөг тул зөвхөн эхний дэлгэц ба хуудасны төгсгөлийг шалгана.
  */
 async function chatOverlap(page) {
   return page.evaluate(async () => {
@@ -129,7 +121,7 @@ async function chatOverlap(page) {
         const under = document.elementsFromPoint(x, yy).find((e) => !fab.contains(e) && !e.contains(fab) && e.closest("a,button,input,select,textarea,label"));
         if (under) {
           const el = under.closest("a,button,input,select,textarea,label");
-          // A sliver of a big card is still tappable; flag small controls or real coverage.
+          // Том картын жижиг хэсэг дарагдсаар байна; жижиг удирдлага эсвэл бодит дарагдлыг тэмдэглэнэ.
           const e = el.getBoundingClientRect();
           const ix = Math.max(0, Math.min(r.right, e.right) - Math.max(r.left, e.left));
           const iy = Math.max(0, Math.min(r.bottom, e.bottom) - Math.max(r.top, e.top));
@@ -168,8 +160,8 @@ async function addToCart(page, id, mobile) {
   await page.waitForTimeout(150);
 }
 
-// Full Chromium build: the separate headless-shell build crashes on full-page
-// screenshots on macOS (GPU process exits), so it isn't used or installed.
+// Бүрэн Chromium: тусдаа headless-shell нь macOS дээр бүтэн хуудасны зураг авахад унадаг
+// (GPU процесс гардаг) тул ашиглахгүй, суулгахгүй.
 const browser = await chromium.launch({ headless: true, channel: "chromium" });
 
 for (const [vpName, opts] of Object.entries(VIEWPORTS)) {
@@ -183,7 +175,7 @@ for (const [vpName, opts] of Object.entries(VIEWPORTS)) {
           localStorage.setItem("autohub:theme", t);
         }
       } catch {
-        /* storage blocked — theme stays default */
+        /* хадгалах сан хаалттай — горим анхдагчаараа үлдэнэ */
       }
     }, theme);
     const page = await ctx.newPage();
@@ -191,7 +183,7 @@ for (const [vpName, opts] of Object.entries(VIEWPORTS)) {
     page.on("pageerror", (e) => errors.push(e.message));
     const L = (n) => `${vpName}-${theme}-${n}`;
 
-    // Catalog
+    // Каталог
     await go(page, "/");
     await audit(page, L("01-home"));
     await go(page, "/shop");
@@ -210,14 +202,14 @@ for (const [vpName, opts] of Object.entries(VIEWPORTS)) {
     await page.getByRole("tab", { name: "Тохирох машинууд" }).click();
     await audit(page, L("05b-product-fitment"));
 
-    // Cart
+    // Сагс
     await go(page, "/cart");
     await audit(page, L("06-cart-empty"));
     for (const id of [17, 1, 3]) await addToCart(page, id, mobile);
     await go(page, "/cart");
     await audit(page, L("07-cart-items"));
 
-    // Checkout: arrive the way a customer does (from a scrolled cart page)
+    // Checkout: хэрэглэгч шиг ирнэ (гүйлгэсэн сагсны хуудаснаас)
     await page.mouse.wheel(0, 3000);
     await page.locator("a[href='/checkout']").first().click();
     await page.waitForURL("**/checkout");
@@ -237,7 +229,7 @@ for (const [vpName, opts] of Object.entries(VIEWPORTS)) {
     await page.waitForURL("**/checkout/payment**");
     const order = new URL(page.url()).searchParams.get("order");
 
-    // Payment + QPay states
+    // Төлбөр + QPay-ийн төлөвүүд
     await audit(page, L("09-payment"));
     await page.locator("main button:has-text('QPay')").last().click();
     await audit(page, L("10-qpay-waiting"), { full: false, skipChat: true });
@@ -255,13 +247,13 @@ for (const [vpName, opts] of Object.entries(VIEWPORTS)) {
     await page.waitForURL("**/checkout/success**");
     await audit(page, L("12-success"));
 
-    // Orders
+    // Захиалгууд
     await go(page, "/account/orders");
     await audit(page, L("13-orders"));
     await go(page, `/account/orders?order=${order}`);
     await audit(page, L("13b-order-detail"));
 
-    // Chrome
+    // Хүрээ (толгой, хөл, цэс)
     await go(page, "/does-not-exist");
     await audit(page, L("14-not-found"));
     if (mobile) {

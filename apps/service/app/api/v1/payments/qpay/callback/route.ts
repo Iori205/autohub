@@ -3,10 +3,8 @@ import type { NextRequest } from "next/server";
 import { checkPayment, validCallbackSig } from "@/lib/payments";
 
 /**
- * QPay calls callback_url when an invoice is paid. The URL carries the order
- * number and an HMAC signature; the payment itself is confirmed with QPay's
- * payment/check, so a forged or replayed call can't mark anything paid.
- * Always answers 200 "SUCCESS" for valid signatures so QPay stops retrying.
+ * QPay нэхэмжлэх төлөгдөхөд callback_url-г дуудна. URL-д захиалгын дугаар, HMAC гарын үсэг байх ба төлбөрийг QPay-ийн payment/check-ээр
+ * дахин баталгаажуулдаг тул хуурамч/давтсан дуудлага юуг ч төлөгдсөн болгож чадахгүй. Гарын үсэг зөв бол QPay дахин оролдохоо болихоор 200 «SUCCESS».
  */
 async function handle(req: NextRequest) {
   const number = req.nextUrl.searchParams.get("order")?.toUpperCase() ?? "";
@@ -16,7 +14,7 @@ async function handle(req: NextRequest) {
   try {
     await checkPayment(order);
   } catch (e) {
-    // QPay will call again; polling will also catch it
+    // QPay дахин дуудна; polling ч мөн барина
     console.error("[qpay] callback check failed", number, (e as Error).message);
     return new Response("RETRY", { status: 502 });
   }

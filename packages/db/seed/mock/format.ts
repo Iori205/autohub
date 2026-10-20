@@ -1,16 +1,16 @@
-// Copied from apps/dashboard (mock data the seed is built from). Not imported by any app.
-/** "1,234,000₮" — same formatting as the storefront. */
+// Seed-ийн mock өгөгдөл (ямар ч апп импортлохгүй).
+/** «1,234,000₮» — дэлгүүрийнхтэй ижил формат. */
 export const money = (n: number) =>
   Math.round(n || 0).toLocaleString("en-US") + "₮";
 
 export const num = (n: number) => Math.round(n || 0).toLocaleString("en-US");
 
-/** "12.4 сая₮" */
+/** «12.4 сая₮» */
 export const millions = (n: number, unit = " сая₮") => (n / 1e6).toFixed(1) + unit;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-/** Timestamps are stored as local "YYYY-MM-DD HH:mm" strings. */
+/** Цагийг орон нутгийн «YYYY-MM-DD HH:mm» тэмдэгт мөрөөр хадгална. */
 export const parseTs = (ts: string) => new Date(ts.replace(" ", "T"));
 
 export const toTs = (d: Date) =>
@@ -33,14 +33,14 @@ export const addDays = (day: string, n: number) => {
 
 export const nowTs = () => toTs(new Date());
 
-/** "10.11 14:32" */
+/** «10.11 14:32» */
 export const shortDateTime = (ts: string) =>
   `${ts.slice(5, 7)}.${ts.slice(8, 10)} ${ts.slice(11, 16)}`;
 
-/** "10.11" */
+/** «10.11» */
 export const shortDate = (ts: string) => `${ts.slice(5, 7)}.${ts.slice(8, 10)}`;
 
-/** "2026.10.11" (+ " 14:32" when the value has a time) */
+/** «2026.10.11» (цагтай бол + « 14:32») */
 export const dotted = (ts: string) => ts.replace(/-/g, ".");
 
 export const WEEKDAYS = ["Ням", "Даваа", "Мягмар", "Лхагва", "Пүрэв", "Баасан", "Бямба"];
@@ -61,7 +61,7 @@ export const MONTHS = [
 
 export const weekday = (day: string) => WEEKDAYS[new Date(day + "T00:00").getDay()]!;
 
-/** "ГБ" from "Ганболд Батбаяр", "Бат-Эрдэнэ Ганбаатар" → "БГ" */
+/** «Ганболд Батбаяр» → «ГБ», «Бат-Эрдэнэ Ганбаатар» → «БГ» */
 export const initials = (name: string) =>
   name
     .split(/[\s-]+/)
@@ -71,7 +71,7 @@ export const initials = (name: string) =>
     .join("")
     .toUpperCase();
 
-/** Short form used for staff: "Ганболд Б." */
+/** Ажилтанд хэрэглэх товч хэлбэр: «Ганболд Б.» */
 export const shortName = (name: string) => {
   const [first, last] = name.split(" ");
   return last ? `${first} ${last[0]}.` : name;

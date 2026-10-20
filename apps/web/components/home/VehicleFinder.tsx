@@ -14,7 +14,7 @@ export function VehicleFinder({
   fitCounts,
 }: {
   vehicles: VehicleModel[];
-  /** model → number of parts that fit it */
+  /** загвар → тохирох сэлбэгийн тоо */
   fitCounts: Record<string, number>;
 }) {
   const router = useRouter();

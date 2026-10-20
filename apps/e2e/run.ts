@@ -1,21 +1,8 @@
 /*
- * End-to-end test of the whole stack on a THROWAWAY local database.
- *
- *   npm run test:e2e              web + dashboard
- *   npm run test:e2e -- web       storefront only
- *   npm run test:e2e -- dashboard dashboard (+ cross-app checks on the storefront)
- *
- * 1. starts a fresh `prisma dev` Postgres (never Supabase), migrates and seeds it
- * 2. builds and starts apps/service (DEMO_MODE) and the frontends on test ports
- *    (API 4100, web 3100, dashboard 3101) — your dev servers on 3000/3001/4000
- *    keep running. Production-like: `next start` (NODE_ENV=production, Secure
- *    cookies), each frontend on its own host (web.localhost, admin.localhost —
- *    separate cookie jars, like separate *.vercel.app domains) and the browser
- *    reaching the API only through the frontends' /api/* rewrite (no CORS).
- *    Chromium treats *.localhost as a secure context, so Secure cookies work
- *    over http here.
- * 3. drives the UIs with Playwright and checks the database directly
- * 4. writes apps/e2e/results/report.md and stops everything
+ * Бүх стекийн end-to-end тест, ТҮР локал өгөгдлийн сан дээр (хэзээ ч Supabase биш).
+ * npm run test:e2e (web + dashboard) · npm run test:e2e -- web · npm run test:e2e -- dashboard
+ * Production-тэй төстэй: `next start` (Secure күүки), frontend бүр тусдаа host дээр (web.localhost, admin.localhost),
+ * хөтөч API-г зөвхөн frontend-ийн /api/* rewrite-аар дуудна (CORS-гүй). Үр дүн: apps/e2e/results/report.md
  */
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
 import { mkdirSync, openSync, writeFileSync } from "node:fs";
@@ -62,14 +49,14 @@ async function waitFor(url: string, ms = 120_000) {
       const r = await fetch(url);
       if (r.status < 500) return;
     } catch {
-      /* not up yet */
+      /* хараахан асаагүй */
     }
     await new Promise((r) => setTimeout(r, 500));
   }
   throw new Error(`timed out waiting for ${url}`);
 }
 
-/** `next build` + `next start` (production build; `next dev` output in .next/dev is untouched). */
+/** `next build` + `next start` (production build; .next/dev дахь `next dev`-ийн гаралтад хүрэхгүй). */
 async function startApp(app: string, port: number, env: NodeJS.ProcessEnv, ready: string) {
   const cwd = path.join(ROOT, "apps", app);
   log(`building ${app}…`);
@@ -91,7 +78,7 @@ function stopAll() {
     try {
       if (p.pid) process.kill(-p.pid, "SIGTERM");
     } catch {
-      /* already gone */
+      /* аль хэдийн зогссон */
     }
   }
 }
@@ -102,13 +89,13 @@ async function main() {
   const DATABASE_URL = startDb();
   const dbEnv = { DATABASE_URL, DIRECT_URL: DATABASE_URL };
   sh("npx", ["prisma", "migrate", "deploy"], path.join(ROOT, "packages/db"), dbEnv);
-  // db:demo seed: the mock history moved to the present, so "today" figures are real
+  // db:demo seed: түүхийг одоо руу шилжүүлсэн тул «өнөөдрийн» тоо бодит
   sh("npx", ["prisma", "db", "seed"], path.join(ROOT, "packages/db"), { ...dbEnv, SEED_ADMIN_PASSWORD: "autohub123", SEED_NOW: "1" });
   log("database migrated and seeded (db:demo)");
-  process.env.DATABASE_URL = DATABASE_URL; // for the DB assertions in the specs
+  process.env.DATABASE_URL = DATABASE_URL; // spec-үүдийн DB шалгалтад
   process.env.DATABASE_POOL_MAX = "1";
 
-  const API = `http://127.0.0.1:${PORTS.api}`; // server-to-server only (rewrites, SSR, DB-side checks)
+  const API = `http://127.0.0.1:${PORTS.api}`; // зөвхөн серверээс сервер рүү (rewrite, SSR, DB шалгалт)
   const WEB = `http://web.localhost:${PORTS.web}`;
   const DASH = `http://admin.localhost:${PORTS.dashboard}`;
   const common = { API_URL: API };
@@ -117,19 +104,19 @@ async function main() {
     PORTS.api,
     {
       ...dbEnv,
-      DATABASE_POOL_MAX: "1", // prisma dev (PGlite) drops extra connections
+      DATABASE_POOL_MAX: "1", // prisma dev (PGlite) илүү холболтуудыг тасалдаг
       AUTH_SECRET,
       DEMO_MODE: "true",
       QPAY_USERNAME: "",
       QPAY_PASSWORD: "",
       QPAY_INVOICE_CODE: "",
       PUBLIC_API_URL: API,
-      CORS_ORIGINS: "", // the browser never calls the API cross-origin
+      CORS_ORIGINS: "", // хөтөч API-г хэзээ ч өөр origin-оос дууддаггүй
       COOKIE_DOMAIN: "",
     },
     `${API}/api/v1/health`,
   );
-  // the dashboard spec also needs the storefront for its cross-app checks
+  // dashboard spec-ийн cross-app шалгалтад дэлгүүр ч хэрэгтэй
   await startApp("web", PORTS.web, common, `${WEB}/`);
   if (which !== "web") await startApp("dashboard", PORTS.dashboard, common, `${DASH}/login`);
 

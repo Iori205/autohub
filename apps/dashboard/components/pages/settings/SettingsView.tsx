@@ -51,9 +51,9 @@ const zoneId = () => `z${Date.now().toString(36)}`;
 function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
   const router = useRouter();
   const session = useSession();
-  // operators can look but not change (the service also refuses with 403)
+  // оператор харж болно, өөрчилж болохгүй (сервис ч 403 буцаана)
   const readOnly = session?.role !== "admin";
-  // Edits stay local until "Хадгалах"; admin changes apply immediately.
+  // Засвар «Хадгалах» дартал зөвхөн энд үлдэнэ; админы өөрчлөлт шууд хэрэгжинэ.
   const [s, setS] = useState<Settings>(() => structuredClone(db.settings));
   const [err, setErr] = useState<Errors>({});
   const dirty = JSON.stringify(s) !== JSON.stringify(db.settings);
@@ -75,7 +75,7 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
     try {
       await saveSettings({ ...s, freeOver: Number(s.freeOver) || 0, zones: s.zones.map((z) => ({ ...z, fee: Number(z.fee) || 0 })) });
     } catch (x) {
-      // field messages from the server (e.g. "phone") land next to the inputs
+      // серверийн талбарын алдаа (жишээ нь «phone») харгалзах оролтын доор гарна
       const fields = (x as { fields?: Record<string, string> }).fields;
       if (fields) setErr(fields as Errors);
       throw x;
@@ -235,7 +235,7 @@ function SettingsForm({ db, tab }: { db: Db; tab: SettingsTab }) {
   );
 }
 
-/** Read-only: credentials, environment and DEMO_MODE are set in the service's .env. */
+/** Зөвхөн унших: нэвтрэх мэдээлэл, орчин, DEMO_MODE-ийг сервисийн .env-д тохируулна. */
 function QPayTab({ q, readOnly }: { q: Settings["qpay"]; readOnly: boolean }) {
   const prod = q.env === "production";
   const [testing, setTesting] = useState(false);
@@ -325,7 +325,7 @@ function AdminsTab({ db, readOnly }: { db: Db; readOnly: boolean }) {
       onSubmit: async (v) => {
         const temp = await inviteAdmin(v.name!.trim(), v.email!.trim(), v.role as AdminRole);
         toast(`${v.name} бүртгэгдлээ`, "ok");
-        // shown once; the form closes after onSubmit, then this dialog stays up
+        // нэг л удаа харагдана; onSubmit-ийн дараа маягт хаагдаж, энэ цонх үлдэнэ
         setTimeout(
           () =>
             confirmAction({

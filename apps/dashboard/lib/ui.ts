@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-/* Global UI state: toasts, the generic form modal and the confirm dialog. */
+/* Глобал UI төлөв: toast, ерөнхий маягтын цонх, баталгаажуулах цонх. */
 
 export type ToastKind = "ok" | "err" | "info";
 export interface Toast {
@@ -19,7 +19,7 @@ export interface FormField {
   required?: boolean;
   placeholder?: string;
   options?: FieldOption[];
-  /** Span both columns */
+  /** Хоёр баганыг эзэлнэ */
   full?: boolean;
 }
 export type FormValues = Record<string, string>;
@@ -30,7 +30,7 @@ export interface FormConfig {
   values: FormValues;
   submit?: string;
   danger?: boolean;
-  /** Extra checks after the required-field check; return field → message */
+  /** Заавал бөглөх талбарын дараах нэмэлт шалгалт; талбар → мессеж буцаана */
   validate?: (v: FormValues) => Record<string, string | undefined>;
   onSubmit: (v: FormValues) => void | Promise<void>;
 }

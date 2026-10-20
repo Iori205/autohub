@@ -6,10 +6,9 @@ import { productSummary, productSummaryInclude } from "@/lib/serialize";
 
 /**
  * GET /api/v1/catalog/products
- *   ?q=тоормос | ?q=04465-47070 (name or OEM, spaces/dashes ignored)
- *   &category=brake,filter &brand=Bosch &type=orig|analog &inStock=1 &sale=1
- *   &priceMin= &priceMax= &make=Toyota&model=Prius&year=2014&engine=… | &vehicleId=
- *   &sort=rec|asc|desc|stock &page=1&pageSize=24
+ * ?q=тоормос | ?q=04465-47070 (нэр эсвэл OEM, зай/зураас үл тооно) &category=brake,filter &brand=Bosch
+ * &type=orig|analog &inStock=1 &sale=1 &priceMin= &priceMax= &make=…&model=…&year=…&engine=… | &vehicleId=
+ * &sort=rec|asc|desc|stock &page=1&pageSize=24
  */
 export const GET = route(async (req) => {
   const q = query(req, productQuery);

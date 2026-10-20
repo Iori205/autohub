@@ -9,16 +9,12 @@ import {
 } from "@repo/types";
 import { addDays, ubDay, ubEnd, ubStart } from "./time";
 
-/*
- * Numbers for the dashboard and reports. Revenue = total (items + delivery)
- * of PAID orders, by the Ulaanbaatar day the order was placed — the same rule
- * the dashboard used with mock data, so pages keep agreeing.
- */
+/* Самбар, тайлангийн тоо. Орлого = PAID захиалгын нийт дүн (бараа + хүргэлт), захиалга өгсөн Улаанбаатарын өдрөөр. */
 
 const MONTHS = ["1-р сар", "2-р сар", "3-р сар", "4-р сар", "5-р сар", "6-р сар", "7-р сар", "8-р сар", "9-р сар", "10-р сар", "11-р сар", "12-р сар"];
 const short = (day: string) => `${day.slice(5, 7)}.${day.slice(8, 10)}`;
 
-/** Paid revenue and order count per UB day in [from, to]. */
+/** [from, to] доторх УБ өдөр бүрийн төлөгдсөн орлого, захиалгын тоо. */
 async function daily(from: string, to: string) {
   const rows = await prisma.$queryRaw<{ day: string; revenue: bigint; orders: bigint }[]>`
     -- createdAt is stored as UTC without a zone; UB is UTC+8 all year (no DST)
@@ -30,7 +26,7 @@ async function daily(from: string, to: string) {
   return new Map(rows.map((r) => [r.day, { revenue: Number(r.revenue), orders: Number(r.orders) }]));
 }
 
-/** Item revenue split by category or brand (paid orders), plus a delivery-fee row so it sums to revenue. */
+/** Барааны орлогыг ангилал эсвэл брэндээр (төлөгдсөн захиалга), нийлбэр нь орлоготой тэнцэхээр хүргэлтийн мөртэй. */
 async function split(by: "category" | "brand", from: string, to: string): Promise<SplitRowDto[]> {
   const col = by === "category" ? Prisma.sql`c.name` : Prisma.sql`b.name`;
   const rows = await prisma.$queryRaw<{ name: string | null; value: bigint }[]>`
@@ -82,7 +78,7 @@ export async function overview(days: number, today = ubDay()): Promise<OverviewD
     }),
   ]);
 
-  const low = (stock: number, t: number) => stock <= t; // includes out of stock
+  const low = (stock: number, t: number) => stock <= t; // дууссан бараа орно
   const before = new Map(products.map((p) => [p.id, p.stock]));
   for (const m of todaysMoves) before.set(m.productId, (before.get(m.productId) ?? 0) - m.delta);
 
@@ -134,7 +130,7 @@ function buckets(period: ReportDto["period"], today: string): Omit<ReportRowDto,
       return { label: d.replace(/-/g, "."), short: short(d), from: d, to: d };
     });
   if (period === "week") {
-    const dow = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7; // Monday = 0
+    const dow = (new Date(`${today}T00:00:00Z`).getUTCDay() + 6) % 7; // Даваа = 0
     const monday = addDays(today, -dow);
     return Array.from({ length: 12 }, (_, i) => {
       const from = addDays(monday, (i - 11) * 7);

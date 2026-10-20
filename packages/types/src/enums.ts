@@ -1,5 +1,5 @@
-// Mirrors the Prisma enums in packages/db (kept as plain unions so the
-// frontends don't need the Prisma client).
+// packages/db-ийн Prisma enum-ийн хуулбар (frontend-д Prisma клиент хэрэггүй байхын тулд
+// энгийн union хэлбэрээр).
 
 export const ROLES = ["CUSTOMER", "OPERATOR", "ADMIN"] as const;
 export type Role = (typeof ROLES)[number];
@@ -27,8 +27,8 @@ export const SETTING_KEYS = ["store", "delivery", "qpay"] as const;
 export type SettingKey = (typeof SETTING_KEYS)[number];
 
 /**
- * The dashboard's single order status, derived from payment + delivery:
- * pending, paid (waiting), preparing, shipping, delivered, cancelled, expired.
+ * Самбарын нэгдсэн захиалгын төлөв, төлбөр + хүргэлтээс гаргана:
+ * pending, paid (хүлээж буй), preparing, shipping, delivered, cancelled, expired.
  */
 export const ORDER_STAGES = ["pending", "paid", "preparing", "shipping", "delivered", "cancelled", "expired"] as const;
 export type OrderStage = (typeof ORDER_STAGES)[number];

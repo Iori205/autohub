@@ -3,10 +3,7 @@ import type { Product } from "../../lib/types";
 import { CATEGORY_ICONS } from "../icons";
 import styles from "./ProductImage.module.css";
 
-/**
- * Product image slot. Until the API delivers photos (`product.images`) it draws
- * the design's striped placeholder with a faint category glyph.
- */
+/** Барааны зургийн байр. Зураг (`product.images`) байхгүй бол ангиллын бүдэг дүрстэй зураасан орлуулга зурна. */
 export function ProductImage({
   product,
   index = 0,

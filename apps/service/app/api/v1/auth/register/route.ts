@@ -4,8 +4,8 @@ import { currentCustomer, hashPassword, startCustomerSession } from "@/lib/auth"
 import { ApiError, body, created, route } from "@/lib/http";
 
 /**
- * Create a customer account. A guest session is upgraded in place, so its
- * cart, wishlist and orders stay with the new account.
+ * Хэрэглэгчийн бүртгэл үүсгэх. Зочны сессийг тэр чигт нь бүртгэл болгодог тул
+ * сагс, хүслийн жагсаалт, захиалга нь шинэ бүртгэлд үлдэнэ.
  */
 export const POST = route(async (req) => {
   const input = await body(req, registerInput);

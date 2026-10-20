@@ -10,7 +10,7 @@ const FUEL: Record<string, Fuel> = {
   цахилгаан: "ELECTRIC", electric: "ELECTRIC",
 };
 
-/** CSV: make,model,gen,year_from,year_to,engine,fuel (header optional). Existing make+model+engine rows are skipped. */
+/** CSV: make,model,gen,year_from,year_to,engine,fuel (толгой мөр заавал биш). Байгаа make+model+engine мөрийг алгасна. */
 export const POST = route(async (req) => {
   await requireStaff(req);
   const { csv } = await body(req, vehicleImportInput);

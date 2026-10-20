@@ -5,7 +5,7 @@ import type { CategoryKey } from "./types";
 type SP = Record<string, string | string[] | undefined>;
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v) ?? "";
 
-/** Shared server loader for /shop, /shop/[category] and /sale. */
+/** /shop, /shop/[category], /sale-ийн нийтлэг серверийн ачаалагч. */
 export async function renderShop(sp: SP, opts: { cat?: CategoryKey; sale?: boolean } = {}) {
   const [products, categories, brands] = await Promise.all([
     getProducts(),
@@ -20,7 +20,7 @@ export async function renderShop(sp: SP, opts: { cat?: CategoryKey; sale?: boole
     sale: !!opts.sale,
     fit: one(sp.fit) === "1",
   };
-  // Re-mount (reset filters) whenever the URL-driven starting point changes.
+  // URL-аас тогтох эхлэл өөрчлөгдөх бүрт дахин mount хийнэ (шүүлтүүр шинэчлэгдэнэ).
   const key = JSON.stringify(initial);
   return (
     <ShopView

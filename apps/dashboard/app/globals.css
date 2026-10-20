@@ -1,7 +1,6 @@
 /*
- * Brand tokens (accent, surfaces, fonts, radius, dark/light) come from the shared
- * @repo/ui/theme.css — the same file apps/web uses. Below are admin-only aliases
- * the dense back-office UI needs, all derived from those tokens.
+ * Брэндийн токенууд (өнгө, фонт, радиус, харанхуй/цайвар) @repo/ui/theme.css-ээс ирнэ — apps/web-тэй ижил.
+ * Доорх нь зөвхөн админд хэрэгтэй, тэдгээр токеноос гаргасан нэмэлт нэрс.
  */
 
 :root {
@@ -17,7 +16,7 @@
   --shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
   --accent-muted: color-mix(in oklab, var(--accent) 45%, transparent);
 
-  /* Status tones — lightness/chroma tuned per theme */
+  /* Төлөвийн өнгө — гэрэлтэлт, ханалтыг горим бүрт тааруулсан */
   --sl: 0.78;
   --sc: 0.13;
   --tone-amber: oklch(var(--sl) var(--sc) 75);
@@ -29,16 +28,16 @@
   --tone-red: var(--danger);
   --tone-neutral: var(--muted);
 
-  /* Layout spacing — the only place these values are set (same idea as apps/web) */
-  --space-page-x: 24px; /* side padding of the content area */
-  --space-page-top: 18px; /* app header → breadcrumbs */
+  /* Зай завсрын токенууд — зөвхөн энд тодорхойлно (apps/web-тэй адил) */
+  --space-page-x: 24px; /* контентын хажуугийн зай */
+  --space-page-top: 18px; /* апп толгой → замын мөр (breadcrumb) */
   --space-page-bottom: 48px;
-  --space-head: 16px; /* page title block → first card */
-  --space-stack: 14px; /* between cards and card rows */
-  --space-grid: 12px; /* between KPI tiles */
-  --space-card-x: 16px; /* card side padding (header, toolbar, rows, body) */
-  --space-card-y: 12px; /* card header / toolbar vertical padding */
-  --space-card-body: 14px; /* card body vertical padding */
+  --space-head: 16px; /* хуудасны гарчиг → эхний карт */
+  --space-stack: 14px; /* карт, картын мөр хоорондын зай */
+  --space-grid: 12px; /* KPI хавтан хоорондын зай */
+  --space-card-x: 16px; /* картын хажуугийн зай (толгой, хэрэгслийн мөр, мөрүүд, их бие) */
+  --space-card-y: 12px; /* картын толгой / хэрэгслийн мөрийн босоо зай */
+  --space-card-body: 14px; /* картын их биеийн босоо зай */
 
   --side-w: 232px;
   --side-w-collapsed: 60px;
@@ -177,7 +176,7 @@ textarea:focus-visible {
   align-items: flex-start;
 }
 
-/* ---------- panels ---------- */
+/* ---------- самбар ---------- */
 
 .panel {
   background: var(--panel);
@@ -241,7 +240,7 @@ textarea:focus-visible {
   margin-left: auto;
 }
 
-/* ---------- buttons ---------- */
+/* ---------- товч ---------- */
 
 .btn {
   display: inline-flex;
@@ -359,7 +358,7 @@ textarea:focus-visible {
   animation: spin 0.7s linear infinite;
 }
 
-/* ---------- inputs ---------- */
+/* ---------- оролт ---------- */
 
 .input,
 .select,
@@ -468,7 +467,7 @@ textarea:focus-visible {
   pointer-events: none;
 }
 
-/* segmented control */
+/* сегментэн сонголт */
 .seg {
   display: flex;
   flex-wrap: wrap;
@@ -482,7 +481,7 @@ textarea:focus-visible {
   background: var(--panel);
 }
 .seg button {
-  /* 24 + 2×3 padding + 2×1 border = 32px, same as .input / .select */
+  /* 24 + 2×3 дотор зай + 2×1 хүрээ = 32px, .input / .select-тэй ижил */
   height: 24px;
   padding: 0 10px;
   border: none;
@@ -494,7 +493,7 @@ textarea:focus-visible {
   font-weight: 500;
 }
 .seg.lg button {
-  /* 34px total, same as .input.lg / .btn */
+  /* нийт 34px, .input.lg / .btn-тэй ижил */
   height: 26px;
   padding: 0 12px;
   font-size: 12.5px;
@@ -514,7 +513,6 @@ textarea:focus-visible {
   background: var(--card2);
 }
 
-/* toggle switch */
 .switch {
   position: relative;
   flex: none;
@@ -556,7 +554,7 @@ textarea:focus-visible {
   left: 19px;
 }
 
-/* ---------- badges ---------- */
+/* ---------- тэмдэг (badge) ---------- */
 
 .badge {
   --tc: var(--tone-neutral);
@@ -661,7 +659,7 @@ textarea:focus-visible {
   place-items: center;
 }
 
-/* striped image placeholder (no labels) — same idea as the storefront */
+/* зураасан зургийн орлуулга (бичиггүй) — дэлгүүрийнхтэй ижил */
 .thumb {
   flex: none;
   border-radius: 6px;
@@ -682,7 +680,7 @@ textarea:focus-visible {
   object-fit: cover;
 }
 
-/* ---------- tables (CSS grid rows; columns set per table) ---------- */
+/* ---------- хүснэгт (CSS grid мөр; багануудыг хүснэгт бүр тохируулна) ---------- */
 
 .tbl-scroll {
   overflow-x: auto;
@@ -722,8 +720,10 @@ button.tr {
   text-align: left;
   font-size: 13px;
 }
-/* Secondary table columns dropped when the content area is narrow
-   (tablet / collapsed sidebar), so tables fit their card without sideways scroll. */
+/*
+ * Контентын талбай нарийн үед (таблет / хураасан цэс) хоёрдогч багануудыг нууж,
+ * хүснэгтийг хажуу тийш гүйлгэхгүйгээр картад багтаана.
+ */
 @media (max-width: 1279px) {
   .hide-narrow {
     display: none !important;
@@ -764,8 +764,7 @@ button.tr {
   max-width: 340px;
 }
 
-/* KPI cards */
-/* Rows of four tiles: 4 → 2×2 → 1, never 3 + an orphan */
+/* Дөрвөн хавтантай мөр: 4 → 2×2 → 1, хэзээ ч 3 + ганц үлдэгдэл биш */
 .kpis {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -797,7 +796,6 @@ button.tr {
   letter-spacing: -0.01em;
 }
 
-/* progress bar */
 .bar {
   height: 6px;
   border-radius: 3px;
@@ -811,7 +809,6 @@ button.tr {
   background: var(--accent);
 }
 
-/* skeleton shimmer */
 .sk {
   border-radius: 4px;
   background-color: var(--hover2);
@@ -830,7 +827,7 @@ button.tr {
   background-image: none;
 }
 
-/* Print: only the slip(s) */
+/* Хэвлэхэд зөвхөн баглаа боодлын хуудас */
 .print-only {
   display: none;
 }

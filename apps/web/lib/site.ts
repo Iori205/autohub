@@ -1,10 +1,10 @@
 import type { CategoryKey } from "./types";
 
-// Store name, phone, e-mail, address and hours come from the API (/settings) via lib/site-context.
+// Дэлгүүрийн нэр, утас, и-мэйл, хаяг, цагийн хуваарь API-аас (/settings) lib/site-context-оор ирнэ.
 
 export const THEME_KEY = "autohub:theme";
 
-/** Runs in <head> before paint so a saved light theme doesn't flash dark. */
+/** Хадгалсан цайвар горим харанхуй болж анивчихгүйн тулд <head>-д зурагдахаас өмнө ажиллана. */
 export const themeInitScript = `(function(){try{var t=localStorage.getItem("${THEME_KEY}");if(t==="light")document.documentElement.setAttribute("data-theme","light")}catch(e){}})()`;
 
 export interface ShopQuery {
@@ -12,7 +12,7 @@ export interface ShopQuery {
   brand?: string;
   q?: string;
   sale?: boolean;
-  /** only parts fitting the selected car */
+  /** зөвхөн сонгосон машинд тохирох сэлбэг */
   fit?: boolean;
 }
 

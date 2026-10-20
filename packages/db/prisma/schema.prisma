@@ -1,5 +1,5 @@
-// AuToHub database. Money is stored as whole tögrög (Int).
-// Connection strings live in the root .env (see .env.example).
+// AuToHub өгөгдлийн сан. Мөнгийг бүхэл төгрөгөөр (Int) хадгална.
+// Холболтын мөрүүд язгуурын .env-д байна (.env.example-ийг үз).
 
 generator client {
   provider     = "prisma-client"
@@ -11,7 +11,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------- enums ----------
+// ---------- enum ----------
 
 enum Role {
   CUSTOMER
@@ -32,28 +32,28 @@ enum Fuel {
 }
 
 enum DeliveryMethod {
-  /// Courier in Ulaanbaatar
+  /// Улаанбаатар доторх хүргэлт
   UB
-  /// Customer collects at the branch
+  /// Хэрэглэгч салбараас өөрөө авна
   PICKUP
-  /// Sent to a province (by bus/cargo)
+  /// Орон нутаг руу илгээнэ (автобус/карго)
   COUNTRY
 }
 
 enum PaymentStatus {
   PENDING
   PAID
-  /// Cancelled before or after payment; paidAt != null means it was refunded
+  /// Төлбөрийн өмнө эсвэл дараа цуцалсан; paidAt != null бол мөнгө буцаагдсан
   CANCELLED
-  /// QPay invoice expired unpaid (15 min)
+  /// QPay нэхэмжлэх төлөгдөлгүй хугацаа дууссан (15 мин)
   EXPIRED
 }
 
 enum DeliveryStatus {
-  /// Not started (unpaid, or paid and waiting)
+  /// Эхлээгүй (төлөгдөөгүй, эсвэл төлөгдөөд хүлээж буй)
   NONE
   PREPARING
-  /// Out for delivery / ready for pickup
+  /// Хүргэлтэнд гарсан / авахад бэлэн
   SHIPPING
   DELIVERED
 }
@@ -61,7 +61,7 @@ enum DeliveryStatus {
 enum InvoiceStatus {
   OPEN
   PAID
-  /// cancelled by the customer or by staff
+  /// хэрэглэгч эсвэл ажилтан цуцалсан
   CANCELLED
   EXPIRED
 }
@@ -72,12 +72,12 @@ enum CampaignTarget {
   BRAND
 }
 
-// ---------- users ----------
+// ---------- хэрэглэгч ----------
 
 model User {
   id           String    @id @default(cuid())
   role         Role      @default(CUSTOMER)
-  /// Anonymous browser session created by the storefront (no credentials yet)
+  /// Дэлгүүрийн үүсгэсэн нэргүй хөтчийн сесс (нэвтрэх мэдээлэлгүй)
   isGuest      Boolean   @default(false)
   name         String?
   phone        String?   @unique
@@ -98,7 +98,7 @@ model User {
   @@index([role])
 }
 
-/// A customer's car from the vehicle finder ("Миний машин")
+/// Машин сонгогчоор сонгосон хэрэглэгчийн машин («Миний машин»)
 model SavedCar {
   id        String   @id @default(cuid())
   userId    String
@@ -115,9 +115,9 @@ model SavedCar {
   @@index([userId])
 }
 
-// ---------- catalog ----------
+// ---------- каталог ----------
 
-/// One row per make + model + engine variant
+/// make + model + хөдөлгүүрийн хувилбар бүрт нэг мөр
 model Vehicle {
   id         String   @id @default(cuid())
   make       String
@@ -138,13 +138,13 @@ model Vehicle {
 
 model Category {
   id         String  @id @default(cuid())
-  /// URL slug, e.g. /shop/brake
+  /// URL slug, жишээ нь /shop/brake
   slug       String  @unique
   name       String  @unique
-  /// Icon key shared by web and dashboard (cog, disc, filter …)
+  /// Web ба dashboard-ын нийтлэг дүрсний түлхүүр (cog, disc, filter …)
   icon       String
   sortOrder  Int     @default(0)
-  /// Marketing label on the storefront home ("1,960 бараа")
+  /// Дэлгүүрийн нүүрний маркетингийн шошго («1,960 бараа»)
   countLabel String?
 
   products  Product[]
@@ -167,9 +167,9 @@ model Product {
   description       String      @default("")
   brandId           String
   categoryId        String
-  /// First is the primary OEM number, the rest are cross-references
+  /// Эхнийх нь үндсэн OEM дугаар, бусад нь хөндлөн лавлагаа
   oemNumbers        String[]
-  /// oemNumbers uppercased without spaces, dashes or dots — for search
+  /// Хайлтад: oemNumbers-ийг зай, зураас, цэггүй том үсгээр
   oemSearch         String[]
   price             Int
   oldPrice          Int?
@@ -179,9 +179,9 @@ model Product {
   images            String[]
   /// [{ "k": "Байрлал", "v": "Урд тэнхлэг" }, …]
   specs             Json        @default("[]")
-  /// Position in "Санал болгох" (recommended) order; lower first
+  /// «Санал болгох» дараалал дахь байрлал; бага нь эхэнд
   sortOrder         Int         @default(0)
-  /// Fitment not verified (storefront shows "тохирох эсэхийг шалгана уу")
+  /// Тохирол баталгаажаагүй (дэлгүүр «тохирох эсэхийг шалгана уу» гэж харуулна)
   fitmentUnknown    Boolean     @default(false)
   active            Boolean     @default(true)
   createdAt         DateTime    @default(now())
@@ -201,8 +201,8 @@ model Product {
   @@index([oemSearch], type: Gin)
 }
 
-/// The product fits this vehicle (engine variant). Year columns narrow the
-/// vehicle's own range; null = the whole range.
+/// Бараа энэ машинд (хөдөлгүүрийн хувилбарт) тохирно. Оны баганууд машины өөрийн хүрээг нарийсгана;
+/// null = бүх хүрээ.
 model ProductFitment {
   id        String @id @default(cuid())
   productId Int
@@ -217,7 +217,7 @@ model ProductFitment {
   @@index([vehicleId])
 }
 
-// ---------- wishlist & cart ----------
+// ---------- хүслийн жагсаалт ба сагс ----------
 
 model WishlistItem {
   userId    String
@@ -251,24 +251,24 @@ model CartItem {
   @@id([cartId, productId])
 }
 
-// ---------- orders ----------
+// ---------- захиалга ----------
 
 model Order {
   id               String         @id @default(cuid())
-  /// Human number shown everywhere: A1025, A1026 … (sequence order_number_seq)
+  /// Хаа сайгүй харагдах дугаар: A1025, A1026 … (order_number_seq дараалал)
   number           String         @unique @default(dbgenerated("('A'::text || nextval('order_number_seq'::regclass))"))
   userId           String?
   customerName     String
-  /// Stored on every order so a guest can look up orders by phone later
+  /// Зочин дараа нь утсаараа захиалгаа хайж болохоор захиалга бүрт хадгална
   customerPhone    String
   customerEmail    String?
   note             String?
   deliveryMethod   DeliveryMethod
-  /// Full delivery address (or the pickup branch address)
+  /// Хүргэлтийн бүтэн хаяг (эсвэл очиж авах салбарын хаяг)
   address          String
   district         String?
   khoroo           String?
-  /// Customer's car at checkout, e.g. "Toyota Land Cruiser 200 2015 · 1VD-FTV …"
+  /// Захиалгын үеийн хэрэглэгчийн машин, жишээ нь «Toyota Land Cruiser 200 2015 · 1VD-FTV …»
   car              String?
   subtotal         Int
   shippingFee      Int
@@ -304,7 +304,7 @@ model OrderItem {
   id        String  @id @default(cuid())
   orderId   String
   productId Int?
-  /// Snapshot at order time
+  /// Захиалгын үеийн хуулбар
   name      String
   oem       String?
   price     Int
@@ -317,18 +317,18 @@ model OrderItem {
   @@index([productId])
 }
 
-/// A QPay invoice issued for an order (a new one replaces an expired/cancelled one).
-/// Keeps the QR and bank app links so the payment screen can be shown again.
+/// Захиалгад гаргасан QPay нэхэмжлэх (хугацаа дууссан/цуцалсныг шинэ нь орлоно).
+/// Төлбөрийн дэлгэцийг дахин харуулахын тулд QR, банкны аппын холбоосыг хадгална.
 model PaymentInvoice {
-  /// QPay invoice_id (DEMO_MODE: "demo-…")
+  /// QPay invoice_id (DEMO_MODE: «demo-…»)
   id        String        @id
   orderId   String
   amount    Int
   qrText    String
-  /// data URL (QPay's PNG, or a locally drawn QR in DEMO_MODE)
+  /// data URL (QPay-ийн PNG, эсвэл DEMO_MODE-д локалд зурсан QR)
   qrImage   String
   shortUrl  String?
-  /// [{ name, description, logo, link }] bank / wallet deep links
+  /// [{ name, description, logo, link }] банк / хэтэвчний холбоос
   urls      Json          @default("[]")
   demo      Boolean       @default(false)
   status    InvoiceStatus @default(OPEN)
@@ -343,7 +343,7 @@ model PaymentInvoice {
   @@index([status, expiresAt])
 }
 
-/// Internal staff note on an order
+/// Захиалга дээрх ажилтны дотоод тэмдэглэл
 model OrderNote {
   id         String   @id @default(cuid())
   orderId    String
@@ -358,7 +358,7 @@ model OrderNote {
   @@index([orderId])
 }
 
-// ---------- inventory, marketing, settings ----------
+// ---------- нөөц, маркетинг, тохиргоо ----------
 
 model StockMovement {
   id         String   @id @default(cuid())
@@ -367,7 +367,7 @@ model StockMovement {
   reason     String
   orderId    String?
   actorId    String?
-  /// "Систем" for automatic moves, otherwise the staff member's name
+  /// Автомат хөдөлгөөнд «Систем», бусад үед ажилтны нэр
   actorName  String
   stockAfter Int
   createdAt  DateTime @default(now())
@@ -382,11 +382,11 @@ model StockMovement {
 
 model Banner {
   id        String   @id @default(cuid())
-  /// small tag above the title ("Prius 30 / 50")
+  /// гарчгийн дээрх жижиг шошго («Prius 30 / 50»)
   eyebrow   String   @default("")
   title     String
   subtitle  String   @default("")
-  /// button text ("Prius сэлбэг үзэх")
+  /// товчны текст («Prius сэлбэг үзэх»)
   ctaLabel  String   @default("")
   link      String
   imageUrl  String?
@@ -413,17 +413,17 @@ model Campaign {
   brand    Brand?    @relation(fields: [brandId], references: [id], onDelete: Cascade)
 }
 
-/// Key/value settings edited in the dashboard: "store", "delivery", "qpay"
-/// (QPay secrets stay in env, never here).
+/// Самбарт засдаг түлхүүр/утгын тохиргоо: «store», «delivery», «qpay»
+/// (QPay-ийн нууц утга env-д л байна, энд хэзээ ч биш).
 model Setting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
 }
 
-// ---------- login throttle ----------
+// ---------- нэвтрэх оролдлогын хязгаар ----------
 
-/// Failed login / lookup attempts per "ip|key", shared by every serverless instance.
+/// «ip|key» бүрийн амжилтгүй нэвтрэлт / хайлт; бүх serverless instance хуваалцана.
 model LoginThrottle {
   key   String   @id
   count Int      @default(0)

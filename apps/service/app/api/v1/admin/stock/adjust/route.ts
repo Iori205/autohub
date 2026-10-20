@@ -4,7 +4,7 @@ import { requireStaff } from "@/lib/auth";
 import { badRequest, body, notFound, ok, route } from "@/lib/http";
 import { moveStock } from "@/lib/orders";
 
-/** "Нөөц тохируулах": { productId, delta: +48 | -2, reason }. Can't take more than is in stock. */
+/** «Нөөц тохируулах»: { productId, delta: +48 | -2, reason }. Үлдэгдлээс илүүг хасаж болохгүй. */
 export const POST = route(async (req) => {
   const staff = await requireStaff(req);
   const { productId, delta, reason } = await body(req, stockAdjustInput);

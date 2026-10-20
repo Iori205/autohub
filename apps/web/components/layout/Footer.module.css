@@ -131,7 +131,7 @@
   .bottom {
     padding-bottom: calc(18px + var(--fab-clearance));
   }
-  /* product page has a fixed add-to-cart bar on mobile */
+  /* барааны хуудсанд гар утсанд тогтмол «Сагслах» мөр байдаг */
   :global(body:has([data-detail-bar])) .bottom {
     padding-bottom: calc(84px + var(--fab-clearance));
   }

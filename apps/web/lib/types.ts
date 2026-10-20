@@ -25,7 +25,7 @@ export interface VehicleModel {
   engines: string[];
 }
 
-/** The customer's selected car (from the vehicle finder). */
+/** Хэрэглэгчийн сонгосон машин (машин сонгогчоос). */
 export interface Car {
   make: string;
   model: string;
@@ -42,15 +42,15 @@ export interface Product {
   price: number;
   oldPrice?: number;
   stock: number;
-  /** true = OEM original, false = aftermarket analog */
+  /** true = OEM оригинал, false = аналог */
   genuine: boolean;
-  /** Vehicle model names this part fits */
+  /** Энэ сэлбэг тохирох машины загварууд */
   fits: string[];
-  /** Fitment not verified */
+  /** Тохирол баталгаажаагүй */
   fitUnknown?: boolean;
   specs: [string, string][];
   crossRefs: string[];
-  /** Real product images arrive with the API; placeholders are drawn until then. */
+  /** Барааны зураг; байхгүй бол орлуулга зурна. */
   images?: string[];
 }
 
@@ -67,7 +67,7 @@ export interface ProductFilter {
   priceMax?: number;
   type?: ProductType;
   inStock?: boolean;
-  /** Only parts that fit this model */
+  /** Зөвхөн энэ загварт тохирох сэлбэг */
   fitModel?: string;
   sale?: boolean;
 }
@@ -79,7 +79,7 @@ export interface CartLine {
 
 export type DeliveryMethod = "ship" | "pickup";
 export type PayStatus = "pending" | "paid" | "cancelled" | "expired";
-/** 0 = not started, 1 paid, 2 preparing, 3 out for delivery / ready, 4 delivered / handed over */
+/** 0 = эхлээгүй, 1 төлөгдсөн, 2 бэлтгэж байна, 3 хүргэлтэнд / бэлэн, 4 хүргэгдсэн / хүлээлгэн өгсөн */
 export type OrderStage = 0 | 1 | 2 | 3 | 4;
 
 export interface OrderItem {

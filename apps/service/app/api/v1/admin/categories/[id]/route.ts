@@ -13,7 +13,7 @@ export const PATCH = route<Ctx>(async (req, { params }) => {
   return ok<CategoryDto>({ ...rest, productCount: _count.products });
 });
 
-/** Only empty categories can be deleted. */
+/** Зөвхөн хоосон ангиллыг устгана. */
 export const DELETE = route<Ctx>(async (req, { params }) => {
   await requireStaff(req);
   const id = (await params).id;

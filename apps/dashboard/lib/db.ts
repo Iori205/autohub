@@ -35,16 +35,13 @@ import type { Db } from "./types";
 import { toast } from "./ui";
 
 /*
- * Client cache of the admin data from apps/service. Pages read it through
- * useDb(); the functions in lib/api/* write through the API and then reload
- * the resources they touched. The cache refreshes when a page mounts (if it
- * is older than a few seconds) and when the tab regains focus, so orders
- * placed on the storefront show up without a manual reload.
+ * apps/service-ийн админ өгөгдлийн клиент кэш: хуудсууд useDb()-ээр уншиж, lib/api/* API-аар бичээд хөндсөн нөөцөө дахин ачаална.
+ * Хуудас нээгдэх (хэдэн секундээс хуучин бол) болон таб идэвхжих үед шинэчлэгддэг тул дэлгүүрийн шинэ захиалга шууд харагдана.
  */
 
 type Key = keyof Db;
 
-/** Every page of a paged admin list (500 per request). */
+/** Хуудасласан админ жагсаалтын бүх хуудас (хүсэлт бүрт 500). */
 async function all<T>(path: string): Promise<T[]> {
   const out: T[] = [];
   for (let page = 1; ; page++) {
@@ -77,12 +74,12 @@ let full: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
-/** Guests have no account name; show the name they typed at checkout. */
+/** Зочин хэрэглэгчид бүртгэлийн нэр байхгүй тул захиалгадаа бичсэн нэрийг харуулна. */
 function fillGuestNames(db: Db): Db {
   const missing = db.customers.filter((c) => !c.name || !c.phone);
   if (!missing.length) return db;
   const latest = new Map<string, Db["orders"][number]>();
-  for (const o of db.orders) if (!latest.has(o.customerId)) latest.set(o.customerId, o); // orders are newest first
+  for (const o of db.orders) if (!latest.has(o.customerId)) latest.set(o.customerId, o); // захиалга хамгийн шинэ нь эхэндээ
   return {
     ...db,
     customers: db.customers.map((c) => {
@@ -92,7 +89,7 @@ function fillGuestNames(db: Db): Db {
   };
 }
 
-/** Fetch some (default: all) resources and update the cache. */
+/** Зарим (анхдагчаар бүх) нөөцийг татаж кэшийг шинэчилнэ. */
 export async function reload(...keys: Key[]): Promise<void> {
   const list = keys.length ? keys : ALL;
   const parts = await Promise.all(list.map(async (k) => [k, await LOAD[k]()] as const));
@@ -108,13 +105,13 @@ function refresh(force = false) {
   if (full || (!force && cache && Date.now() - loadedAt < STALE_MS)) return;
   full = reload()
     .catch((e) => {
-      // 401 is handled by the session (back to /login); anything else is worth a message
+      // 401-ийг сесс хариуцна (/login руу); бусад алдааг мэдэгдэнэ
       if (!(e instanceof ApiError && e.status === 401)) toast(e instanceof Error ? e.message : "Өгөгдөл ачаалж чадсангүй", "err");
     })
     .finally(() => (full = null));
 }
 
-/** Forget everything (sign-out, or another staff member signs in). */
+/** Бүгдийг мартана (гарах, эсвэл өөр ажилтан нэвтрэх). */
 export function clearDb() {
   cache = null;
   loadedAt = 0;
@@ -135,7 +132,7 @@ const subscribe = (l: () => void) => {
   return () => listeners.delete(l);
 };
 
-/** `null` until the first load — pages show their skeleton until data arrives. */
+/** Анхны ачаалал хүртэл `null` — өгөгдөл иртэл хуудсууд skeleton харуулна. */
 export function useDb() {
   const db = useSyncExternalStore(subscribe, () => cache, () => null);
   useEffect(() => {

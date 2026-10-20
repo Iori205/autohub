@@ -3,14 +3,14 @@ import { savedCarInput, type SavedCarDto } from "@repo/types";
 import { currentCustomer, customerOrGuest } from "@/lib/auth";
 import { body, noContent, ok, route } from "@/lib/http";
 
-/** The car picked in the vehicle finder ("Миний машин"), kept per customer session. */
+/** Машин сонгогчоор сонгосон машин («Миний машин»), хэрэглэгчийн сесс бүрт хадгална. */
 export const GET = route(async (req) => {
   const user = await currentCustomer(req);
   const car = user ? await prisma.savedCar.findFirst({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }) : null;
   return ok<SavedCarDto | null>(car && { make: car.make, model: car.model, year: car.year, engine: car.engine });
 });
 
-/** Select a car: it becomes the customer's latest saved car (other saved cars are kept). */
+/** Машин сонгох: хэрэглэгчийн хамгийн сүүлд хадгалсан машин болно (бусад нь хадгалагдсаар). */
 export const PUT = route(async (req) => {
   const input = await body(req, savedCarInput);
   const user = await customerOrGuest(req);
@@ -25,7 +25,7 @@ export const PUT = route(async (req) => {
   return ok<SavedCarDto>({ make: car.make, model: car.model, year: car.year, engine: car.engine });
 });
 
-/** "Машин арилгах": removes the selected (latest) car. */
+/** «Машин арилгах»: сонгосон (сүүлийн) машиныг устгана. */
 export const DELETE = route(async (req) => {
   const user = await currentCustomer(req);
   const car = user ? await prisma.savedCar.findFirst({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }) : null;

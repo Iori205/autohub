@@ -6,7 +6,7 @@ import { createOrder } from "@/lib/orders";
 import { orderDto, orderInclude } from "@/lib/serialize";
 import { sweepExpired } from "@/lib/payments";
 
-/** "Миний захиалгууд": orders placed from this session/account, newest first. */
+/** «Миний захиалгууд»: энэ сесс/бүртгэлээс өгсөн захиалгууд, хамгийн шинэ нь эхэндээ. */
 export const GET = route(async (req) => {
   await sweepExpired();
   const user = await customerOrGuest(req);
@@ -15,8 +15,8 @@ export const GET = route(async (req) => {
 });
 
 /**
- * Checkout: creates a PENDING order from `items` or the session cart (then empties the cart).
- * Registered customers only — a guest registers or logs in first (both keep the guest's cart).
+ * Checkout: `items` эсвэл сессийн сагснаас PENDING захиалга үүсгээд сагсыг хоосолно.
+ * Зөвхөн бүртгэлтэй хэрэглэгч — зочин эхлээд бүртгүүлэх эсвэл нэвтэрнэ (хоёуланд нь сагс хадгалагдана).
  */
 export const POST = route(async (req) => {
   const user = await currentCustomer(req);

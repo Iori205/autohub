@@ -7,7 +7,7 @@ import styles from "./Dashboard.module.css";
 const W = 600;
 const H = 200;
 
-/** Area chart of daily revenue with a hover read-out. */
+/** Өдрийн орлогын талбайн график; хулгана аваачихад утгыг харуулна. */
 export function RevenueChart({ days, values }: { days: string[]; values: number[] }) {
   const [hi, setHi] = useState<number | null>(null);
   const n = values.length;

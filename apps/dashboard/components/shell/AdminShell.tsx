@@ -18,16 +18,16 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const session = useSession();
   const collapsed = useSidebarCollapsed();
-  // Tablet/mobile: the sidebar opens temporarily and closes on navigation.
+  // Таблет/гар утас: хажуугийн цэс түр нээгдэж, шилжихэд хаагдана.
   const [openOn, setOpenOn] = useState<string | null>(null);
   const open = openOn === pathname;
 
-  // Client-side half of the auth guard (proxy.ts handles the request side).
+  // Нэвтрэлтийн хамгаалалтын клиент тал (хүсэлтийн талыг proxy.ts хариуцна).
   useEffect(() => {
     if (session === null) router.replace(`${LOGIN_PATH}?next=${encodeURIComponent(pathname)}`);
   }, [session, pathname, router]);
 
-  // Buttons, switches and selects call the API directly; a failed call shows the server's message.
+  // Товч, сэлгүүр, сонголтууд API-г шууд дуудна; амжилтгүй бол серверийн мессеж гарна.
   useEffect(() => {
     const onReject = (e: PromiseRejectionEvent) => {
       if (!(e.reason instanceof ApiError)) return;

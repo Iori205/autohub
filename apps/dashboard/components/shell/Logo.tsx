@@ -1,6 +1,5 @@
 import styles from "./Shell.module.css";
 
-/** Storefront logo mark + "AuToHub Admin". */
 export function Logo({ size = "md", hideText }: { size?: "md" | "lg"; hideText?: boolean }) {
   return (
     <span className={`${styles.logo} ${size === "lg" ? styles.logoLg : ""}`}>

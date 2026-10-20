@@ -6,7 +6,7 @@ import { body, intParam, notFound, ok, route } from "@/lib/http";
 
 type Ctx = RouteContext<"/api/v1/cart/items/[productId]">;
 
-/** Set the quantity of one product (adds it if missing). */
+/** Нэг барааны тоо ширхэгийг тохируулна (байхгүй бол нэмнэ). */
 export const PUT = route<Ctx>(async (req, { params }) => {
   const productId = intParam((await params).productId);
   const { qty } = await body(req, cartItemInput);

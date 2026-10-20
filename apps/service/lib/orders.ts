@@ -9,13 +9,13 @@ type Tx = Prisma.TransactionClient;
 
 /* ---------- checkout ---------- */
 
-/** Creates a PENDING order from the given lines (or the session cart). Prices come from the DB, never the client. */
+/** Өгсөн мөрүүдээс (эсвэл сессийн сагснаас) PENDING захиалга үүсгэнэ. Үнийг клиентээс биш, өгөгдлийн сангаас авна. */
 export async function createOrder(user: User, input: CreateOrderInput) {
   const cart = input.items ? null : await prisma.cart.findUnique({ where: { userId: user.id }, include: { items: true } });
   const lines = input.items ?? cart?.items.map((i) => ({ productId: i.productId, qty: i.qty })) ?? [];
   if (!lines.length) throw new ApiError("BAD_REQUEST", "Сагс хоосон байна");
 
-  // merge duplicate lines
+  // давхардсан мөрүүдийг нэгтгэнэ
   const qty = new Map<number, number>();
   for (const l of lines) qty.set(l.productId, (qty.get(l.productId) ?? 0) + l.qty);
 
@@ -52,15 +52,15 @@ export async function createOrder(user: User, input: CreateOrderInput) {
       include: orderInclude,
     });
     if (cart) await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-    // remember the name for next time (guests have none yet)
+    // нэрийг дараагийн удаад санана (зочинд хараахан нэр байхгүй)
     if (!user.name) await tx.user.update({ where: { id: user.id }, data: { name: input.customer.name } });
     return order;
   });
 }
 
-/* ---------- stock ---------- */
+/* ---------- нөөц ---------- */
 
-/** Apply a stock change inside a transaction and log it. Stock never goes below 0. */
+/** Нөөцийн өөрчлөлтийг transaction дотор хийж бүртгэнэ. Нөөц хэзээ ч 0-ээс доош орохгүй. */
 export async function moveStock(
   tx: Tx,
   productId: number,
@@ -78,12 +78,11 @@ export async function moveStock(
   });
 }
 
-/* ---------- payment ---------- */
+/* ---------- төлбөр ---------- */
 
 /**
- * PENDING/EXPIRED → PAID. Deducts stock once (the status check makes this
- * idempotent when QPay's callback and the polling check race).
- * Returns false when the order was not payable any more.
+ * PENDING/EXPIRED → PAID. Нөөцийг ганц удаа хасна (QPay callback ба polling зэрэг ирэхэд төлөвийн шалгалт давхардлаас сэргийлнэ).
+ * Захиалга төлөх боломжгүй болсон бол false буцаана.
  */
 export async function markPaid(
   orderId: string,
@@ -103,7 +102,7 @@ export async function markPaid(
   });
 }
 
-/* ---------- staff actions ---------- */
+/* ---------- ажилтны үйлдэл ---------- */
 
 type Actor = Pick<User, "id" | "name">;
 const actorOf = (u: Actor) => ({ id: u.id, name: u.name ?? "Админ" });
@@ -117,10 +116,8 @@ export async function findOrder(number: string) {
 export type StatusTarget = "PAID" | "PREPARING" | "SHIPPING" | "DELIVERED" | "PENDING" | "EXPIRED";
 
 /**
- * Staff status change from the dashboard.
- *  PAID                         confirm a payment manually (stock is deducted)
- *  PREPARING/SHIPPING/DELIVERED delivery progress; needs a paid order; earlier steps get a timestamp too
- *  PENDING ↔ EXPIRED            reopen an expired invoice / expire it by hand
+ * Самбараас ажилтны төлөв өөрчлөх: PAID — төлбөрийг гараар баталгаажуулна (нөөц хасагдана);
+ * PREPARING/SHIPPING/DELIVERED — төлөгдсөн захиалга шаардана, өмнөх алхмууд ч цагтай болно; PENDING ↔ EXPIRED — нэхэмжлэхийг дахин нээх / гараар дуусгах.
  */
 export async function setStatus(o: Order, to: StatusTarget, by: Actor) {
   const now = new Date();
@@ -152,7 +149,7 @@ export async function setStatus(o: Order, to: StatusTarget, by: Actor) {
   await prisma.order.update({ where: { id: o.id }, data });
 }
 
-/** Cancel; a paid order is refunded through QPay and its stock comes back. */
+/** Цуцлах; төлөгдсөн захиалгын мөнгийг QPay-ээр буцааж, нөөцийг нь буцаана. */
 export async function cancelOrder(o: Order, reason: string, comment: string, by: Actor) {
   if (o.paymentStatus === "CANCELLED") throw conflict("Захиалга аль хэдийн цуцлагдсан байна");
   if (o.paymentStatus === "EXPIRED") throw conflict("Хугацаа нь дууссан захиалгыг цуцлах шаардлагагүй");

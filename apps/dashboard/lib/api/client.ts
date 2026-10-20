@@ -1,9 +1,8 @@
 import type { ApiErrorBody } from "@repo/types";
 
 /*
- * The browser calls /api/v1 on the dashboard's own origin; next.config rewrites
- * /api/* to apps/service (API_URL). The admin session is an httpOnly cookie the
- * service sets — first-party for this domain, so proxy.ts can see it too.
+ * Хөтөч /api/v1-ийг самбарын өөрийн домэйноос дуудаж, next.config нь apps/service (API_URL) руу дамжуулна.
+ * Тиймээс админы httpOnly күүки энэ домэйнд first-party байж, proxy.ts ч харж чадна.
  */
 const BASE = "/api/v1";
 
@@ -18,11 +17,11 @@ export class ApiError extends Error {
   }
 }
 
-/** Called on a 401 — set by lib/api/auth.ts so an expired session goes back to /login. */
+/** 401 ирэхэд дуудагдана — lib/api/auth.ts тохируулж, хугацаа дууссан сессийг /login руу буцаана. */
 let onUnauthorized: (() => void) | null = null;
 export const setUnauthorizedHandler = (fn: () => void) => (onUnauthorized = fn);
 
-/** Call /api/v1 with the staff session cookie; errors carry the server's Mongolian message. */
+/** Ажилтны сесс күүкитэй /api/v1 дуудах; алдаа серверийн монгол мессежийг агуулна. */
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   let res: Response;
   try {

@@ -3,11 +3,8 @@ import { vehicleQuery } from "@repo/types";
 import { ok, query, route } from "@/lib/http";
 
 /**
- * Vehicle finder cascade (Үйлдвэрлэгч → Загвар → Он → Хөдөлгүүр):
- *   no params        → { makes }
- *   make             → { models }
- *   make+model       → { years }   newest first
- *   make+model+year  → { engines }
+ * Машин сонгогчийн шат (Үйлдвэрлэгч → Загвар → Он → Хөдөлгүүр):
+ * параметргүй → { makes } · make → { models } · make+model → { years } (шинэ нь эхэнд) · make+model+year → { engines }
  */
 export const GET = route(async (req) => {
   const q = query(req, vehicleQuery);

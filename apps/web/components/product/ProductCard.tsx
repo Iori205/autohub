@@ -63,7 +63,7 @@ export function ProductCard({ product: p }: { product: Product }) {
         )}
         <div style={{ flex: 1 }} />
 
-        {/* desktop footer */}
+        {/* desktop хөл */}
         <div className="not-mobile">
           <div className={styles.priceBlock}>
             <div className={styles.priceRow}>
@@ -88,7 +88,7 @@ export function ProductCard({ product: p }: { product: Product }) {
           </button>
         </div>
 
-        {/* mobile footer */}
+        {/* гар утасны хөл */}
         <div className={`only-mobile ${styles.mFoot}`}>
           <div className={styles.mPrice}>
             <span className={styles.price}>{fmt(p.price)}</span>

@@ -1,9 +1,8 @@
 import { useSyncExternalStore } from "react";
 
 /**
- * Tiny external store with optional localStorage persistence.
- * The server snapshot is always `initial`, so SSR output is deterministic;
- * the persisted value takes over right after hydration.
+ * localStorage-д хадгалж болох жижиг гадаад store. Серверийн snapshot үргэлж `initial` тул SSR тогтвортой;
+ * хадгалсан утга hydration-ий дараа орж ирнэ.
  */
 export function createStore<T extends object>(
   initial: T,
@@ -21,7 +20,7 @@ export function createStore<T extends object>(
       const raw = localStorage.getItem(opts.key);
       if (raw) state = { ...initial, ...(JSON.parse(raw) as Partial<T>) };
     } catch {
-      /* ignore corrupt storage */
+      /* эвдэрсэн хадгалалтыг үл тооно */
     }
   };
 
@@ -41,7 +40,7 @@ export function createStore<T extends object>(
           JSON.stringify(opts.persist ? opts.persist(state) : state),
         );
       } catch {
-        /* storage full / disabled */
+        /* хадгалах сан дүүрсэн / идэвхгүй */
       }
     }
     listeners.forEach((l) => l());

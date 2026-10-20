@@ -4,23 +4,20 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import nextEnv from "@next/env";
 
-// One .env at the repo root (see .env.example).
+// Repo-ийн язгуур дахь нэг .env (.env.example-ийг үз).
 let root = path.dirname(fileURLToPath(import.meta.url));
 while (!existsSync(path.join(root, "turbo.json")) && path.dirname(root) !== root) root = path.dirname(root);
 nextEnv.loadEnvConfig(root);
 
 /*
- * apps/service base URL (server-only, never sent to the browser). The browser
- * calls /api/* on this site and Next.js forwards it there, so session cookies
- * are first-party for this domain (separate *.vercel.app domains can't share
- * cookies). Server-side fetches use API_URL directly (lib/api/client.ts).
- * Rewrites are fixed at build time, so API_URL must be set for `next build`.
+ * apps/service-ийн хаяг (зөвхөн серверт, хөтөч рүү илгээгддэггүй). Хөтөч энэ сайтын /api/*-ийг дуудаж Next.js тийш дамжуулдаг тул
+ * күүки энэ домэйнд first-party (тусдаа *.vercel.app домэйн күүки хуваалцаж чаддаггүй). Rewrite build үед тогтдог тул `next build`-д API_URL заавал.
  */
 const PRODUCTION = ["phase-production-build", "phase-production-server"];
 
 /** @param {string} phase @returns {import('next').NextConfig} */
 export default function nextConfig(phase) {
-  // `next build` / `next start` need the real URL; dev and `next typegen` (type-checks) fall back to the local service
+  // `next build` / `next start`-д жинхэнэ URL хэрэгтэй; dev болон `next typegen` локал сервис рүү буцна
   const strict = PRODUCTION.includes(phase) && !process.argv.includes("typegen");
   const apiUrl = (process.env.API_URL || (strict ? "" : "http://localhost:4000")).replace(/\/$/, "");
   if (apiUrl) process.env.API_URL = apiUrl;

@@ -129,7 +129,7 @@ export function Header({ session, onMenu }: { session: Session; onMenu: () => vo
         })),
     ];
   }, [db]);
-  // "Read" is remembered against the notification count at that moment.
+  // «Уншсан» төлөвийг тухайн үеийн мэдэгдлийн тоотой харьцуулж санана.
   const unread = readAt === notifs.length ? 0 : notifs.length;
 
   const go = (href: string) => {
@@ -266,7 +266,7 @@ export function Header({ session, onMenu }: { session: Session; onMenu: () => vo
               style={{ color: "var(--danger)" }}
               onClick={async () => {
                 setMenu(null);
-                await logout(); // AdminShell's guard then redirects to /login
+                await logout(); // дараа нь AdminShell-ийн хамгаалалт /login руу шилжүүлнэ
                 toast("Системээс гарлаа", "info");
               }}
             >

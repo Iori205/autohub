@@ -8,10 +8,7 @@ import type {
 } from "@repo/types";
 import type { CartLine, Category, CategoryKey, Order, PayStatus, Product, VehicleModel } from "../types";
 
-/*
- * API (apps/service) → storefront types. The pages and components were built
- * against these shapes, so mapping here keeps the UI unchanged.
- */
+/* API (apps/service) → дэлгүүрийн төрлүүд; хуудас, компонентууд эдгээр бүтэцтэй ажилладаг. */
 
 export function toProduct(p: ProductSummaryDto | ProductDetailDto): Product {
   const specs = "specs" in p ? p.specs.map((s) => [s.k, s.v] as [string, string]) : [];
@@ -39,7 +36,7 @@ export const toCategory = (c: CategoryDto): Category => ({
   countLabel: c.countLabel ?? `${c.productCount} бараа`,
 });
 
-/** Vehicle rows (one per engine) → one entry per make + model with its engines. */
+/** Машины мөрүүд (хөдөлгүүр бүрт нэг) → make + model бүрт хөдөлгүүрүүдтэйгээ нэг бичлэг. */
 export function toVehicleModels(rows: VehicleDto[]): VehicleModel[] {
   const map = new Map<string, VehicleModel>();
   for (const v of rows) {
@@ -59,7 +56,7 @@ export const toCartLines = (c: CartDto): CartLine[] => c.items.map((l) => ({ pro
 
 const ms = (iso: string | null) => (iso ? new Date(iso).getTime() : 0);
 
-/** Customer-cancelled payments come back as EXPIRED with a CANCELLED invoice. */
+/** Хэрэглэгчийн цуцалсан төлбөр CANCELLED нэхэмжлэхтэй EXPIRED болж ирнэ. */
 function payStatus(o: OrderDto): PayStatus {
   if (o.paymentStatus === "PAID") return "paid";
   if (o.paymentStatus === "CANCELLED") return "cancelled";

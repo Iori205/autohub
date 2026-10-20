@@ -1,4 +1,4 @@
-// Server-safe: the settings page validates ?tab= on the server.
+// Сервер талд ч ашиглаж болно: тохиргооны хуудас ?tab=-ийг сервер дээр шалгана.
 
 export const SETTINGS_TABS = ["store", "delivery", "qpay", "admins"] as const;
 export type SettingsTab = (typeof SETTINGS_TABS)[number];

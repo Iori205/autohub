@@ -1,11 +1,11 @@
 import type { StoreSettings } from "@repo/types";
 
-// Server-safe: the layout builds this on the server and hands it to <SiteProvider>.
+// Сервер талд ч ашиглаж болно: layout үүнийг сервер дээр бэлдээд <SiteProvider>-д өгнө.
 
-/** Store contact details from the dashboard's Тохиргоо → Дэлгүүр (apps/service /settings). */
+/** Самбарын Тохиргоо → Дэлгүүр хэсгийн холбоо барих мэдээлэл (apps/service /settings). */
 export interface StoreInfo {
   name: string;
-  /** "+976 7711-2233" */
+  /** «+976 7711-2233» */
   phone: string;
   phoneHref: string;
   email: string;

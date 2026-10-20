@@ -4,8 +4,8 @@ import { ownOrder } from "@/lib/own-order";
 import { openInvoice } from "@/lib/payments";
 
 /**
- * QPay invoice for the payment screen: { qrImage, qrText, urls (bank apps), expiresAt }.
- * Reuses a still-valid invoice; otherwise issues a new 15-minute one (also after expiry).
+ * Төлбөрийн дэлгэцийн QPay нэхэмжлэх: { qrImage, qrText, urls (банкны апп), expiresAt }.
+ * Хүчинтэй нэхэмжлэх байвал дахин ашиглана, үгүй бол шинэ 15 минутынхыг үүсгэнэ (хугацаа дууссаны дараа ч).
  */
 export const POST = route(async (req) => {
   const { number } = await body(req, paymentInput);

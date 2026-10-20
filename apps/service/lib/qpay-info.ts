@@ -3,9 +3,8 @@ import { callbackUrl, demoMode } from "./payments";
 import { qpayConfig, qpayConfigured } from "./qpay";
 
 /**
- * QPay status for Тохиргоо. Merchant credentials, the invoice code, the
- * environment (QPAY_BASE_URL) and DEMO_MODE all come from env and are
- * read-only here; secrets are never returned.
+ * Тохиргоо хуудасны QPay төлөв. Merchant мэдээлэл, нэхэмжлэхийн код, орчин (QPAY_BASE_URL), DEMO_MODE бүгд env-ээс ирж
+ * энд зөвхөн уншигдана; нууц утгыг хэзээ ч буцаахгүй.
  */
 export function qpayInfo(saved: { invoiceCode: string; env: "sandbox" | "production" }): QPaySettingsDto {
   const c = qpayConfig();
