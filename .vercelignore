@@ -1,0 +1,12 @@
+# Vercel CLI-ээр байршуулахад илгээхгүй файлууд (.gitignore-ийг CLI уншдаггүй).
+.env
+.env.*
+!.env.example
+node_modules
+**/.next
+**/.turbo
+**/screenshots
+apps/e2e/results
+packages/db/src/generated
+*.tsbuildinfo
+.DS_Store
