@@ -159,7 +159,9 @@ export async function run(ctx: Ctx) {
     await page.getByText("ТАНЫ САГС · 2 БАРАА", { exact: true }).waitFor();
     expect((await page.getByText("Захиалга өгөхийн тулд нэвтэрнэ үү").count()) > 0, "gate note missing");
     expect((await page.locator("aside").getByText(p.name).count()) > 0, "cart line missing in the summary");
-    return "no store chrome; cart summary (2 × #17) on the right";
+    const c = (await bctx.cookies()).find((x) => x.name === "autohub_customer");
+    expect(c?.httpOnly && c.secure && c.sameSite === "Lax" && c.domain === new URL(ctx.web).hostname, `customer cookie ${JSON.stringify(c && { ...c, value: "…" })}`);
+    return "no store chrome; cart summary (2 × #17) on the right; first-party Secure customer cookie";
   });
 
   await s.step(W, "Register → back to checkout, name + phone pre-filled, cart intact", async () => {

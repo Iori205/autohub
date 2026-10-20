@@ -16,7 +16,12 @@
     "QPAY_PASSWORD",
     "QPAY_INVOICE_CODE",
     "DEMO_MODE",
-    "NEXT_PUBLIC_API_URL"
+    "API_URL",
+    "DATABASE_POOL_MAX"
+  ],
+  "globalPassThroughEnv": [
+    "VERCEL",
+    "VERCEL_ENV"
   ],
   "tasks": {
     "build": {

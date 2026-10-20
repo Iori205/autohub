@@ -31,14 +31,20 @@ nothing; the service connects as the table owner and isn't affected.
 - Errors: `{ "error": { "code", "message", "fields"? } }` with 400 / 401 / 403 / 404 / 409 / 422 / 429 / 500.
   Validation errors (422) map field paths to Mongolian messages, e.g. `"delivery.address": "Дэлгэрэнгүй хаягаа оруулна уу"`.
 - Money is whole tögrög; dates are ISO strings; business days are Ulaanbaatar days (UTC+8).
-- CORS: only `CORS_ORIGINS` (web :3000, dashboard :3001) get credentialed access. Call with `credentials: "include"`.
-- Sessions are httpOnly cookies signed with `AUTH_SECRET`:
+- The frontends call `/api/*` on their own origin and proxy it here (`next.config.js` rewrites to
+  `API_URL`), so cookies are first-party and no CORS is involved. `CORS_ORIGINS` (exact origins, never
+  `*`) only matters for direct cross-origin calls; unset = localhost:3000/3001 in dev, none in production.
+- Sessions are httpOnly cookies signed with `AUTH_SECRET` (Secure + SameSite=Lax + Path=/ in production,
+  host-only for the frontend that proxied the request):
   - `autohub_customer` — storefront. A **guest** session is created automatically the first time
     the cart, wishlist or orders are used; registering upgrades the guest in place, logging in moves
     the guest's cart/wishlist/orders into the account.
   - `autohub_admin_session` — dashboard staff (the name the dashboard's `proxy.ts` checks).
     Roles: `OPERATOR` (orders, products, stock, catalog, marketing) and `ADMIN` (+ settings, staff).
-- Login endpoints are throttled (10 failed attempts / 15 min per IP + login).
+- Login endpoints are throttled (10 failed attempts / 15 min per IP + login), stored in the
+  `LoginThrottle` table so the limit holds across serverless instances.
+- Production config is checked at server start (`instrumentation.ts` → `validateEnv()`); see
+  [DEPLOY.md](../../DEPLOY.md).
 
 ## Storefront
 

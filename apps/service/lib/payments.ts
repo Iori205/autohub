@@ -2,6 +2,7 @@ import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { prisma, type Order, type PaymentInvoice, type Prisma } from "@repo/db";
 import { orderStage, type BankLinkDto, type PaymentStateDto, type QPayInvoiceDto } from "@repo/types";
 import qrcode from "qrcode-generator";
+import { pruneThrottle } from "./auth";
 import { env } from "./env";
 import { ApiError, conflict } from "./http";
 import { INVOICE_TTL_MS, markPaid } from "./orders";
@@ -30,8 +31,7 @@ export function validCallbackSig(number: string, sig: string | null) {
 }
 
 export function callbackUrl(number: string) {
-  const base = (process.env.PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
-  return `${base}/api/v1/payments/qpay/callback?order=${encodeURIComponent(number)}&sig=${callbackSig(number)}`;
+  return `${env.publicApiUrl}/api/v1/payments/qpay/callback?order=${encodeURIComponent(number)}&sig=${callbackSig(number)}`;
 }
 
 /* ---------- DTOs ---------- */
@@ -249,7 +249,11 @@ let lastSweep = 0;
 
 /**
  * Expires PENDING orders whose invoice ran out (plus a short grace for late
- * QPay confirmations). Throttled; called from order reads, so no cron is needed.
+ * QPay confirmations). Called from order reads, so no cron is needed. The
+ * 30 s throttle is per server instance — on serverless several instances may
+ * sweep at once, which is harmless (expiring is conditional on PENDING). A
+ * small batch checked in parallel keeps the request well inside function
+ * time limits (QPay calls time out after 10 s); the rest go next time.
  */
 export async function sweepExpired(force = false) {
   const now = Date.now();
@@ -258,10 +262,10 @@ export async function sweepExpired(force = false) {
   const cutoff = new Date(now - GRACE_MS);
   const stale = await prisma.order.findMany({
     where: { paymentStatus: "PENDING", invoiceExpiresAt: { lt: cutoff } },
-    take: 50,
+    orderBy: { invoiceExpiresAt: "asc" },
+    take: 10,
   });
-  for (const o of stale) {
-    // real invoices get one last check, so a late payment isn't lost
-    await checkPayment(o, { grace: GRACE_MS }).catch(() => expire(o));
-  }
+  // real invoices get one last check, so a late payment isn't lost
+  await Promise.allSettled(stale.map((o) => checkPayment(o, { grace: GRACE_MS }).catch(() => expire(o))));
+  void pruneThrottle().catch(() => {});
 }

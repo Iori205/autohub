@@ -22,5 +22,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/|favicon.ico|.*\\.[\\w]+$).*)"],
+  // /api/* is the proxied apps/service (it answers 401 itself), not a page
+  matcher: ["/((?!api/|_next/|favicon.ico|.*\\.[\\w]+$).*)"],
 };

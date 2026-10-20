@@ -2,6 +2,7 @@
  * QPay flow checks against a running service on a seeded dev DB.
  *   MODE=demo (default)  server runs with DEMO_MODE=true
  *   MODE=off             server runs with DEMO_MODE=false and no QPay credentials
+ *                        (`next dev` only: a production server refuses to start that way)
  *   MODE=sandbox         server runs with DEMO_MODE=false and QPay sandbox credentials
  * AUTH_SECRET (same as the server's) enables the signed-callback checks.
  *

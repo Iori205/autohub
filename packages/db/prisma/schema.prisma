@@ -420,3 +420,12 @@ model Setting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+// ---------- login throttle ----------
+
+/// Failed login / lookup attempts per "ip|key", shared by every serverless instance.
+model LoginThrottle {
+  key   String   @id
+  count Int      @default(0)
+  until DateTime
+}

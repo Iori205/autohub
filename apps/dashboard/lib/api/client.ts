@@ -1,7 +1,11 @@
 import type { ApiErrorBody } from "@repo/types";
 
-/** apps/service base URL. The admin session is an httpOnly cookie set by the service. */
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+/*
+ * The browser calls /api/v1 on the dashboard's own origin; next.config rewrites
+ * /api/* to apps/service (API_URL). The admin session is an httpOnly cookie the
+ * service sets — first-party for this domain, so proxy.ts can see it too.
+ */
+const BASE = "/api/v1";
 
 export class ApiError extends Error {
   constructor(
@@ -22,7 +26,7 @@ export const setUnauthorizedHandler = (fn: () => void) => (onUnauthorized = fn);
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/api/v1${path}`, {
+    res = await fetch(`${BASE}${path}`, {
       method: init.method ?? "GET",
       headers: init.body !== undefined ? { "content-type": "application/json" } : undefined,
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,

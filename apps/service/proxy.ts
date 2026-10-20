@@ -1,12 +1,12 @@
-import "./lib/load-env";
 import { NextResponse, type NextRequest } from "next/server";
+import { env } from "./lib/env";
 
 /**
- * CORS for the storefront and the dashboard. Only origins in CORS_ORIGINS get
- * credentialed access; preflight requests are answered here.
+ * CORS for browsers that call the API directly (local dev without the proxy).
+ * In production the frontends proxy /api/* from their own origin, so no CORS
+ * is involved; only exact origins in CORS_ORIGINS ever get credentialed access.
  */
-const origins = () =>
-  (process.env.CORS_ORIGINS ?? "http://localhost:3000,http://localhost:3001").split(",").map((s) => s.trim());
+const origins = () => env.corsOrigins;
 
 function cors(res: NextResponse, origin: string | null) {
   if (origin && origins().includes(origin)) {

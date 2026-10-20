@@ -69,9 +69,13 @@ export async function run(ctx: Ctx) {
     await page.waitForURL("**/products");
     const cookie = (await bctx.cookies()).find((c) => c.name === "autohub_admin_session");
     expect(cookie?.httpOnly, "no httpOnly autohub_admin_session cookie");
+    // production flags, and first-party: set for the dashboard's own host via its /api proxy
+    const host = new URL(ctx.dashboard).hostname;
+    expect(cookie!.secure && cookie!.sameSite === "Lax" && cookie!.path === "/", `flags secure=${cookie!.secure} sameSite=${cookie!.sameSite}`);
+    expect(cookie!.domain === host, `cookie domain ${cookie!.domain} ≠ ${host}`);
     const u = await prisma.user.findFirstOrThrow({ where: { email: "admin@autohub.mn" } });
     expect(u.lastSeenAt && Date.now() - u.lastSeenAt.getTime() < 60_000, "lastSeenAt not updated");
-    return "httpOnly cookie from apps/service; back to ?next";
+    return `HttpOnly + Secure + SameSite=Lax cookie on ${host} (first-party via /api proxy); back to ?next`;
   });
 
   /* ---------- dashboard ---------- */
@@ -136,7 +140,7 @@ export async function run(ctx: Ctx) {
     pid = p.id;
     const lc = await prisma.vehicle.count({ where: { model: "Land Cruiser 200", yearFrom: { lte: 2015 }, yearTo: { gte: 2015 } } });
     expect(p.oemNumbers.join() === "E2E-0001,E2E-0002", `oem ${p.oemNumbers}`);
-    expect(p.images.length === 1 && p.images[0]!.startsWith("data:image/png"), `images ${p.images.length}`);
+    expect(p.images.length === 1 && p.images[0]!.startsWith("data:image/jpeg") /* shrunk to JPEG before upload */, `images ${p.images.length}`);
     expect(p.price === 45000 && p.oldPrice === 52000 && p.stock === 12 && p.lowStockThreshold === 4, `price/stock ${p.price}/${p.oldPrice}/${p.stock}/${p.lowStockThreshold}`);
     expect(p.brand.name === "Bosch" && p.category.slug === "filter" && p.type === "AFTERMARKET", `${p.brand.name} ${p.category.slug} ${p.type}`);
     expect(p.fitments.length === lc && lc > 0, `fitments ${p.fitments.length}, LC200 engines in 2015: ${lc}`);
@@ -146,7 +150,7 @@ export async function run(ctx: Ctx) {
     await go(`/products/${pid}`);
     expect((await page.getByPlaceholder("жишээ: Тоормосны дэвсгэр, урд").inputValue()) === NAME, "name not loaded after reload");
     expect(await shows("E2E-0002"), "OEM chip missing after reload");
-    expect(await page.locator("img[src^='data:image/png']").count(), "image missing after reload");
+    expect(await page.locator("img[src^='data:image/jpeg']").count(), "image missing after reload");
     return `#${pid}: 2 OEM, 1 image, ${lc} fitments (every LC200 engine in 2015), stock movement logged`;
   });
 
@@ -644,7 +648,8 @@ export async function run(ctx: Ctx) {
     expect((await pg.getByRole("button", { name: /Хадгалах/ }).count()) === 0, "operator sees Save");
     await go("/settings?tab=admins", pg);
     expect((await pg.getByRole("button", { name: "Урих" }).count()) === 0, "operator sees Invite");
-    const r = await pg.request.put(`${ctx.api}/api/v1/admin/settings/store`, {
+    // through the dashboard's /api proxy, with the operator's first-party session cookie
+    const r = await pg.request.put(`${ctx.dashboard}/api/v1/admin/settings/store`, {
       data: { name: "x", phone: "7711-2233", email: "", address: "", hours: "" },
     });
     expect(r.status() === 403, `PUT settings as operator → ${r.status()}`);
@@ -694,8 +699,7 @@ export async function run(ctx: Ctx) {
       const userId = await sessionUserId(web!);
       await eventually(async () => (await prisma.cartItem.count({ where: { cart: { userId } } })) === 1, "cart row not in DB");
       // checkout needs an account: register this guest (same browser cookies; the cart stays)
-      const reg = await web!.request.post(`${ctx.api}/api/v1/auth/register`, {
-        headers: { origin: ctx.web },
+      const reg = await web!.request.post(`${ctx.web}/api/v1/auth/register`, {
         data: { name: "Кросс Апп", phone: "88003344", password: "e2e-secret-2" },
       });
       expect(reg.status() === 201, `register → ${reg.status()}`);

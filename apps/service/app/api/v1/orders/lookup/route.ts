@@ -9,12 +9,12 @@ import { sweepExpired } from "@/lib/payments";
 export const POST = route(async (req) => {
   await sweepExpired();
   const { phone, number } = await body(req, orderLookupInput);
-  const t = throttle(req, `lookup:${phone}`);
+  const t = await throttle(req, `lookup:${phone}`);
   const o = await prisma.order.findFirst({ where: { number, customerPhone: phone }, include: orderInclude });
   if (!o) {
-    t.fail();
+    await t.fail();
     throw notFound("Ийм утас, дугаартай захиалга олдсонгүй");
   }
-  t.reset();
+  await t.reset();
   return ok<OrderDto>(orderDto(o));
 });

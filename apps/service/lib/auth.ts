@@ -11,8 +11,10 @@ import { ApiError } from "./http";
  * Sessions are signed JWTs in httpOnly cookies.
  *   autohub_customer       storefront: guest or registered customer
  *   autohub_admin_session  dashboard staff (same name the dashboard's proxy checks)
- * Cookies are shared across ports on localhost and across subdomains in
- * production (COOKIE_DOMAIN), so web/dashboard can call the API with credentials.
+ * The frontends proxy /api/* to this service (next.config rewrites), so the
+ * browser receives these cookies from its own site: host-only, first-party,
+ * Secure + HttpOnly + SameSite=Lax in production. COOKIE_DOMAIN stays unset
+ * unless web and dashboard deliberately share a parent domain.
  */
 export const CUSTOMER_COOKIE = "autohub_customer";
 export const ADMIN_COOKIE = "autohub_admin_session";
@@ -57,7 +59,14 @@ async function setCookie(name: string, value: string, maxAge: number | undefined
 }
 
 async function clearCookie(name: string) {
-  (await cookies()).set(name, "", { httpOnly: true, sameSite: "lax", path: "/", domain: env.cookieDomain, maxAge: 0 });
+  (await cookies()).set(name, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env.secureCookies,
+    path: "/",
+    domain: env.cookieDomain,
+    maxAge: 0,
+  });
 }
 
 /* ---------- passwords ---------- */
@@ -111,21 +120,39 @@ export async function requireStaff(req: NextRequest, need: StaffRole = "OPERATOR
   return user;
 }
 
-/* ---------- login throttling (per process; fine for one instance) ---------- */
+/* ---------- login throttling (in the database: shared by all serverless instances) ---------- */
 
-const attempts = new Map<string, { n: number; until: number }>();
-const WINDOW = 15 * 60e3;
+const WINDOW_MIN = 15;
 const MAX = 10;
 
-export function throttle(req: NextRequest, key: string) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  const k = `${ip}|${key.toLowerCase()}`;
-  const now = Date.now();
-  const a = attempts.get(k);
-  if (a && a.until > now && a.n >= MAX)
+/** Client IP as Vercel reports it (the first x-forwarded-for hop), else a shared bucket. */
+const clientIp = (req: NextRequest) =>
+  req.headers.get("x-real-ip")?.trim() || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
+
+/** 10 failed attempts per IP + key within 15 minutes → 429 until the window ends. */
+export async function throttle(req: NextRequest, key: string): Promise<{ fail: () => Promise<void>; reset: () => Promise<void> }> {
+  const k = `${clientIp(req)}|${key.toLowerCase()}`.slice(0, 300);
+  const a = await prisma.loginThrottle.findUnique({ where: { key: k } });
+  if (a && a.until.getTime() > Date.now() && a.count >= MAX)
     throw new ApiError("RATE_LIMITED", "Хэт олон оролдлого. 15 минутын дараа дахин оролдоно уу");
   return {
-    fail: () => attempts.set(k, a && a.until > now ? { n: a.n + 1, until: a.until } : { n: 1, until: now + WINDOW }),
-    reset: () => attempts.delete(k),
+    // one atomic upsert, so parallel failures on different instances all count
+    fail: async () => {
+      await prisma.$executeRaw`
+        INSERT INTO "LoginThrottle" ("key", "count", "until")
+        VALUES (${k}, 1, now() + make_interval(mins => ${WINDOW_MIN}))
+        ON CONFLICT ("key") DO UPDATE SET
+          "count" = CASE WHEN "LoginThrottle"."until" > now() THEN "LoginThrottle"."count" + 1 ELSE 1 END,
+          "until" = CASE WHEN "LoginThrottle"."until" > now() THEN "LoginThrottle"."until"
+                         ELSE now() + make_interval(mins => ${WINDOW_MIN}) END`;
+    },
+    reset: async () => {
+      await prisma.loginThrottle.deleteMany({ where: { key: k } });
+    },
   };
+}
+
+/** Drop finished windows (called from the periodic expiry sweep). */
+export async function pruneThrottle(): Promise<void> {
+  await prisma.loginThrottle.deleteMany({ where: { until: { lt: new Date() } } });
 }

@@ -119,9 +119,9 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
       .slice(0, MAX_IMAGES)
       .forEach((f) => {
         if (f.size > 5 * 1024 * 1024) return toast(`${f.name}: 5MB-аас их байна`, "err");
-        const r = new FileReader();
-        r.onload = () => setD((x) => ({ ...x, images: [...x.images, String(r.result)].slice(0, MAX_IMAGES) }));
-        r.readAsDataURL(f);
+        void shrinkImage(f)
+          .then((url) => setD((x) => ({ ...x, images: [...x.images, url].slice(0, MAX_IMAGES) })))
+          .catch(() => toast(`${f.name}: зургийг уншиж чадсангүй`, "err"));
       });
   };
   const onDrop = (e: DragEvent) => {
@@ -559,4 +559,34 @@ function ProductForm({ db, product }: { db: Db; product?: Product }) {
       </div>
     </>
   );
+}
+
+/**
+ * Images are stored inline (data URLs) with the product, and request/response
+ * bodies on Vercel are capped at 4.5 MB — so photos are scaled down to at most
+ * 1280 px and re-encoded as JPEG (typically 100–300 KB) before upload.
+ */
+function shrinkImage(file: File, max = 1280, quality = 0.82): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const src = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(src);
+      const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * k);
+      canvas.height = Math.round(img.naturalHeight * k);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("canvas"));
+      ctx.fillStyle = "#fff"; // transparent PNGs become white, not black
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(src);
+      reject(new Error("image"));
+    };
+    img.src = src;
+  });
 }

@@ -8,7 +8,12 @@
  * 1. starts a fresh `prisma dev` Postgres (never Supabase), migrates and seeds it
  * 2. builds and starts apps/service (DEMO_MODE) and the frontends on test ports
  *    (API 4100, web 3100, dashboard 3101) — your dev servers on 3000/3001/4000
- *    keep running
+ *    keep running. Production-like: `next start` (NODE_ENV=production, Secure
+ *    cookies), each frontend on its own host (web.localhost, admin.localhost —
+ *    separate cookie jars, like separate *.vercel.app domains) and the browser
+ *    reaching the API only through the frontends' /api/* rewrite (no CORS).
+ *    Chromium treats *.localhost as a secure context, so Secure cookies work
+ *    over http here.
  * 3. drives the UIs with Playwright and checks the database directly
  * 4. writes apps/e2e/results/report.md and stops everything
  */
@@ -103,8 +108,10 @@ async function main() {
   process.env.DATABASE_URL = DATABASE_URL; // for the DB assertions in the specs
   process.env.DATABASE_POOL_MAX = "1";
 
-  const API = `http://localhost:${PORTS.api}`;
-  const common = { NEXT_PUBLIC_API_URL: API };
+  const API = `http://127.0.0.1:${PORTS.api}`; // server-to-server only (rewrites, SSR, DB-side checks)
+  const WEB = `http://web.localhost:${PORTS.web}`;
+  const DASH = `http://admin.localhost:${PORTS.dashboard}`;
+  const common = { API_URL: API };
   await startApp(
     "service",
     PORTS.api,
@@ -117,18 +124,19 @@ async function main() {
       QPAY_PASSWORD: "",
       QPAY_INVOICE_CODE: "",
       PUBLIC_API_URL: API,
-      CORS_ORIGINS: `http://localhost:${PORTS.web},http://localhost:${PORTS.dashboard}`,
+      CORS_ORIGINS: "", // the browser never calls the API cross-origin
+      COOKIE_DOMAIN: "",
     },
     `${API}/api/v1/health`,
   );
   // the dashboard spec also needs the storefront for its cross-app checks
-  await startApp("web", PORTS.web, common, `http://localhost:${PORTS.web}/`);
-  if (which !== "web") await startApp("dashboard", PORTS.dashboard, common, `http://localhost:${PORTS.dashboard}/login`);
+  await startApp("web", PORTS.web, common, `${WEB}/`);
+  if (which !== "web") await startApp("dashboard", PORTS.dashboard, common, `${DASH}/login`);
 
   const ctx: Ctx = {
     api: API,
-    web: `http://localhost:${PORTS.web}`,
-    dashboard: `http://localhost:${PORTS.dashboard}`,
+    web: WEB,
+    dashboard: DASH,
     authSecret: AUTH_SECRET,
     staffPassword: "autohub123",
     out: OUT,

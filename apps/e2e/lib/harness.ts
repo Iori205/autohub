@@ -59,7 +59,9 @@ export class Suite {
       this.results.push({ page, action, status: opts.status ?? "ok", notes: note });
       process.stdout.write(`  ✓ ${page} · ${action}\n`);
     } catch (e) {
-      const msg = (e as Error).message.split("\n")[0]!;
+      // first non-empty line; Prisma puts the actual cause on the last one
+      const lines = ((e as Error).message ?? String(e)).split("\n").map((l) => l.trim()).filter(Boolean);
+      const msg = (lines[0]?.startsWith("Invalid `prisma") ? lines.at(-1) : lines[0]) ?? String(e);
       this.results.push({ page, action, status: "fail", notes: msg });
       process.stdout.write(`  ✗ ${page} · ${action} — ${msg}\n`);
       const shot = opts.page ?? this.browserCtx.pages()[0];

@@ -9,7 +9,6 @@
  */
 import process from "node:process";
 
-// eslint-disable-next-line turbo/no-undeclared-env-vars -- test script only
 const API = (process.env.API_URL ?? "http://localhost:4000") + "/api/v1";
 // eslint-disable-next-line turbo/no-undeclared-env-vars -- test script only
 const STAFF_PW = process.env.SEED_ADMIN_PASSWORD || "autohub123";

@@ -1,8 +1,17 @@
 import { unstable_rethrow } from "next/navigation";
 import type { ApiErrorBody } from "@repo/types";
 
-/** apps/service base URL (same for the browser and the Next.js server). */
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
+/**
+ * Where /api/v1 lives: in the browser this site itself (next.config rewrites
+ * /api/* to apps/service, so the session cookie is first-party); on the
+ * Next.js server apps/service directly (API_URL, server-only).
+ */
+function base() {
+  if (typeof window !== "undefined") return "";
+  const url = process.env.API_URL;
+  if (!url) throw new Error("API_URL is not set — the URL of apps/service");
+  return url.replace(/\/$/, "");
+}
 
 export class ApiError extends Error {
   constructor(
@@ -22,7 +31,7 @@ export class ApiError extends Error {
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
   let res: Response;
   try {
-    res = await fetch(`${API_URL}/api/v1${path}`, {
+    res = await fetch(`${base()}/api/v1${path}`, {
       method: init.method ?? "GET",
       headers: init.body !== undefined ? { "content-type": "application/json" } : undefined,
       body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
